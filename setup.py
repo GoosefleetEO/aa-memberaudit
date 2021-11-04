@@ -28,6 +28,7 @@ setup(
         "Environment :: Web Environment",
         "Framework :: Django",
         "Framework :: Django :: 3.1",
+        "Framework :: Django :: 3.2",
         "Intended Audience :: End Users/Desktop",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
@@ -35,6 +36,7 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
     ],
@@ -42,11 +44,9 @@ setup(
     install_requires=[
         "allianceauth>=2.8.0",
         "celery-once>=2.0.1",
-        "django-esi>=2.0.4",
         "django-eveuniverse>=0.8.0",
         "allianceauth-app-utils>=1.7",
         "humanize",
         "requests",
     ],
-    extras_require={"testing": ["django-webtest", "requests-mock"]},
 )
