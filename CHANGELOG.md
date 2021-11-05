@@ -7,11 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
-## [1.4.1] - 2021-11-04
+## [1.4.1] - 2021-11-05
 
 ### Changed
 
 - Added CI tests for AA 2.9 / Django 3.2
+
+### Fixed
+
+- Character Viewer Wallet panel not sorting correctly (Issue #103)
 
 ## [1.4.0] - 2021-07-01
 
