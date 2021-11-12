@@ -37,6 +37,7 @@ from ..managers.sections import (
     CharacterLoyaltyEntryManager,
     CharacterMailLabelManager,
     CharacterMailManager,
+    CharacterShipManager,
     CharacterSkillManager,
     CharacterSkillqueueEntryManager,
     CharacterSkillSetCheckManager,
@@ -794,6 +795,24 @@ class CharacterOnlineStatus(models.Model):
 
     def __str__(self) -> str:
         return str(self.character)
+
+
+class CharacterShip(models.Model):
+    """Current ship of a character"""
+
+    character = models.OneToOneField(
+        Character, on_delete=models.CASCADE, related_name="ship"
+    )
+    name = models.CharField(max_length=255)
+    eve_type = models.ForeignKey(EveType, on_delete=models.CASCADE, related_name="+")
+
+    objects = CharacterShipManager()
+
+    class Meta:
+        default_permissions = ()
+
+    def __str__(self) -> str:
+        return str(f"{self.character}-{self.ship}")
 
 
 class CharacterSkill(models.Model):

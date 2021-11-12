@@ -44,8 +44,8 @@ setup(
     install_requires=[
         "allianceauth>=2.8.0",
         "celery-once>=2.0.1",
-        "django-eveuniverse>=0.8.0",
-        "allianceauth-app-utils>=1.7",
+        "django-eveuniverse>=0.8.1",
+        "allianceauth-app-utils>=1.8.2",
         "humanize",
         "requests",
     ],

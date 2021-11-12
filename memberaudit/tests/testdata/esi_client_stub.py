@@ -91,6 +91,12 @@ _endpoints = [
         needs_token=True,
     ),
     EsiEndpoint(
+        "Location",
+        "get_characters_character_id_ship",
+        "character_id",
+        needs_token=True,
+    ),
+    EsiEndpoint(
         "Loyalty",
         "get_characters_character_id_loyalty_points",
         "character_id",

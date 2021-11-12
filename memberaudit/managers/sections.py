@@ -842,6 +842,20 @@ class CharacterMailLabelManager(models.Manager):
         )
 
 
+class CharacterShipManager(models.Manager):
+    def update_for_character(self, character: models.Model, ship_info: dict):
+        eve_type, _ = EveType.objects.get_or_create_esi(
+            id=ship_info.get("ship_type_id")
+        )
+        self.update_or_create(
+            character=character,
+            defaults={
+                "eve_type": eve_type,
+                "name": ship_info["ship_name"],
+            },
+        )
+
+
 class CharacterSkillqueueEntryManager(models.Manager):
     def update_for_character(self, character: models.Model, skillqueue):
         # TODO: Replace delete + create with create + update

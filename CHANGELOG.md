@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.5.0] - 2021-11-12
+
+### Added
+
+- Now also shows current ship of a character in the character viewer
+
 ## [1.4.1] - 2021-11-05
 
 ### Changed
