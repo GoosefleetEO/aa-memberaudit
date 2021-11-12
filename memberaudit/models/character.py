@@ -76,6 +76,7 @@ class Character(models.Model):
         LOYALTY = "loyalty", _("loyalty")
         MAILS = "mails", _("mails")
         ONLINE_STATUS = "online_status", _("online status")
+        SHIP = "ship", _("ship")
         SKILLS = "skills", _("skills")
         SKILL_QUEUE = "skill_queue", _("skill queue")
         SKILL_SETS = "skill_sets", _("skill sets")
@@ -122,6 +123,7 @@ class Character(models.Model):
         UpdateSection.LOYALTY: 2,
         UpdateSection.MAILS: 2,
         UpdateSection.ONLINE_STATUS: 1,
+        UpdateSection.SHIP: 1,
         UpdateSection.SKILLS: 2,
         UpdateSection.SKILL_QUEUE: 1,
         UpdateSection.WALLET_BALLANCE: 2,
@@ -879,6 +881,18 @@ class Character(models.Model):
                 "logins": online_info.get("logins"),
             },
         )
+
+    @fetch_token_for_character("esi-skills.read_skillqueue.v1")
+    def update_ship(self, token: Token):
+        """Update the ship for the given character."""
+        from .sections import CharacterShip
+
+        logger.info("%s: Fetching ship from ESI", self)
+        ship_info = esi.client.Location.get_characters_character_id_ship(
+            character_id=self.character_ownership.character.character_id,
+            token=token.valid_access_token(),
+        ).results()
+        CharacterShip.objects.update_for_character(self, ship_info)
 
     @fetch_token_for_character("esi-skills.read_skillqueue.v1")
     def update_skill_queue(self, token: Token, force_update: bool = False):

@@ -2166,6 +2166,18 @@ class TestCharacterUpdateOnlineStatus(TestCharacterUpdateBase):
 
 
 @patch(MODELS_PATH + ".character.esi")
+class TestCharacterUpdateShip(TestCharacterUpdateBase):
+    def test_should_update_all_fields(self, mock_esi):
+        # given
+        mock_esi.client = esi_client_stub
+        # when
+        self.character_1001.update_ship()
+        # then
+        self.assertEqual(self.character_1001.ship.eve_type, EveType.objects.get(id=603))
+        self.assertEqual(self.character_1001.ship.name, "Shooter Boy")
+
+
+@patch(MODELS_PATH + ".character.esi")
 class TestCharacterUpdateSkills(TestCharacterUpdateBase):
     @classmethod
     def setUpClass(cls) -> None:
