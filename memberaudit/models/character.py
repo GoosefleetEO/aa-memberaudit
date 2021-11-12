@@ -882,7 +882,7 @@ class Character(models.Model):
             },
         )
 
-    @fetch_token_for_character("esi-skills.read_skillqueue.v1")
+    @fetch_token_for_character("esi-location.read_ship_type.v1")
     def update_ship(self, token: Token):
         """Update the ship for the given character."""
         from .sections import CharacterShip
