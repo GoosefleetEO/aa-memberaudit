@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.5.1] - 2021-11-21
+
+### Fixed
+
+- Error when trying to delete users from memberaudit (or auth) (#104)
+
 ## [1.5.0] - 2021-11-12
 
 ### Added
