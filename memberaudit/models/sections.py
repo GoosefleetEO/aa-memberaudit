@@ -812,7 +812,7 @@ class CharacterShip(models.Model):
         default_permissions = ()
 
     def __str__(self) -> str:
-        return str(f"{self.character}-{self.ship}")
+        return str(f"{self.character}-{self.eve_type.name}")
 
 
 class CharacterSkill(models.Model):

@@ -31,6 +31,7 @@ from ..models import (
     CharacterDetails,
     CharacterMail,
     CharacterMailLabel,
+    CharacterShip,
     CharacterSkill,
     CharacterSkillqueueEntry,
     CharacterUpdateStatus,
@@ -2997,3 +2998,24 @@ class TestCharacterUpdateAttributes(TestCharacterUpdateBase):
         self.assertEqual(self.character_1001.attributes.memory, 18)
         self.assertEqual(self.character_1001.attributes.perception, 19)
         self.assertEqual(self.character_1001.attributes.willpower, 20)
+
+
+class TestCharacterShip(NoSocketsTestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        load_eveuniverse()
+        load_entities()
+        cls.character_1001 = create_memberaudit_character(1001)
+        cls.user = cls.character_1001.character_ownership.user
+
+    def test_str(self):
+        # given
+        CharacterShip.objects.create(
+            character=self.character_1001, eve_type=EveType.objects.get(id=603)
+        )
+        # when
+        result = str(self.character_1001.ship)
+        # then
+        self.assertIn("Bruce Wayne", result)
+        self.assertIn("Merlin", result)
