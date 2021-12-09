@@ -1,5 +1,6 @@
 import csv
 import logging
+from pathlib import Path
 
 from django.core.management.base import BaseCommand
 from django.utils.timezone import now
@@ -58,11 +59,12 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("No data found."))
             return
         filename = f'memberaudit_{options["topic"]}_{now().strftime("%Y%m%d")}.csv'
-        self.stdout.write(f"Writing data to file {filename}...")
-        with open(filename, "w", newline="") as csv_file:
+        path = Path(filename)
+        self.stdout.write(f"Writing data to file: {path.resolve()}")
+        with path.open("w", newline="") as csv_file:
             fieldnames = data[0].keys()
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
             writer.writeheader()
             for row in data:
                 writer.writerow(row)
-        self.stdout.write(self.style.SUCCESS("Done"))
+        self.stdout.write(self.style.SUCCESS("Done."))
