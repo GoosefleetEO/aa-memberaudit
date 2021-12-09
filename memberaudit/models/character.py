@@ -992,7 +992,7 @@ class Character(models.Model):
         )
 
     @fetch_token_for_character("esi-wallet.read_character_wallet.v1")
-    def update_wallet_journal(self, token):
+    def update_wallet_journal(self, token: Token) -> None:
         """syncs the character's wallet journal
 
         Note: Does not update unknown EvEntities.
@@ -1005,7 +1005,9 @@ class Character(models.Model):
         if MEMBERAUDIT_DEVELOPER_MODE:
             self._store_list_to_disk(journal, "wallet_journal")
 
-        self.wallet_journal.update_for_character(self, data_retention_cutoff(), journal)
+        self.wallet_journal.update_for_character(
+            character=self, cutoff_datetime=data_retention_cutoff(), journal=journal
+        )
 
     @fetch_token_for_character("esi-wallet.read_character_wallet.v1")
     def update_wallet_transactions(self, token):

@@ -1,3 +1,4 @@
+import datetime as dt
 from typing import Dict, List
 
 from django.db import models, transaction
@@ -1031,7 +1032,9 @@ class CharacterSkillSetCheckManager(models.Manager):
 
 
 class CharacterWalletJournalEntryManager(models.Manager):
-    def update_for_character(self, character, cutoff_datetime, journal):
+    def update_for_character(
+        self, character: models.Model, cutoff_datetime: dt.datetime, journal: list
+    ):
         entries_list = {
             obj.get("id"): obj
             for obj in journal
@@ -1064,6 +1067,7 @@ class CharacterWalletJournalEntryManager(models.Manager):
                     date=row.get("date"),
                     description=row.get("description"),
                     first_party=get_or_create_or_none("first_party_id", row, EveEntity),
+                    reason=row.get("reason", ""),
                     ref_type=row.get("ref_type"),
                     second_party=get_or_create_or_none(
                         "second_party_id", row, EveEntity

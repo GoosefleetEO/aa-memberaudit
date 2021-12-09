@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Fixed
+
+- Store reason when syncing wallet journal entries
+
 ## [1.5.1] - 2021-11-21
 
 ### Fixed

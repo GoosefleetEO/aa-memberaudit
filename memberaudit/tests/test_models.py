@@ -2580,6 +2580,7 @@ class TestCharacterUpdateWalletJournal(TestCharacterUpdateBase):
         self.assertEqual(obj.date, parse_datetime("2018-02-23T14:31:32Z"))
         self.assertEqual(obj.description, "Contract Deposit")
         self.assertEqual(obj.first_party.id, 2001)
+        self.assertEqual(obj.reason, "just for fun")
         self.assertEqual(obj.ref_type, "contract_deposit")
         self.assertEqual(obj.second_party.id, 2002)
 
