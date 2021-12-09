@@ -1,11 +1,17 @@
 from io import StringIO
 
 from django.core.management import call_command
+from django.utils.timezone import now
+from eveuniverse.models import EveEntity
 
 from app_utils.testing import NoSocketsTestCase
 
-from ..models import Character
-from . import add_auth_character_to_user, create_user_from_evecharacter
+from ..models import Character, CharacterWalletJournalEntry
+from . import (
+    add_auth_character_to_user,
+    create_memberaudit_character,
+    create_user_from_evecharacter,
+)
 from .testdata.load_entities import load_entities
 
 # from esi.models import Token
@@ -59,3 +65,30 @@ class TestResetCharacters(NoSocketsTestCase):
             set(Character.objects.values_list("character_ownership_id", flat=True)),
             {co_1001.id, co_1101.id},
         )
+
+
+class TestDataExport(NoSocketsTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        load_entities()
+        cls.character = create_memberaudit_character(1001)
+
+    def test_should_export_into_csv_file(self):
+        # given
+        CharacterWalletJournalEntry.objects.create(
+            character=self.character,
+            entry_id=1,
+            amount=1000000,
+            balance=10000000,
+            context_id_type=CharacterWalletJournalEntry.CONTEXT_ID_TYPE_UNDEFINED,
+            date=now(),
+            description="dummy",
+            first_party=EveEntity.objects.get(id=1001),
+            second_party=EveEntity.objects.get(id=1002),
+        )
+        out = StringIO()
+        # when
+        call_command("memberaudit_data_export", "wallet_journal", stdout=out)
+        # then
+        # ??

@@ -353,6 +353,12 @@ The following management commands are available to perform administrative tasks:
 
 > **Hint**:<br>Run any command with `--help` to see all options
 
+### memberaudit_data_export
+
+Export data into a CSV file for use with external applications. Will include data from all characters in the database.
+
+Currently supports the wallet journal only.
+
 ### memberaudit_load_eve
 
 Pre-loads data required for this app from ESI to improve app performance.

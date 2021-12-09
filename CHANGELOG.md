@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Show reason in wallet journal
+- New management command for exporting data as CSV files
 
 ### Fixed
 
