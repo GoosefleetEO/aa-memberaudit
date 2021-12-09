@@ -1466,6 +1466,7 @@ def character_wallet_journal_data(
                     "amount": float(row.amount),
                     "balance": float(row.balance),
                     "description": row.description,
+                    "reason": row.reason,
                 }
             )
     except ObjectDoesNotExist:

@@ -673,6 +673,15 @@
                 ],
                 autoSize: false,
                 bootstrap: true
+            },
+            createdRow: function (row, data, dataIndex) {
+                if (data['reason']) {
+                    $('td', row).eq(6).html(
+                        '<p title="'+ data['reason']+ '" class="dotted-underline">'
+                        + data['description']
+                        + '</p>'
+                    );
+                }
             }
         });
 

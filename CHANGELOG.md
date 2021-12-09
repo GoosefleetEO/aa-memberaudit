@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Added
+
+- Show reason in wallet journal
+
 ### Fixed
 
 - Store reason when syncing wallet journal entries
