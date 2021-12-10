@@ -1,8 +1,10 @@
 import csv
 import logging
+from abc import ABC, abstractmethod
 from pathlib import Path
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
+from django.db import models
 from django.utils.timezone import now
 
 from app_utils.logging import LoggerAddTag
@@ -13,18 +15,45 @@ from ...models import CharacterWalletJournalEntry
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 
 
-class Command(BaseCommand):
-    help = "Export data into a CSV file."
+class DataExporter(ABC):
+    """Base class for all data exporters."""
 
-    def add_arguments(self, parser):
-        parser.add_argument(
-            "topic",
-            choices=["wallet_journal"],
-            help="Section for exporting data from",
-        )
+    @abstractmethod
+    def format_row(self, row: models.Model) -> dict:
+        """Format object into row for output."""
+        raise NotImplementedError()
 
-    def wallet_journal_formatter(self, row: object) -> dict:
-        """Format wallet journal object into row for output."""
+    @classmethod
+    def create_exporter(cls, topic: str) -> "DataExporter":
+        """Create an exporter for the requested topic."""
+        if topic == WalletJournalExporter.topic:
+            return WalletJournalExporter()
+        raise NotImplementedError()
+
+    def has_data(self) -> bool:
+        return self.queryset.exists()
+
+    def count(self) -> bool:
+        return self.queryset.count()
+
+    def fieldnames(self) -> dict:
+        return self.format_row(self.queryset[0]).keys()
+
+    def output_filename(self) -> str:
+        return f'memberaudit_{self.topic}_{now().strftime("%Y%m%d")}.csv'
+
+
+class WalletJournalExporter(DataExporter):
+    topic = "wallet_journal"
+
+    def __init__(self) -> None:
+        self.queryset = CharacterWalletJournalEntry.objects.select_related(
+            "first_party",
+            "second_party",
+            "character__character_ownership__character",
+        ).order_by("date")
+
+    def format_row(self, row: models.Model) -> dict:
         first_party = row.first_party.name if row.first_party else "-"
         second_party = row.second_party.name if row.second_party else "-"
         character = row.character.character_ownership.character
@@ -41,31 +70,32 @@ class Command(BaseCommand):
             "reason": row.reason,
         }
 
+
+class Command(BaseCommand):
+    help = "Export data into a CSV file."
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "topic",
+            choices=["wallet_journal"],
+            help="Section for exporting data from",
+        )
+
     def handle(self, *args, **options):
         self.stdout.write("Member Audit - Data Export")
         self.stdout.write()
-        if options["topic"] == "wallet_journal":
-            query = CharacterWalletJournalEntry.objects.select_related(
-                "first_party",
-                "second_party",
-                "character__character_ownership__character",
-            ).order_by("date")
-            formatter = self.wallet_journal_formatter
-        else:
-            raise CommandError("Invalid topic selected.")
-        if not query.exists():
+        exporter = DataExporter.create_exporter(options["topic"])
+        if not exporter.has_data():
             self.stdout.write(self.style.WARNING("No objects for output."))
-        filename = f'memberaudit_{options["topic"]}_{now().strftime("%Y%m%d")}.csv'
-        path = Path(filename)
-        objects_count = query.count()
+        path = Path(exporter.output_filename())
+        objects_count = exporter.count()
         self.stdout.write(f"Writing {objects_count} objects to file: {path.resolve()}")
         n = 0
         with path.open("w", newline="") as csv_file:
-            fieldnames = formatter(query[0]).keys()
-            writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+            writer = csv.DictWriter(csv_file, fieldnames=exporter.fieldnames())
             writer.writeheader()
-            for row in query:
-                writer.writerow(formatter(row))
+            for row in exporter.queryset:
+                writer.writerow(exporter.format_row(row))
                 self.stdout.write(f"\r{int(n / objects_count * 100)}%", ending="")
                 n += 1
         self.stdout.write(self.style.SUCCESS("\rDone."))
