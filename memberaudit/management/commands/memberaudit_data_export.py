@@ -89,13 +89,13 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("No objects for output."))
         path = Path(exporter.output_filename())
         objects_count = exporter.count()
-        self.stdout.write(f"Writing {objects_count} objects to file: {path.resolve()}")
-        n = 0
+        self.stdout.write(
+            f"Writing {objects_count:,} objects to file: {path.resolve()}"
+        )
+        self.stdout.write("This can take a minute. Please stand by...")
         with path.open("w", newline="") as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=exporter.fieldnames())
             writer.writeheader()
             for row in exporter.queryset:
                 writer.writerow(exporter.format_row(row))
-                self.stdout.write(f"\r{int(n / objects_count * 100)}%", ending="")
-                n += 1
         self.stdout.write(self.style.SUCCESS("\rDone."))
