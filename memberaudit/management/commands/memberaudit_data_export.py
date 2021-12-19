@@ -80,6 +80,11 @@ class Command(BaseCommand):
             choices=["wallet_journal"],
             help="Section for exporting data from",
         )
+        parser.add_argument(
+            "--destination",
+            default=str(Path.cwd().resolve()),
+            help="Directory the output file will be written to",
+        )
 
     def handle(self, *args, **options):
         self.stdout.write("Member Audit - Data Export")
@@ -87,7 +92,7 @@ class Command(BaseCommand):
         exporter = DataExporter.create_exporter(options["topic"])
         if not exporter.has_data():
             self.stdout.write(self.style.WARNING("No objects for output."))
-        path = Path(exporter.output_filename())
+        path = Path(options["destination"]) / Path(exporter.output_filename())
         objects_count = exporter.count()
         self.stdout.write(
             f"Writing {objects_count:,} objects to file: {path.resolve()}"
@@ -98,4 +103,4 @@ class Command(BaseCommand):
             writer.writeheader()
             for row in exporter.queryset:
                 writer.writerow(exporter.format_row(row))
-        self.stdout.write(self.style.SUCCESS("\rDone."))
+        self.stdout.write(self.style.SUCCESS("Done."))

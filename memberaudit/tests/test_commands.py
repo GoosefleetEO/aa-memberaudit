@@ -1,7 +1,13 @@
+import csv
+import datetime as dt
+import tempfile
 from io import StringIO
+from pathlib import Path
+from unittest.mock import patch
+
+from pytz import utc
 
 from django.core.management import call_command
-from django.utils.timezone import now
 from eveuniverse.models import EveEntity
 
 from app_utils.testing import NoSocketsTestCase
@@ -79,16 +85,45 @@ class TestDataExport(NoSocketsTestCase):
         CharacterWalletJournalEntry.objects.create(
             character=self.character,
             entry_id=1,
-            amount=1000000,
-            balance=10000000,
+            amount=1000000.0,
+            balance=20000000.0,
+            ref_type="test_ref",
             context_id_type=CharacterWalletJournalEntry.CONTEXT_ID_TYPE_UNDEFINED,
-            date=now(),
-            description="dummy",
+            date=dt.datetime(2021, 1, 1, 12, 30, tzinfo=utc),
+            description="test description",
             first_party=EveEntity.objects.get(id=1001),
             second_party=EveEntity.objects.get(id=1002),
+            reason="test reason",
         )
         out = StringIO()
         # when
-        call_command("memberaudit_data_export", "wallet_journal", stdout=out)
-        # then
-        # ??
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            with patch("django.utils.timezone.now") as mock_now:
+                mock_now.return_value = dt.datetime(2021, 12, 1, 12, 30, tzinfo=utc)
+                call_command(
+                    "memberaudit_data_export",
+                    "wallet_journal",
+                    "--destination",
+                    tmpdirname,
+                    stdout=out,
+                )
+            # then
+            output_file = Path(tmpdirname) / Path(
+                "memberaudit_wallet_journal_20211201.csv"
+            )
+            self.assertTrue(output_file.exists())
+            with output_file.open("r") as csv_file:
+                reader = csv.DictReader(csv_file)
+                data = [row for row in reader]
+            self.assertEqual(len(data), 1)
+            obj = data[0]
+            self.assertEqual(obj["date"], "2021-01-01 12:30:00")
+            self.assertEqual(obj["owner character"], "Bruce Wayne")
+            self.assertEqual(obj["owner corporation"], "Wayne Technologies")
+            self.assertEqual(obj["ref type"], "Test Ref")
+            self.assertEqual(obj["first party"], "Bruce Wayne")
+            self.assertEqual(obj["second party"], "Clark Kent")
+            self.assertEqual(obj["amount"], "1000000.0")
+            self.assertEqual(obj["balance"], "20000000.0")
+            self.assertEqual(obj["description"], "test description")
+            self.assertEqual(obj["reason"], "test reason")
