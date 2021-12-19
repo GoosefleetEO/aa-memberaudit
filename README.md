@@ -68,6 +68,7 @@ Member Audit adds the following key features to Auth:
 
 - Designed to work efficiently with large number of characters
 - Data retention policy allows managing storage capacity needs
+- Data can be exported for processing it with third party apps like Google Sheets (currently wallet journal only)
 
 ## Highlights
 
