@@ -20,6 +20,7 @@ An Alliance Auth app that provides full access to Eve characters and related rep
 - [Installation](#installation)
 - [Updating](#updating)
 - [Permissions](#permissions)
+- [Celery Configuration](#celery-configuration)
 - [Settings](#settings)
 - [Management Commands](#management-commands)
 - [Authors](#authors)
