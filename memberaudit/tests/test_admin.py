@@ -6,7 +6,7 @@ from django.urls import reverse
 
 from ..admin import CharacterAdmin, SkillSetAdmin, SkillSetShipTypeFilter
 from ..models import Character, EveShipType, SkillSet
-from . import create_memberaudit_character, create_user_from_evecharacter
+from . import create_memberaudit_character, create_user_from_evecharacter_with_access
 from .testdata.load_entities import load_entities
 from .testdata.load_eveuniverse import load_eveuniverse
 
@@ -30,7 +30,7 @@ class TestSkillSetAdmin(TestCase):
         cls.modeladmin = SkillSetAdmin(model=SkillSet, admin_site=AdminSite())
         load_eveuniverse()
         load_entities()
-        cls.user, _ = create_user_from_evecharacter(1001)
+        cls.user, _ = create_user_from_evecharacter_with_access(1001)
 
     @patch(ADMIN_PATH + ".tasks.update_characters_skill_checks")
     def test_save_model(self, mock_update_characters_skill_checks):

@@ -11,7 +11,9 @@ from app_utils.testing import add_character_to_user
 from ..models import Character
 
 
-def create_user_from_evecharacter(character_id: int) -> Tuple[User, CharacterOwnership]:
+def create_user_from_evecharacter_with_access(
+    character_id: int,
+) -> Tuple[User, CharacterOwnership]:
     auth_character = EveCharacter.objects.get(character_id=character_id)
     user = AuthUtils.create_user(auth_character.character_name)
     user = AuthUtils.add_permission_to_user_by_name("memberaudit.basic_access", user)
@@ -22,7 +24,7 @@ def create_user_from_evecharacter(character_id: int) -> Tuple[User, CharacterOwn
 
 
 def create_memberaudit_character(character_id: int) -> Character:
-    _, character_ownership = create_user_from_evecharacter(character_id)
+    _, character_ownership = create_user_from_evecharacter_with_access(character_id)
     return Character.objects.create(character_ownership=character_ownership)
 
 

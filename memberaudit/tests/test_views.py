@@ -81,7 +81,7 @@ from . import (
     add_auth_character_to_user,
     add_memberaudit_character_to_user,
     create_memberaudit_character,
-    create_user_from_evecharacter,
+    create_user_from_evecharacter_with_access,
 )
 from .testdata.load_entities import load_entities
 from .testdata.load_eveuniverse import load_eveuniverse
@@ -1610,12 +1610,15 @@ class TestUserComplianceReportTestData(TestCase):
         load_entities()
         # given
         state = AuthUtils.get_member_state()
-        state.member_alliances.add(EveAllianceInfo.objects.get(alliance_id=3001))
+        state_alliance = EveAllianceInfo.objects.get(alliance_id=3001)
+        state.member_alliances.add(state_alliance)
+        state_corporation = EveCorporationInfo.objects.get(corporation_id=2103)
+        state.member_corporations.add(state_corporation)
         cls.character_1001 = create_memberaudit_character(1001)
         cls.character_1002 = create_memberaudit_character(1002)
         cls.character_1003 = create_memberaudit_character(1003)
         cls.character_1101 = create_memberaudit_character(1101)
-        cls.user_1103 = create_user_from_evecharacter(1103)[0]
+        cls.user_1103 = create_user_from_evecharacter_with_access(1103)[0]
         cls.user = cls.character_1001.character_ownership.user
         cls.user = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.reports_access", cls.user
@@ -1629,25 +1632,53 @@ class TestUserComplianceReportTestData(TestCase):
         self.assertEqual(response.status_code, 200)
         return json_response_to_python_dict(response)
 
-    def test_no_scope(self):
+    def test_should_show_own_user_only(self):
+        # when
         result = self._execute_request()
-        self.assertSetEqual(set(result.keys()), set())
+        # then
+        self.assertSetEqual(set(result.keys()), {self.user.pk})
 
     def test_should_return_non_guests_only(self):
+        # given
         self.user = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.view_everything", self.user
         )
+        # when
         result = self._execute_request()
+        # then
         self.assertSetEqual(
             set(result.keys()),
             {
                 self.character_1001.character_ownership.user.pk,
                 self.character_1002.character_ownership.user.pk,
                 self.character_1003.character_ownership.user.pk,
+                self.user_1103.pk,
+            },
+        )
+
+    def test_should_include_character_links(self):
+        # given
+        self.user = AuthUtils.add_permission_to_user_by_name(
+            "memberaudit.view_everything", self.user
+        )
+        self.user = AuthUtils.add_permission_to_user_by_name(
+            "memberaudit.characters_access", self.user
+        )
+        # when
+        result = self._execute_request()
+        # then
+        self.assertSetEqual(
+            set(result.keys()),
+            {
+                self.character_1001.character_ownership.user.pk,
+                self.character_1002.character_ownership.user.pk,
+                self.character_1003.character_ownership.user.pk,
+                self.user_1103.pk,
             },
         )
 
     def test_char_counts(self):
+        # given
         self.user = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.view_everything", self.user
         )
@@ -1658,8 +1689,9 @@ class TestUserComplianceReportTestData(TestCase):
             [AuthUtils.get_permission_by_name("memberaudit.basic_access")], [group]
         )
         user.groups.add(group)
-
+        # when
         result = self._execute_request()
+        # then
         result_1002 = result[user.pk]
         self.assertEqual(result_1002["total_chars"], 2)
         self.assertEqual(result_1002["unregistered_chars"], 1)
@@ -1693,7 +1725,7 @@ class TestCorporationComplianceReportTestData(TestCase):
         add_memberaudit_character_to_user(
             cls.character_1003.character_ownership.user, 1102
         )
-        cls.user_1103 = create_user_from_evecharacter(1103)[0]
+        cls.user_1103 = create_user_from_evecharacter_with_access(1103)[0]
         cls.user = cls.character_1001.character_ownership.user
         cls.user = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.reports_access", cls.user

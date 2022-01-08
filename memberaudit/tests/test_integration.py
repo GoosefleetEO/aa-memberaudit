@@ -23,7 +23,7 @@ from . import (
     add_auth_character_to_user,
     add_memberaudit_character_to_user,
     create_memberaudit_character,
-    create_user_from_evecharacter,
+    create_user_from_evecharacter_with_access,
 )
 from .testdata.esi_client_stub import esi_client_stub
 from .testdata.load_entities import load_entities
@@ -44,7 +44,7 @@ class TestUILauncher(WebTest):
         load_locations()
 
     def setUp(self) -> None:
-        self.user, _ = create_user_from_evecharacter(1002)
+        self.user, _ = create_user_from_evecharacter_with_access(1002)
 
     def test_open_character_viewer(self):
         """

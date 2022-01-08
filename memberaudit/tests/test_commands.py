@@ -16,7 +16,7 @@ from ..models import Character, CharacterWalletJournalEntry
 from . import (
     add_auth_character_to_user,
     create_memberaudit_character,
-    create_user_from_evecharacter,
+    create_user_from_evecharacter_with_access,
 )
 from .testdata.load_entities import load_entities
 
@@ -38,7 +38,7 @@ class TestResetCharacters(NoSocketsTestCase):
 
     def test_normal(self):
         """can recreate member audit characters from main and alt of matching tokens"""
-        user, co_1001 = create_user_from_evecharacter(1001)
+        user, co_1001 = create_user_from_evecharacter_with_access(1001)
         co_1002 = add_auth_character_to_user(user, 1002)
 
         out = StringIO()
@@ -57,9 +57,9 @@ class TestResetCharacters(NoSocketsTestCase):
         when creating member audit characters
         then no member audit character is created for the switched auth character
         """
-        user_1, co_1001 = create_user_from_evecharacter(1001)
+        user_1, co_1001 = create_user_from_evecharacter_with_access(1001)
         add_auth_character_to_user(user_1, 1002)
-        user_2, co_1101 = create_user_from_evecharacter(1101)
+        user_2, co_1101 = create_user_from_evecharacter_with_access(1101)
 
         # re-add auth character 1002 to another user, but without member audit scopes
         add_auth_character_to_user(user_2, 1002, scopes="publicData")

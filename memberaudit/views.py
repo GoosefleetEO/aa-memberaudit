@@ -1672,11 +1672,23 @@ def user_compliance_report_data(request) -> JsonResponse:
     for user in users_and_character_counts:
         if user.profile.main_character:
             main_character = user.profile.main_character
+            if user == request.user or request.user.has_perm(
+                "memberaudit.characters_access"
+            ):
+                try:
+                    character = main_character.character_ownership.memberaudit_character
+                except ObjectDoesNotExist:
+                    url = None
+                else:
+                    url = reverse("memberaudit:character_viewer", args=[character.pk])
+            else:
+                url = None
             main_name = main_character.character_name
             main_html = bootstrap_icon_plus_name_html(
                 main_character.portrait_url(),
                 main_character.character_name,
                 avatar=True,
+                url=url,
             )
             corporation_name = main_character.corporation_name
             organization_html = create_main_organization_html(main_character)
@@ -1690,6 +1702,7 @@ def user_compliance_report_data(request) -> JsonResponse:
                 eveimageserver.character_portrait_url(1, size=DEFAULT_ICON_SIZE),
                 main_name,
                 avatar=True,
+                url=url,
             )
             alliance_name = organization_html = corporation_name = ""
             is_compliant = False
