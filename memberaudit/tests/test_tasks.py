@@ -552,7 +552,7 @@ class TestUpdateCharacterWalletJournal(TestCase):
 @patch(MODELS_PATH + ".character.MEMBERAUDIT_DATA_RETENTION_LIMIT", None)
 @patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
 @patch(MODELS_PATH + ".character.esi")
-@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+@override_settings(CELERY_ALWAYS_EAGER=True)
 class TestUpdateCharacter(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
