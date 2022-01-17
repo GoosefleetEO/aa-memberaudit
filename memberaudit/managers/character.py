@@ -1,7 +1,7 @@
 from copy import deepcopy
 from math import floor
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Permission, User
 from django.db import models
 from django.db.models import Avg, Count, ExpressionWrapper, F, Max, Min
 
@@ -9,6 +9,7 @@ from allianceauth.authentication.models import CharacterOwnership
 from allianceauth.eveonline.models import EveCharacter
 from allianceauth.services.hooks import get_extension_logger
 from app_utils.caching import ObjectCacheMixin
+from app_utils.django import users_with_permission
 from app_utils.logging import LoggerAddTag
 
 from .. import __title__
@@ -30,45 +31,51 @@ class CharacterManagerBase(ObjectCacheMixin, models.Manager):
         ).count()
 
     def user_has_access(self, user: User) -> models.QuerySet:
-        """Returns list of characters the given user has permission
-        to access via character viewer
+        """Return characters the given user has permission to access
+        via character viewer.
         """
         if user.has_perm("memberaudit.view_everything") and user.has_perm(
             "memberaudit.characters_access"
         ):
-            qs = self.all()
-        else:
-            qs = self.filter(character_ownership__user=user)
-            if (
-                user.has_perm("memberaudit.characters_access")
-                and user.has_perm("memberaudit.view_same_alliance")
-                and user.profile.main_character.alliance_id
-            ):
-                user_alliance_ids = set(
-                    EveCharacter.objects.filter(
-                        character_ownership__user=user
-                    ).values_list("alliance_id", flat=True)
+            return self.all()
+        qs = self.filter(character_ownership__user=user)
+        if (
+            user.has_perm("memberaudit.characters_access")
+            and user.has_perm("memberaudit.view_same_alliance")
+            and user.profile.main_character.alliance_id
+        ):
+            user_alliance_ids = set(
+                EveCharacter.objects.filter(character_ownership__user=user).values_list(
+                    "alliance_id", flat=True
                 )
-                qs = qs | self.filter(
-                    character_ownership__user__profile__main_character__alliance_id__in=(
-                        user_alliance_ids
-                    )
+            )
+            qs = qs | self.filter(
+                character_ownership__user__profile__main_character__alliance_id__in=(
+                    user_alliance_ids
                 )
-            elif user.has_perm("memberaudit.characters_access") and user.has_perm(
-                "memberaudit.view_same_corporation"
-            ):
-                user_corporation_ids = set(
-                    EveCharacter.objects.filter(
-                        character_ownership__user=user
-                    ).values_list("corporation_id", flat=True)
+            )
+        elif user.has_perm("memberaudit.characters_access") and user.has_perm(
+            "memberaudit.view_same_corporation"
+        ):
+            user_corporation_ids = set(
+                EveCharacter.objects.filter(character_ownership__user=user).values_list(
+                    "corporation_id", flat=True
                 )
-                qs = qs | self.filter(
-                    character_ownership__user__profile__main_character__corporation_id__in=user_corporation_ids
-                )
-
-            if user.has_perm("memberaudit.view_shared_characters"):
-                qs = qs | self.filter(is_shared=True)
-
+            )
+            qs = qs | self.filter(
+                character_ownership__user__profile__main_character__corporation_id__in=user_corporation_ids
+            )
+        if user.has_perm("memberaudit.view_shared_characters"):
+            permission_to_share_characters = Permission.objects.select_related(
+                "content_type"
+            ).get(
+                content_type__app_label=self.model._meta.app_label,
+                codename="share_characters",
+            )
+            viewable_users = users_with_permission(permission_to_share_characters)
+            qs = qs | self.filter(
+                is_shared=True, character_ownership__user__in=viewable_users
+            )
         return qs
 
 

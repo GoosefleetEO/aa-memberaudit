@@ -130,11 +130,19 @@ class TestCharacterManagerUserHasAccess(TestCase):
         cls.character_1002 = create_memberaudit_character(1002)
         cls.character_1002.is_shared = True
         cls.character_1002.save()
+        AuthUtils.add_permission_to_user_by_name(
+            "memberaudit.share_characters",
+            cls.character_1002.character_ownership.user,
+        )
         cls.character_1003 = create_memberaudit_character(1003)
         cls.character_1101 = create_memberaudit_character(1101)
         cls.character_1102 = create_memberaudit_character(1102)
         cls.character_1102.is_shared = True
         cls.character_1102.save()
+        AuthUtils.add_permission_to_user_by_name(
+            "memberaudit.share_characters",
+            cls.character_1102.character_ownership.user,
+        )
         cls.character_1103 = add_memberaudit_character_to_user(
             cls.character_1002.character_ownership.user, 1103
         )
@@ -278,6 +286,19 @@ class TestCharacterManagerUserHasAccess(TestCase):
         self.assertSetEqual(
             result_qs.eve_character_ids(), {1001, 1002, 1102, 1110, 1121}
         )
+
+    def test_recruiter_should_loose_access_once_recruit_becomes_member(self):
+        # given
+        character_1107 = create_memberaudit_character(1107)
+        character_1107.is_shared = True
+        character_1107.save()
+        user = self.character_1001.character_ownership.user
+        user = AuthUtils.add_permission_to_user_by_name(
+            "memberaudit.view_shared_characters", user
+        )
+        # when
+        result_qs = Character.objects.user_has_access(user=user)
+        self.assertNotIn(1107, result_qs.eve_character_ids())
 
 
 class TestMailEntityManager(NoSocketsTestCase):

@@ -811,6 +811,9 @@ class TestCharacterUserHasAccess(TestCase):
         """
         self.character_1001.is_shared = True
         self.character_1001.save()
+        AuthUtils.add_permission_to_user_by_name(
+            "memberaudit.share_characters", self.character_1001.character_ownership.user
+        )
         user_3, _ = create_user_from_evecharacter_with_access(1101)
         user_3 = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.view_shared_characters", user_3
@@ -825,6 +828,9 @@ class TestCharacterUserHasAccess(TestCase):
         """
         self.character_1001.is_shared = False
         self.character_1001.save()
+        AuthUtils.add_permission_to_user_by_name(
+            "memberaudit.share_characters", self.character_1001.character_ownership.user
+        )
         user_3, _ = create_user_from_evecharacter_with_access(1101)
         user_3 = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.view_shared_characters", user_3

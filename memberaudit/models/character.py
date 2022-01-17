@@ -184,13 +184,9 @@ class Character(models.Model):
         """Returns True if given user has permission to access this character
         in the character viewer
         """
-        if self.character_ownership.user == user:
+        if self.character_ownership.user == user:  # shortcut for better performance
             return True
-        elif user.has_perm("memberaudit.view_shared_characters") and self.is_shared:
-            return True
-        elif user.has_perm("memberaudit.characters_access"):
-            return Character.objects.user_has_access(user).filter(pk=self.pk).exists()
-        return False
+        return Character.objects.user_has_access(user).filter(pk=self.pk).exists()
 
     def is_update_status_ok(self) -> bool:
         """returns status of last update

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.7.1] - 2022-01-08
+
+### Changed
+
+- Recruiters can now only see character that are shared and if the owning user has the "share_characters" permission. Use case: When only guests can share they charactes, recruiters now automatically loose access to their charactes, one a guest becomes a member.
+
 ## [1.7.0] - 2022-01-08
 
 ### Added
