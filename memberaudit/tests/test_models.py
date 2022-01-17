@@ -832,7 +832,7 @@ class TestCharacterUserHasAccess(TestCase):
         self.assertFalse(self.character_1001.user_has_access(user_3))
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 @patch(MODELS_PATH + ".character.esi")
 class TestCharacterUpdateContacts(TestCharacterUpdateBase):
     @classmethod
@@ -1026,7 +1026,7 @@ class TestCharacterUpdateContacts(TestCharacterUpdateBase):
         self.assertTrue(obj.is_watched)
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 @patch(MODELS_PATH + ".character.esi")
 class TestCharacterUpdateContracts(TestCharacterUpdateBase):
     @classmethod
@@ -1565,7 +1565,7 @@ class TestCharacterUpdateImplants(TestCharacterUpdateBase):
         self.assertTrue(self.character_1001.implants.filter(eve_type_id=19540).exists())
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 @patch(MODELS_PATH + ".character.esi")
 class TestCharacterUpdateJumpClones(TestCharacterUpdateBase):
     def test_update_jump_clones_1(self, mock_esi):
@@ -1622,7 +1622,7 @@ class TestCharacterUpdateJumpClones(TestCharacterUpdateBase):
         self.assertEqual(obj.location, self.jita_44)
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 @patch(MODELS_PATH + ".character.esi")
 class TestCharacterUpdateMails(TestCharacterUpdateBase):
     @classmethod
@@ -2131,7 +2131,7 @@ class TestCharacterUpdateLoyalty(TestCharacterUpdateBase):
         self.assertEqual(obj.loyalty_points, 100)
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 @patch(MODELS_PATH + ".character.esi")
 class TestCharacterUpdateLocation(TestCharacterUpdateBase):
     def test_update_location_1(self, mock_esi):
@@ -2149,7 +2149,7 @@ class TestCharacterUpdateLocation(TestCharacterUpdateBase):
         self.assertEqual(self.character_1002.location.location, self.structure_1)
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 @patch(MODELS_PATH + ".character.esi")
 class TestCharacterUpdateOnlineStatus(TestCharacterUpdateBase):
     def test_update_online_status(self, mock_esi):
@@ -2549,7 +2549,7 @@ class TestCharacterUpdateSkillQueue(TestCharacterUpdateBase):
         self.assertEqual(entry.finished_level, 3)
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 @patch(MODELS_PATH + ".character.esi")
 class TestCharacterUpdateWalletJournal(TestCharacterUpdateBase):
     @classmethod

@@ -87,7 +87,7 @@ class TestOtherTasks(TestCase):
         self.assertTrue(mock_update_from_esi.called)
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_ALWAYS_EAGER=True)  # need to ignore exceptions
 @patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
 @patch(MODELS_PATH + ".character.esi")
 class TestUpdateCharacterAssets(TestCase):
@@ -372,7 +372,7 @@ class TestUpdateCharacterAssets(TestCase):
         self.assertTrue(status.is_success)
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 @patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
 @patch(MODELS_PATH + ".character.esi")
 class TestUpdateCharacterMails(TestCase):
@@ -416,7 +416,7 @@ class TestUpdateCharacterMails(TestCase):
             self.assertTrue(False)  # Hack to ensure the test fails when it gets here
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 @patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
 @patch(MODELS_PATH + ".character.esi")
 class TestUpdateCharacterContacts(TestCase):
@@ -460,7 +460,7 @@ class TestUpdateCharacterContacts(TestCase):
             self.assertTrue(False)  # Hack to ensure the test fails when it gets here
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 @patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
 @patch(MODELS_PATH + ".character.esi")
 class TestUpdateCharacterContracts(TestCase):
@@ -505,7 +505,7 @@ class TestUpdateCharacterContracts(TestCase):
             self.assertTrue(False)  # Hack to ensure the test fails when it gets here
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 @patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
 @patch(MODELS_PATH + ".character.esi")
 class TestUpdateCharacterWalletJournal(TestCase):
@@ -552,7 +552,7 @@ class TestUpdateCharacterWalletJournal(TestCase):
 @patch(MODELS_PATH + ".character.MEMBERAUDIT_DATA_RETENTION_LIMIT", None)
 @patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
 @patch(MODELS_PATH + ".character.esi")
-@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class TestUpdateCharacter(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -575,14 +575,14 @@ class TestUpdateCharacter(TestCase):
     def test_should_report_errors_during_updates(self, mock_esi):
         mock_esi.client = esi_client_error_stub
 
-        with self.assertRaises(OSError):  # raised when skills/doctrines chains breaks
+        with self.assertRaises(OSError):  # raised when trying to fetch attributes
             update_character(self.character_1001.pk)
 
         self.assertFalse(self.character_1001.is_update_status_ok())
 
         status = self.character_1001.update_status_set.get(
             character=self.character_1001,
-            section=Character.UpdateSection.CHARACTER_DETAILS,
+            section=Character.UpdateSection.ATTRIBUTES,
         )
         self.assertFalse(status.is_success)
         self.assertEqual(
@@ -670,7 +670,7 @@ class TestUpdateCharacter(TestCase):
 @patch(TASKS_PATH + ".MEMBERAUDIT_LOG_UPDATE_STATS", False)
 @patch(MODELS_PATH + ".character.MEMBERAUDIT_DATA_RETENTION_LIMIT", None)
 @patch(MODELS_PATH + ".character.esi")
-@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class TestUpdateAllCharacters(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -756,7 +756,7 @@ class TestUpdateMailEntityEsi(TestCase):
 
 
 @patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
-@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class TestUpdateCharactersDoctrines(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -772,7 +772,7 @@ class TestUpdateCharactersDoctrines(TestCase):
         self.assertTrue(mock_update_skill_sets.called)
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class TestDeleteCharacter(TestCase):
     @classmethod
     def setUpClass(cls) -> None:

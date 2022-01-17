@@ -462,7 +462,7 @@ class TestMailEntityManager(NoSocketsTestCase):
         self.assertEqual(obj_1001.name, "John Doe")
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 @patch(MANAGERS_PATH + ".general.fetch_esi_status")
 class TestMailEntityManagerAsync(TestCase):
     @classmethod
@@ -939,7 +939,9 @@ class TestLocationManagerAsync(TestCase):
     def setUp(self) -> None:
         cache.clear()
 
-    @override_settings(CELERY_ALWAYS_EAGER=True)
+    @override_settings(
+        CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True
+    )
     @patch(MANAGERS_PATH + ".general.fetch_esi_status")
     def test_can_create_structure_async(self, mock_fetch_esi_status, mock_esi):
         mock_fetch_esi_status.return_value = EsiStatus(True, 99, 60)
