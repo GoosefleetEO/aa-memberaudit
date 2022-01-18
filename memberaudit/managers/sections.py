@@ -239,9 +239,6 @@ class CharacterContractManager(models.Manager):
                         acceptor=get_or_create_or_none(
                             "acceptor_id", contract_data, EveEntity
                         ),
-                        acceptor_corporation=get_or_create_or_none(
-                            "acceptor_corporation_id", contract_data, EveEntity
-                        ),
                         assignee=get_or_create_or_none(
                             "assignee_id", contract_data, EveEntity
                         ),

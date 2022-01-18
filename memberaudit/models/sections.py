@@ -284,7 +284,7 @@ class CharacterContract(models.Model):
         null=True,
         related_name="+",
         help_text="corporation of acceptor",
-    )
+    )  # This field is currently unused
     assignee = models.ForeignKey(
         EveEntity,
         on_delete=models.CASCADE,

@@ -35,10 +35,8 @@ def get_or_create_or_none(
     """Get or creates a Django object from a dictionary entry or returns None."""
     if dct.get(prop_name):
         obj, _ = Model.objects.get_or_create(id=dct.get(prop_name))
-    else:
-        obj = None
-
-    return obj
+        return obj
+    return None
 
 
 def get_or_none(prop_name: str, dct: dict, Model: type) -> Optional[models.Model]:
@@ -50,7 +48,6 @@ def get_or_none(prop_name: str, dct: dict, Model: type) -> Optional[models.Model
             return Model.objects.get(id=id)
         except Model.DoesNotExist:
             pass
-
     return None
 
 

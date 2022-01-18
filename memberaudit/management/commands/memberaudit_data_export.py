@@ -36,7 +36,7 @@ def value_or_default(value: object, default: str = "") -> str:
 def date_or_default(value: object, default: str = "") -> str:
     if value is None:
         return default
-    return value.isoformat()
+    return value.strftime("%Y-%m-%d %H:%M:%S")
 
 
 class DataExporter(ABC):
@@ -134,17 +134,15 @@ class ContractExporter(DataExporter):
             "contract pk": obj.pk,
             "contract id": obj.contract_id,
             "contract_type": obj.get_contract_type_display(),
-            "title": obj.title,
             "status": obj.get_status_display(),
-            "date issued": obj.date_issued.isoformat(),
-            "date expired": obj.date_expired.isoformat(),
+            "date issued": date_or_default(obj.date_issued),
+            "date expired": date_or_default(obj.date_expired),
             "date accepted": date_or_default(obj.date_accepted),
             "date completed": date_or_default(obj.date_completed),
             "availability": obj.get_availability_display(),
             "issuer": obj.issuer.name,
             "issuer corporation": name_or_default(obj.issuer_corporation),
             "acceptor": name_or_default(obj.acceptor),
-            "acceptor corporation": name_or_default(obj.acceptor_corporation),
             "assignee": name_or_default(obj.assignee),
             "reward": value_or_default(obj.reward),
             "collateral": value_or_default(obj.collateral),
@@ -154,6 +152,7 @@ class ContractExporter(DataExporter):
             "end location": value_or_default(obj.end_location),
             "price": value_or_default(obj.price),
             "buyout": value_or_default(obj.buyout),
+            "title": obj.title,
         }
 
 

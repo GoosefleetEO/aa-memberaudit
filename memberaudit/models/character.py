@@ -462,12 +462,10 @@ class Character(models.Model):
         ).results()
         if MEMBERAUDIT_DEVELOPER_MODE:
             self._store_list_to_disk(contacts_data, "contacts")
-
         if contacts_data:
             contacts_list = {int(x["contact_id"]): x for x in contacts_data}
         else:
             contacts_list = dict()
-
         if force_update or self.has_section_changed(
             section=self.UpdateSection.CONTACTS, content=contacts_list
         ):
@@ -475,22 +473,18 @@ class Character(models.Model):
             self.update_section_content_hash(
                 section=self.UpdateSection.CONTACTS, content=contacts_list
             )
-
         else:
             logger.info("%s: Contacts have not changed", self)
 
     @fetch_token_for_character("esi-contracts.read_character_contracts.v1")
     def update_contract_headers(self, token: Token, force_update: bool = False):
         """update the character's contract headers"""
-
         contracts_list = self._fetch_contracts_from_esi(token)
         if not contracts_list:
             logger.info("%s: No contracts received from ESI", self)
-
         cutoff_datetime = data_retention_cutoff()
         if cutoff_datetime:
             self.contracts.filter(date_expired__lt=cutoff_datetime).delete()
-
         if force_update or self.has_section_changed(
             section=self.UpdateSection.CONTRACTS, content=contracts_list
         ):
@@ -508,7 +502,6 @@ class Character(models.Model):
             self.update_section_content_hash(
                 section=self.UpdateSection.CONTRACTS, content=contracts_list
             )
-
         else:
             logger.info("%s: Contracts have not changed", self)
 
