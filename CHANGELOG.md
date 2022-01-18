@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.8.0] - tbd.
+
+### Added
+
+- Data export tool supports contracts and contract items
+
 ## [1.7.1] - 2022-01-08
 
 ### Changed
