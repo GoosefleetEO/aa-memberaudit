@@ -33,6 +33,7 @@ from .testdata.load_eveuniverse import load_eveuniverse
 
 
 PACKAGE_PATH = "memberaudit.management.commands"
+DATA_EXPORTERS_PATH = "memberaudit.core.data_exporters"
 
 
 class TestResetCharacters(NoSocketsTestCase):
@@ -194,7 +195,7 @@ class TestDataExport(NoSocketsTestCase):
             # TODO: test all properties and all contract types
 
     def _execute_command(self, out, tmpdirname, topic):
-        with patch("django.utils.timezone.now") as mock_now:
+        with patch(DATA_EXPORTERS_PATH + ".now") as mock_now:
             mock_now.return_value = dt.datetime(2021, 12, 1, 12, 30, tzinfo=utc)
             call_command(
                 "memberaudit_data_export",
@@ -203,7 +204,7 @@ class TestDataExport(NoSocketsTestCase):
                 tmpdirname,
                 stdout=out,
             )
-        output_file = Path(tmpdirname) / Path(f"memberaudit_{topic}_20211201.csv")
+        output_file = Path(tmpdirname) / Path(f"memberaudit_{topic}_202112011230.csv")
         self.assertTrue(output_file.exists())
         with output_file.open("r") as csv_file:
             reader = csv.DictReader(csv_file)

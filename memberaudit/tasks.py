@@ -24,6 +24,7 @@ from .app_settings import (
     MEMBERAUDIT_TASKS_TIME_LIMIT,
     MEMBERAUDIT_UPDATE_STALE_RING_2,
 )
+from .core import data_exporters
 from .models import (
     Character,
     CharacterAsset,
@@ -1024,3 +1025,19 @@ def delete_character(character_pk) -> None:
     character = Character.objects.get(pk=character_pk)
     logger.info("%s: Deleting character", character)
     character.delete()
+
+
+@shared_task(**TASK_DEFAULT_KWARGS)
+def export_data() -> None:
+    """Export data to files."""
+    for topic in data_exporters.DataExporter.topics:
+        export_data_for_topic.apply_async(args=[topic], priority=9)
+
+
+@shared_task(**TASK_DEFAULT_KWARGS)
+def export_data_for_topic(topic: str, destination_folder: str = None) -> str:
+    """Export data for given topic into a zipped file in destination."""
+    file_path = data_exporters.export_topic_to_file(
+        topic=topic, destination_folder=destination_folder
+    )
+    return file_path

@@ -15,6 +15,8 @@ from app_utils.testing import generate_invalid_pk
 from ..models import Character, CharacterAsset, CharacterUpdateStatus, Location
 from ..tasks import (
     delete_character,
+    export_data,
+    export_data_for_topic,
     run_regular_updates,
     update_all_characters,
     update_character,
@@ -786,3 +788,34 @@ class TestDeleteCharacter(TestCase):
         delete_character.delay(character_1001.pk)
         # then
         self.assertFalse(Character.objects.filter(pk=character_1001.pk).exists())
+
+
+class TestExportData(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        load_entities()
+        cls.character = create_memberaudit_character(1001)
+
+    @patch(TASKS_PATH + ".export_data_for_topic")
+    def test_should_export_all_topics(self, mock_export_data_for_topic):
+        # when
+        export_data()
+        # then
+        called_topics = [
+            call[1]["args"][0]
+            for call in mock_export_data_for_topic.apply_async.call_args_list
+        ]
+        self.assertEqual(len(called_topics), 3)
+        self.assertSetEqual(
+            set(called_topics), {"contract", "contract_item", "wallet_journal"}
+        )
+
+    @patch(TASKS_PATH + ".data_exporters.export_topic_to_file")
+    def test_should_export_wallet_journal(self, mock_export_topic_to_file):
+        # when
+        export_data_for_topic(topic="abc")
+        # then
+        self.assertTrue(mock_export_topic_to_file.called)
+        _, kwargs = mock_export_topic_to_file.call_args
+        self.assertEqual(kwargs["topic"], "abc")
