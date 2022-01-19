@@ -1,0 +1,39 @@
+{% extends 'memberaudit/base.html' %}
+
+{% load i18n %}
+{% load humanize %}
+{% load static %}
+
+{% block details %}
+    <div class="panel panel-default">
+        <div class="panel-heading" style="display:flex;">
+            <h3 class="panel-title">{% translate 'Topics for download' %}</h3>
+        </div>
+        <div class="panel-body">
+            <p>Click on a link below to download the latest data export file for a topic:</p>
+            <ul>
+                {% for topic in topics %}
+                    <li>
+                        <a href="{% url 'memberaudit:download_export_file' topic.value %}">{{ topic.title }}</a>
+                    </li>
+                {% empty %}
+                    <li>Sorry, no export files found</li>
+                {% endfor %}
+            </ul>
+            <p class="text-muted">
+                Export files contain the complete data of <strong>all</strong> characters known to Member Audit. They are in CSV format and zipped.
+            </p>
+            <p class="text-muted">Last updated: {{ last_updated_at|timesince|default:"?" }} ago</p>
+        </div>
+    </div>
+{% endblock details %}
+
+{% block extra_css %}
+    {% include 'bundles/datatables-css.html' %}
+    <link rel="stylesheet" href="{% static 'memberaudit/css/global.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'memberaudit/css/memberaudit.css' %}" type="text/css">
+{% endblock %}
+
+{% block extra_script %}
+
+{% endblock %}

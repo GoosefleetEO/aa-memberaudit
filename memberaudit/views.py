@@ -1,13 +1,17 @@
 import datetime as dt
+import re
 from typing import Optional, Tuple
 
 import humanize
+from pytz import utc
 
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 from django.db.models import Count, F, Max, Q, Sum
 from django.http import (
+    FileResponse,
+    Http404,
     HttpResponse,
     HttpResponseForbidden,
     HttpResponseNotFound,
@@ -42,6 +46,7 @@ from app_utils.views import (
 from . import __title__, tasks
 from .app_settings import MEMBERAUDIT_APP_NAME
 from .constants import EVE_CATEGORY_ID_SHIP
+from .core import data_exporters
 from .decorators import fetch_character_if_allowed
 from .helpers import eve_solar_system_to_html
 from .models import (
@@ -1935,3 +1940,38 @@ def skill_sets_report_data(request) -> JsonResponse:
             data.append(create_data_row(None, character))
 
     return JsonResponse(data, safe=False)
+
+
+def data_export(request):
+    destination = data_exporters.default_destination()
+    files = [file for file in destination.glob("*.zip")]
+    if files:
+        timestamps = [file.stat().st_mtime for file in files]
+        found_topics = {
+            re.search(r"[^_]*_(.*)_\d*", file.name).group(1) for file in files
+        }
+        topics = [
+            {"value": topic, "title": topic.replace("_", " ").title()}
+            for topic in data_exporters.DataExporter.topics
+            if topic in found_topics
+        ]
+        oldest = dt.datetime.fromtimestamp(min(timestamps), tz=utc)
+    else:
+        oldest = None
+        topics = []
+    context = {"page_title": "Exports", "last_updated_at": oldest, "topics": topics}
+    return render(
+        request, "memberaudit/exports.html", add_common_context(request, context)
+    )
+
+
+def download_export_file(request, topic: str):
+    exporter = data_exporters.DataExporter.create_exporter(topic)
+    destination = data_exporters.default_destination()
+    file_mask = f"{exporter.output_filebase}*.zip"
+    files = [file for file in destination.glob(file_mask)]
+    if len(files) < 1:
+        raise Http404(f"Could not find export file for {topic}")
+    export_file = files[0]
+    logger.info("Returning file %s for download of topic %s", export_file, topic)
+    return FileResponse(export_file.open("rb"))
