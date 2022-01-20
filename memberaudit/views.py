@@ -1949,19 +1949,37 @@ def data_export(request):
     files = [file for file in destination.glob("*.zip")]
     if files:
         timestamps = [file.stat().st_mtime for file in files]
-        found_topics = {
-            re.search(r"[^_]*_(.*)_\d*", file.name).group(1) for file in files
+        export_files = {
+            re.search(r"[^_]*_(.*)_\d*", file.name).group(1): file for file in files
         }
-        topics = [
-            {"value": topic, "title": topic.replace("_", " ").title()}
-            for topic in data_exporters.DataExporter.topics
-            if topic in found_topics
-        ]
+        topics = []
+        for topic in data_exporters.DataExporter.topics:
+            export_file = export_files[topic] if topic in export_files.keys() else None
+            if export_file:
+                timestamp = export_file.stat().st_mtime
+                last_updated_at = dt.datetime.fromtimestamp(timestamp, tz=utc)
+            else:
+                last_updated_at = None
+            exporter = data_exporters.DataExporter.create_exporter(topic)
+            topics.append(
+                {
+                    "value": topic,
+                    "title": topic.replace("_", " ").title(),
+                    "rows": exporter.count(),
+                    "last_updated_at": last_updated_at,
+                    "has_file": export_file is not None,
+                }
+            )
         oldest = dt.datetime.fromtimestamp(min(timestamps), tz=utc)
     else:
         oldest = None
         topics = []
-    context = {"page_title": "Exports", "last_updated_at": oldest, "topics": topics}
+    context = {
+        "page_title": "Exports",
+        "last_updated_at": oldest,
+        "topics": topics,
+        "character_count": Character.objects.count(),
+    }
     return render(
         request, "memberaudit/exports.html", add_common_context(request, context)
     )

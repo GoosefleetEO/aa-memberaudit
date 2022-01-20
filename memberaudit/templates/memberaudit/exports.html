@@ -10,31 +10,45 @@
             <h3 class="panel-title">{% translate 'Topics for download' %}</h3>
         </div>
         <div class="panel-body">
-            <p>Click on a link below to download the latest data export file for a topic:</p>
-            <ul>
-                {% for topic in topics %}
-                    <li>
-                        <a href="{% url 'memberaudit:download_export_file' topic.value %}">{{ topic.title }}</a>
-                    </li>
-                {% empty %}
-                    <li>Sorry, no export files found</li>
-                {% endfor %}
-            </ul>
+            <table id="tbl_data_exports" class="table table-striped">
+                <thead>
+                    <th>Topic</th>
+                    <th>Rows</th>
+                    <th>Since update</th>
+                    <th></th>
+                </thead>
+                <tbody>
+                    {% for topic in topics %}
+                        <tr>
+                            <td>{{ topic.title }}</td>
+                            <td>{{ topic.rows|intcomma }}</td>
+                            <td>{{ topic.last_updated_at|timesince|default:"?" }}</td>
+                            <td>
+                                {% if topic.has_file %}
+                                    <a class="btn btn-default" href="{% url 'memberaudit:download_export_file' topic.value %}">Download</a>
+                                {% else %}
+                                    <a class="btn btn-default" href="#" disabled>Download</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td columns="2">Sorry, no export files found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             <p class="text-muted">
-                Export files contain the complete data of <strong>all</strong> characters known to Member Audit. They are in CSV format and zipped.
+                Export files contain the complete data of all <strong>{{ character_count|intcomma }}</strong> characters known to Member Audit. They are in CSV format and zipped.
             </p>
-            <p class="text-muted">Last updated: {{ last_updated_at|timesince|default:"?" }} ago</p>
             <a class="btn btn-default" href="{% url 'memberaudit:data_export_run_update' %}" role="button">Run exports now</a>
         </div>
     </div>
 {% endblock details %}
 
 {% block extra_css %}
-    {% include 'bundles/datatables-css.html' %}
     <link rel="stylesheet" href="{% static 'memberaudit/css/global.css' %}" type="text/css">
     <link rel="stylesheet" href="{% static 'memberaudit/css/memberaudit.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'memberaudit/css/exports.css' %}" type="text/css">
 {% endblock %}
 
 {% block extra_script %}
-
 {% endblock %}

@@ -1,0 +1,5 @@
+@media all {
+    #tbl_data_exports tbody td:nth-child(2) {
+        text-align: right;
+    }
+}
