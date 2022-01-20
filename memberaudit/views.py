@@ -1984,13 +1984,13 @@ def download_export_file(request, topic: str) -> FileResponse:
 @login_required
 @permission_required("memberaudit.exports_access")
 def data_export_run_update(request):
-    tasks.export_data.delay()
+    tasks.export_data.delay(user_pk=request.user.pk)
     messages_plus.info(
         request,
         (
-            "Data export has been stated. "
-            "This can take a couple of minutes to complete. "
-            "Please be patient."
+            "Data export has been started. "
+            "This can take a couple of minutes. "
+            "You will get a notification once it is completed."
         ),
     )
     return redirect("memberaudit:data_export")

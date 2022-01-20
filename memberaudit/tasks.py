@@ -5,11 +5,13 @@ from typing import Optional
 from bravado.exception import HTTPBadGateway, HTTPGatewayTimeout, HTTPServiceUnavailable
 from celery import chain, shared_task
 
+from django.contrib.auth.models import User
 from django.db import transaction
 from django.utils.timezone import now
 from esi.models import Token
 from eveuniverse.models import EveEntity, EveMarketPrice
 
+from allianceauth.notifications import notify
 from allianceauth.services.hooks import get_extension_logger
 from allianceauth.services.tasks import QueueOnce
 from app_utils.esi import EsiErrorLimitExceeded, EsiOffline, fetch_esi_status
@@ -1028,14 +1030,14 @@ def delete_character(character_pk) -> None:
 
 
 @shared_task(**TASK_DEFAULT_KWARGS)
-def export_data() -> None:
+def export_data(user_pk: int = None) -> None:
     """Export data to files."""
-    chain(
-        [
-            export_data_for_topic.si(topic)
-            for topic in data_exporters.DataExporter.topics
-        ]
-    ).apply_async(priority=9)
+    tasks = [
+        export_data_for_topic.si(topic) for topic in data_exporters.DataExporter.topics
+    ]
+    if user_pk:
+        tasks.append(export_data_inform_user.si(user_pk))
+    chain(tasks).apply_async(priority=9)
 
 
 @shared_task(**TASK_DEFAULT_KWARGS)
@@ -1045,3 +1047,13 @@ def export_data_for_topic(topic: str, destination_folder: str = None) -> str:
         topic=topic, destination_folder=destination_folder
     )
     return file_path
+
+
+@shared_task(**TASK_DEFAULT_KWARGS)
+def export_data_inform_user(user_pk: int):
+    user = User.objects.get(pk=user_pk)
+    title = f"{__title__}: Data export completed"
+    message = "Data export has been completed. It covers the following topics:\n"
+    for topic in data_exporters.DataExporter.topics:
+        message += f"- {topic}\n"
+    notify(user=user, title=title, message=message, level="INFO")
