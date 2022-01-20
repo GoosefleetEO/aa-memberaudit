@@ -24,6 +24,7 @@
                 Export files contain the complete data of <strong>all</strong> characters known to Member Audit. They are in CSV format and zipped.
             </p>
             <p class="text-muted">Last updated: {{ last_updated_at|timesince|default:"?" }} ago</p>
+            <a class="btn btn-default" href="{% url 'memberaudit:data_export_run_update' %}" role="button">Run exports now</a>
         </div>
     </div>
 {% endblock details %}

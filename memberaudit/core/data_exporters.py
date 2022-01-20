@@ -1,5 +1,6 @@
 """Export Member Audit data like wallet journals to CSV files."""
 import csv
+import gc
 import shutil
 import subprocess
 import tempfile
@@ -43,11 +44,12 @@ def export_topic_to_file(topic: str, destination_folder: str = None) -> Path:
     exporter = DataExporter.create_exporter(topic)
     if not exporter.has_data():
         return ""
-    logger.info("Exported %s with %s objects", exporter, exporter.count())
+    logger.info("Exported %s with %s objects", exporter, f"{exporter.count():,}")
     with tempfile.TemporaryDirectory() as tmpdirname:
         exporter.write_to_file(tmpdirname)
         zip_file_path = _produce_zip_file(destination_folder, exporter, tmpdirname)
-        return zip_file_path
+
+    return zip_file_path
 
 
 def _produce_zip_file(
@@ -128,7 +130,7 @@ class DataExporter(ABC):
         return self.queryset.count()
 
     def fieldnames(self) -> dict:
-        return self.format_obj(self.queryset[0]).keys()
+        return self.format_obj(self.queryset.first()).keys()
 
     def output_path(self, destination: str) -> Path:
         return Path(destination) / Path(self.output_filename)
@@ -138,8 +140,11 @@ class DataExporter(ABC):
         with path.open("w", newline="") as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=self.fieldnames())
             writer.writeheader()
-            for obj in self.queryset.iterator(chunk_size=500):
-                writer.writerow(self.format_obj(obj))
+            chunk_size = 1000
+            for obj in self.queryset.iterator(chunk_size=chunk_size):
+                row = self.format_obj(obj)
+                writer.writerow(row)
+        gc.collect()
 
     @classproperty
     def exporters(cls) -> list:

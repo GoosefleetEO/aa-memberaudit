@@ -1969,7 +1969,7 @@ def data_export(request):
 
 @login_required
 @permission_required("memberaudit.exports_access")
-def download_export_file(request, topic: str):
+def download_export_file(request, topic: str) -> FileResponse:
     exporter = data_exporters.DataExporter.create_exporter(topic)
     destination = data_exporters.default_destination()
     file_mask = f"{exporter.output_filebase}*.zip"
@@ -1979,3 +1979,18 @@ def download_export_file(request, topic: str):
     export_file = files[0]
     logger.info("Returning file %s for download of topic %s", export_file, topic)
     return FileResponse(export_file.open("rb"))
+
+
+@login_required
+@permission_required("memberaudit.exports_access")
+def data_export_run_update(request):
+    tasks.export_data.delay()
+    messages_plus.info(
+        request,
+        (
+            "Data export has been stated. "
+            "This can take a couple of minutes to complete. "
+            "Please be patient."
+        ),
+    )
+    return redirect("memberaudit:data_export")
