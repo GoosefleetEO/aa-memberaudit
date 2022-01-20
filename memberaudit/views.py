@@ -1942,6 +1942,8 @@ def skill_sets_report_data(request) -> JsonResponse:
     return JsonResponse(data, safe=False)
 
 
+@login_required
+@permission_required("memberaudit.exports_access")
 def data_export(request):
     destination = data_exporters.default_destination()
     files = [file for file in destination.glob("*.zip")]
@@ -1965,6 +1967,8 @@ def data_export(request):
     )
 
 
+@login_required
+@permission_required("memberaudit.exports_access")
 def download_export_file(request, topic: str):
     exporter = data_exporters.DataExporter.create_exporter(topic)
     destination = data_exporters.default_destination()

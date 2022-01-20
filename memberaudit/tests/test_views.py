@@ -14,7 +14,7 @@ from eveuniverse.models import EveEntity, EveMarketPrice, EveSolarSystem, EveTyp
 from allianceauth.authentication.models import State
 from allianceauth.eveonline.models import EveAllianceInfo, EveCorporationInfo
 from allianceauth.tests.auth_utils import AuthUtils
-from app_utils.testing import generate_invalid_pk
+from app_utils.testing import create_user_from_evecharacter, generate_invalid_pk
 
 from ..models import (
     Character,
@@ -68,6 +68,7 @@ from ..views import (
     character_wallet_journal_data,
     character_wallet_transactions_data,
     corporation_compliance_report_data,
+    data_export,
     index,
     launcher,
     remove_character,
@@ -106,7 +107,6 @@ def multi_assert_in(items, container) -> bool:
     for item in items:
         if item not in container:
             return False
-
     return True
 
 
@@ -114,7 +114,6 @@ def multi_assert_not_in(items, container) -> bool:
     for item in items:
         if item in container:
             return False
-
     return True
 
 
@@ -967,6 +966,30 @@ class TestViewsOther(TestViewsBase):
         request.user = self.user
         response = character_attribute_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
+
+    def test_should_open_exports_page_with_permission(self):
+        # given
+        user, _ = create_user_from_evecharacter(
+            1122, permissions=["memberaudit.basic_access", "memberaudit.exports_access"]
+        )
+        request = self.factory.get(reverse("memberaudit:data_export"))
+        request.user = user
+        # when
+        response = data_export(request)
+        # then
+        self.assertEqual(response.status_code, 200)
+
+    def test_should_not_open_exports_page_without_permission(self):
+        # given
+        user, _ = create_user_from_evecharacter(
+            1122, permissions=["memberaudit.basic_access"]
+        )
+        request = self.factory.get(reverse("memberaudit:data_export"))
+        request.user = user
+        # when
+        response = data_export(request)
+        # then
+        self.assertEqual(response.status_code, 302)
 
 
 class TestCharacterDataViewsOther(TestViewsBase):
