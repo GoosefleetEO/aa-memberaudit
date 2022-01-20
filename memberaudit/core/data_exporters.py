@@ -138,7 +138,7 @@ class DataExporter(ABC):
         with path.open("w", newline="") as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=self.fieldnames())
             writer.writeheader()
-            for obj in self.queryset:
+            for obj in self.queryset.iterator(chunk_size=500):
                 writer.writerow(self.format_obj(obj))
 
     @classproperty

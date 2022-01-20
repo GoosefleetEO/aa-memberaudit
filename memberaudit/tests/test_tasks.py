@@ -790,6 +790,7 @@ class TestDeleteCharacter(TestCase):
         self.assertFalse(Character.objects.filter(pk=character_1001.pk).exists())
 
 
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class TestExportData(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -797,14 +798,13 @@ class TestExportData(TestCase):
         load_entities()
         cls.character = create_memberaudit_character(1001)
 
-    @patch(TASKS_PATH + ".export_data_for_topic")
-    def test_should_export_all_topics(self, mock_export_data_for_topic):
+    @patch(TASKS_PATH + ".data_exporters.export_topic_to_file")
+    def test_should_export_all_topics(self, mock_export_topic_to_file):
         # when
         export_data()
         # then
         called_topics = [
-            call[1]["args"][0]
-            for call in mock_export_data_for_topic.apply_async.call_args_list
+            call[1]["topic"] for call in mock_export_topic_to_file.call_args_list
         ]
         self.assertEqual(len(called_topics), 3)
         self.assertSetEqual(

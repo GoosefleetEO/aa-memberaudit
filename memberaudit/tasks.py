@@ -1030,8 +1030,12 @@ def delete_character(character_pk) -> None:
 @shared_task(**TASK_DEFAULT_KWARGS)
 def export_data() -> None:
     """Export data to files."""
-    for topic in data_exporters.DataExporter.topics:
-        export_data_for_topic.apply_async(args=[topic], priority=9)
+    chain(
+        [
+            export_data_for_topic.si(topic)
+            for topic in data_exporters.DataExporter.topics
+        ]
+    ).apply_async(priority=9)
 
 
 @shared_task(**TASK_DEFAULT_KWARGS)
