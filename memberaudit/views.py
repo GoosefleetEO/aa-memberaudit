@@ -1968,6 +1968,7 @@ def data_export(request):
                     "rows": exporter.count(),
                     "last_updated_at": last_updated_at,
                     "has_file": export_file is not None,
+                    "update_allowed": True,
                 }
             )
         oldest = dt.datetime.fromtimestamp(min(timestamps), tz=utc)
@@ -2001,12 +2002,17 @@ def download_export_file(request, topic: str) -> FileResponse:
 
 @login_required
 @permission_required("memberaudit.exports_access")
-def data_export_run_update(request):
-    tasks.export_data.delay(user_pk=request.user.pk)
+def data_export_run_update(request, topic: str = None):
+    if topic:
+        tasks.export_data_for_topic.delay(topic=topic, user_pk=request.user.pk)
+        topic_text = f" for {topic}"
+    else:
+        tasks.export_data.delay(user_pk=request.user.pk)
+        topic_text = ""
     messages_plus.info(
         request,
         (
-            "Data export has been started. "
+            f"Data export{topic_text} has been started. "
             "This can take a couple of minutes. "
             "You will get a notification once it is completed."
         ),

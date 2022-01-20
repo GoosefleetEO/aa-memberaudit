@@ -1033,15 +1033,22 @@ def delete_character(character_pk) -> None:
 def export_data(user_pk: int = None) -> None:
     """Export data to files."""
     tasks = [
-        export_data_for_topic.si(topic) for topic in data_exporters.DataExporter.topics
+        _export_data_for_topic.si(topic) for topic in data_exporters.DataExporter.topics
     ]
     if user_pk:
-        tasks.append(export_data_inform_user.si(user_pk))
+        tasks.append(_export_data_inform_user.si(user_pk))
     chain(tasks).apply_async(priority=9)
 
 
 @shared_task(**TASK_DEFAULT_KWARGS)
-def export_data_for_topic(topic: str, destination_folder: str = None) -> str:
+def export_data_for_topic(topic: str, user_pk: int) -> str:
+    chain(
+        _export_data_for_topic.si(topic), _export_data_inform_user.si(user_pk, topic)
+    ).apply_async(priority=9)
+
+
+@shared_task(**TASK_DEFAULT_KWARGS)
+def _export_data_for_topic(topic: str, destination_folder: str = None) -> str:
     """Export data for given topic into a zipped file in destination."""
     file_path = data_exporters.export_topic_to_file(
         topic=topic, destination_folder=destination_folder
@@ -1050,10 +1057,14 @@ def export_data_for_topic(topic: str, destination_folder: str = None) -> str:
 
 
 @shared_task(**TASK_DEFAULT_KWARGS)
-def export_data_inform_user(user_pk: int):
+def _export_data_inform_user(user_pk: int, topic: str = None):
     user = User.objects.get(pk=user_pk)
-    title = f"{__title__}: Data export completed"
-    message = "Data export has been completed. It covers the following topics:\n"
-    for topic in data_exporters.DataExporter.topics:
-        message += f"- {topic}\n"
+    if topic:
+        title = f"{__title__}: Data export for {topic} completed "
+        message = f"Data export has been completed for {topic}."
+    else:
+        title = f"{__title__}: Full data export completed "
+        message = "Data export has been completed. It covers the following topics:\n"
+        for topic in data_exporters.DataExporter.topics:
+            message += f"- {topic}\n"
     notify(user=user, title=title, message=message, level="INFO")
