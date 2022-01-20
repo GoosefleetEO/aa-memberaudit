@@ -37,7 +37,7 @@ class TestExportData(TestCase):
         # when
         with tempfile.TemporaryDirectory() as tmpdirname:
             result = export_topic_to_file(
-                topic="wallet_journal", destination_folder=tmpdirname
+                topic="wallet-journal", destination_folder=tmpdirname
             )
             # then
             output_file = Path(result)

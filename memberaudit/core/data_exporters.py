@@ -48,7 +48,7 @@ def export_topic_to_file(topic: str, destination_folder: str = None) -> Path:
     with tempfile.TemporaryDirectory() as tmpdirname:
         exporter.write_to_file(tmpdirname)
         zip_file_path = _produce_zip_file(destination_folder, exporter, tmpdirname)
-
+    gc.collect()
     return zip_file_path
 
 
@@ -71,7 +71,7 @@ def _zip_data_file(exporter, tmpdirname, destination):
     csv_path = exporter.output_path(tmpdirname)
     out = subprocess.DEVNULL if not settings.DEBUG else None
     result = subprocess.run(
-        [zip_command, zip_path.resolve(), csv_path.resolve()],
+        [zip_command, "-j", zip_path.resolve(), csv_path.resolve()],
         stdout=out,
         stderr=out,
     )
@@ -101,9 +101,17 @@ class DataExporter(ABC):
     def __init__(self) -> None:
         self.queryset = self.get_queryset()
         self._now = now()
+        if not hasattr(self, "topic"):
+            raise ValueError("You must define topic.")
+        if "_" in self.topic:
+            raise ValueError("Topic can not contain underscores")
 
     def __str__(self) -> str:
         return str(self.topic)
+
+    @property
+    def title(self) -> str:
+        return self.topic.replace("-", " ").title()
 
     @property
     def output_filebase(self) -> str:
@@ -144,7 +152,6 @@ class DataExporter(ABC):
             for obj in self.queryset.iterator(chunk_size=chunk_size):
                 row = self.format_obj(obj)
                 writer.writerow(row)
-        gc.collect()
 
     @classproperty
     def exporters(cls) -> list:
@@ -165,7 +172,7 @@ class DataExporter(ABC):
 
 
 class WalletJournalExporter(DataExporter):
-    topic = "wallet_journal"
+    topic = "wallet-journal"
 
     def get_queryset(self) -> models.QuerySet:
         return CharacterWalletJournalEntry.objects.select_related(
@@ -236,7 +243,7 @@ class ContractExporter(DataExporter):
 
 
 class ContractItemExporter(DataExporter):
-    topic = "contract_item"
+    topic = "contract-item"
 
     def get_queryset(self) -> models.QuerySet:
         return CharacterContractItem.objects.select_related(

@@ -1053,7 +1053,7 @@ def _export_data_for_topic(topic: str, destination_folder: str = None) -> str:
     file_path = data_exporters.export_topic_to_file(
         topic=topic, destination_folder=destination_folder
     )
-    return file_path
+    return str(file_path)
 
 
 @shared_task(**TASK_DEFAULT_KWARGS)

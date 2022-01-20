@@ -106,7 +106,7 @@ class TestDataExport(NoSocketsTestCase):
         out = StringIO()
         # when
         with tempfile.TemporaryDirectory() as tmpdirname:
-            data = self._execute_command(out, tmpdirname, "wallet_journal")
+            data = self._execute_command(out, tmpdirname, "wallet-journal")
             # then
             self.assertEqual(len(data), 1)
             obj = data[0]
@@ -184,7 +184,7 @@ class TestDataExport(NoSocketsTestCase):
         out = StringIO()
         # when
         with tempfile.TemporaryDirectory() as tmpdirname:
-            data = self._execute_command(out, tmpdirname, "contract_item")
+            data = self._execute_command(out, tmpdirname, "contract-item")
             # then
             self.assertEqual(len(data), 1)
             obj = data[0]

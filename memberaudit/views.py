@@ -44,7 +44,7 @@ from app_utils.views import (
 )
 
 from . import __title__, tasks
-from .app_settings import MEMBERAUDIT_APP_NAME
+from .app_settings import MEMBERAUDIT_APP_NAME, MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE
 from .constants import EVE_CATEGORY_ID_SHIP
 from .core import data_exporters
 from .decorators import fetch_character_if_allowed
@@ -1948,38 +1948,53 @@ def data_export(request):
     destination = data_exporters.default_destination()
     files = [file for file in destination.glob("*.zip")]
     if files:
-        timestamps = [file.stat().st_mtime for file in files]
         export_files = {
             re.search(r"[^_]*_(.*)_\d*", file.name).group(1): file for file in files
         }
-        topics = []
-        for topic in data_exporters.DataExporter.topics:
-            export_file = export_files[topic] if topic in export_files.keys() else None
-            if export_file:
-                timestamp = export_file.stat().st_mtime
-                last_updated_at = dt.datetime.fromtimestamp(timestamp, tz=utc)
-            else:
-                last_updated_at = None
-            exporter = data_exporters.DataExporter.create_exporter(topic)
-            topics.append(
-                {
-                    "value": topic,
-                    "title": topic.replace("_", " ").title(),
-                    "rows": exporter.count(),
-                    "last_updated_at": last_updated_at,
-                    "has_file": export_file is not None,
-                    "update_allowed": True,
-                }
-            )
-        oldest = dt.datetime.fromtimestamp(min(timestamps), tz=utc)
     else:
-        oldest = None
-        topics = []
+        export_files = {}
+    topics = []
+    for topic in data_exporters.DataExporter.topics:
+        export_file = export_files[topic] if topic in export_files.keys() else None
+        if export_file:
+            timestamp = export_file.stat().st_mtime
+            last_updated_at = dt.datetime.fromtimestamp(timestamp, tz=utc)
+            MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE
+            update_allowed = request.user.is_superuser or (
+                now() - last_updated_at
+            ).total_seconds() > (MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE * 60)
+        else:
+            last_updated_at = None
+            update_allowed = True
+        exporter = data_exporters.DataExporter.create_exporter(topic)
+        topics.append(
+            {
+                "value": topic,
+                "title": exporter.title,
+                "rows": exporter.count(),
+                "last_updated_at": last_updated_at,
+                "has_file": export_file is not None,
+                "update_allowed": update_allowed,
+            }
+        )
+    all_dates = {
+        topic["last_updated_at"]
+        for topic in topics
+        if topic["last_updated_at"] is not None
+    }
+    if all_dates:
+        oldest = min(all_dates)
+        update_allowed = request.user.is_superuser or (
+            now() - oldest
+        ).total_seconds() > (MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE * 60)
+    else:
+        update_allowed = True
     context = {
         "page_title": "Exports",
-        "last_updated_at": oldest,
         "topics": topics,
         "character_count": Character.objects.count(),
+        "minutes_until_next_update": MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE,
+        "update_allowed": update_allowed,
     }
     return render(
         request, "memberaudit/exports.html", add_common_context(request, context)

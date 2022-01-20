@@ -14,9 +14,9 @@ from app_utils.testing import generate_invalid_pk
 
 from ..models import Character, CharacterAsset, CharacterUpdateStatus, Location
 from ..tasks import (
+    _export_data_for_topic,
     delete_character,
     export_data,
-    export_data_for_topic,
     run_regular_updates,
     update_all_characters,
     update_character,
@@ -668,6 +668,10 @@ class TestUpdateCharacter(TestCase):
         self.assertTrue(self.character_1001.is_update_status_ok())
 
 
+@patch(
+    TASKS_PATH + ".Character.objects.get_cached",
+    lambda pk, timeout: Character.objects.get(pk=pk),
+)
 @patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
 @patch(TASKS_PATH + ".MEMBERAUDIT_LOG_UPDATE_STATS", False)
 @patch(MODELS_PATH + ".character.MEMBERAUDIT_DATA_RETENTION_LIMIT", None)
@@ -808,13 +812,13 @@ class TestExportData(TestCase):
         ]
         self.assertEqual(len(called_topics), 3)
         self.assertSetEqual(
-            set(called_topics), {"contract", "contract_item", "wallet_journal"}
+            set(called_topics), {"contract", "contract-item", "wallet-journal"}
         )
 
     @patch(TASKS_PATH + ".data_exporters.export_topic_to_file")
     def test_should_export_wallet_journal(self, mock_export_topic_to_file):
         # when
-        export_data_for_topic(topic="abc")
+        _export_data_for_topic(topic="abc")
         # then
         self.assertTrue(mock_export_topic_to_file.called)
         _, kwargs = mock_export_topic_to_file.call_args

@@ -14,7 +14,7 @@
                 <thead>
                     <th>Topic</th>
                     <th>Rows</th>
-                    <th>Since last update</th>
+                    <th>File age</th>
                     <th></th>
                 </thead>
                 <tbody>
@@ -36,15 +36,17 @@
                                 {% endif %}
                             </td>
                         </tr>
-                    {% empty %}
-                        <tr><td columns="2">Sorry, no export files found</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
             <p class="text-muted">
-                Export files contain the complete data of all <strong>{{ character_count|intcomma }}</strong> characters known to Member Audit. They are in CSV format and zipped.
+                Export files contain the complete data of all <strong>{{ character_count|intcomma }}</strong> characters known to Member Audit. They are in CSV format and zipped. New updates can be run after {{ minutes_until_next_update }} minutes.
             </p>
-            <a class="btn btn-default" href="{% url 'memberaudit:data_export_run_update' %}" role="button">Run all updates</a>
+            {% if update_allowed %}
+                <a class="btn btn-default" href="{% url 'memberaudit:data_export_run_update' %}" role="button">Run all updates</a>
+            {% else %}
+                <a class="btn btn-default" href="#" disabled>Run all updates</a>
+            {% endif %}
         </div>
     </div>
 {% endblock details %}
