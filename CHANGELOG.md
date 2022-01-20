@@ -7,9 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.9.0] - tbd.
+
 ### Added
 
 - Ability to download data export files directly from the web site on the new page "Exports".
+
+### Changed
+
+- Removed support for outdated Python 3.6 & Django 3.1
 
 ## [1.8.0] - 2022-01-19
 

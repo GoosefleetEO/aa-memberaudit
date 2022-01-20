@@ -67,6 +67,8 @@ def _produce_zip_file(
 
 def _zip_data_file(exporter, tmpdirname, destination):
     zip_command = shutil.which("zip")
+    if not zip_command:
+        raise RuntimeError("zip command not found on this system")
     zip_path = exporter.output_path(destination).with_suffix("")
     csv_path = exporter.output_path(tmpdirname)
     out = subprocess.DEVNULL if not settings.DEBUG else None
