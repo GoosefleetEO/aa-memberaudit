@@ -204,7 +204,9 @@ class TestDataExport(NoSocketsTestCase):
                 tmpdirname,
                 stdout=out,
             )
-        output_file = Path(tmpdirname) / Path(f"memberaudit_{topic}_202112011230.csv")
+        output_file = Path(tmpdirname) / Path(f"memberaudit_{topic}").with_suffix(
+            ".csv"
+        )
         self.assertTrue(output_file.exists())
         with output_file.open("r") as csv_file:
             reader = csv.DictReader(csv_file)

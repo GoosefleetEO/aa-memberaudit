@@ -26,7 +26,7 @@ from ..models import (
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
 
-def export_topic_to_file(topic: str, destination_folder: str = None) -> Path:
+def export_topic_to_archive(topic: str, destination_folder: str = None) -> Path:
     """Export data for given topic into a zipped file in destination.
 
     Args:
@@ -47,33 +47,40 @@ def export_topic_to_file(topic: str, destination_folder: str = None) -> Path:
     logger.info("Exported %s with %s objects", exporter, f"{exporter.count():,}")
     with tempfile.TemporaryDirectory() as tmpdirname:
         exporter.write_to_file(tmpdirname)
-        zip_file_path = _produce_zip_file(destination_folder, exporter, tmpdirname)
+        zip_file_path = _produce_zip_file(exporter, tmpdirname, destination_folder)
     gc.collect()
     return zip_file_path
 
 
 def _produce_zip_file(
-    destination_folder: str, exporter: "DataExporter", tmpdirname: str
+    exporter: "DataExporter",
+    tmpdirname: str,
+    destination_folder: str,
 ) -> Path:
+    destination = _create_destination_folder(destination_folder)
+    zip_file = _zip_data_file(exporter, tmpdirname, destination)
+    return zip_file
+
+
+def _create_destination_folder(destination_folder: str) -> Path:
     if not destination_folder:
         destination = default_destination()
     else:
         destination = Path(destination_folder)
     destination.mkdir(parents=True, exist_ok=True)
-    _delete_old_data_file(exporter, destination)
-    zip_file = _zip_data_file(exporter, tmpdirname, destination)
-    return zip_file
+    return destination
 
 
 def _zip_data_file(exporter, tmpdirname, destination):
     zip_command = shutil.which("zip")
     if not zip_command:
         raise RuntimeError("zip command not found on this system")
-    zip_path = exporter.output_path(destination).with_suffix("")
-    csv_path = exporter.output_path(tmpdirname)
+    zip_path = destination / exporter.output_basename
+    zip_path.with_suffix(".zip").unlink(missing_ok=True)
+    csv_file = exporter.output_path(tmpdirname)
     out = subprocess.DEVNULL if not settings.DEBUG else None
     result = subprocess.run(
-        [zip_command, "-j", zip_path.resolve(), csv_path.resolve()],
+        [zip_command, "-j", zip_path.resolve(), csv_file.resolve()],
         stdout=out,
         stderr=out,
     )
@@ -82,15 +89,9 @@ def _zip_data_file(exporter, tmpdirname, destination):
             f"Failed to create export file for {exporter} in {zip_path}. "
             f"returncode: {result.returncode}"
         )
-    zip_file = zip_path.with_suffix(".zip").resolve()
+    zip_file = zip_path.with_suffix(".zip")
     logger.info("Created export file for %s: %s", exporter, zip_file)
     return zip_file
-
-
-def _delete_old_data_file(exporter, destination):
-    for file in destination.glob(f"{exporter.output_filebase}_*.zip"):
-        file.unlink()
-        logger.info("Deleted outdated export file: %s", file)
 
 
 def default_destination() -> Path:
@@ -116,12 +117,8 @@ class DataExporter(ABC):
         return self.topic.replace("-", " ").title()
 
     @property
-    def output_filebase(self) -> str:
-        return f"{_app_name()}_{self.topic}"
-
-    @property
-    def output_filename(self) -> str:
-        return f'{self.output_filebase}_{self._now.strftime("%Y%m%d%H%M")}.csv'
+    def output_basename(self) -> Path:
+        return Path(f"{_app_name()}_{self.topic}")
 
     @abstractmethod
     def get_queryset(self) -> models.QuerySet:
@@ -143,7 +140,7 @@ class DataExporter(ABC):
         return self.format_obj(self.queryset.first()).keys()
 
     def output_path(self, destination: str) -> Path:
-        return Path(destination) / Path(self.output_filename)
+        return Path(destination) / self.output_basename.with_suffix(".csv")
 
     def write_to_file(self, destination: str):
         path = self.output_path(destination)

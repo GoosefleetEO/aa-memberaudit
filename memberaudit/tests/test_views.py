@@ -967,6 +967,12 @@ class TestViewsOther(TestViewsBase):
         response = character_attribute_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
 
+
+class TestExportsView(TestViewsBase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+
     def test_should_open_exports_page_with_permission(self):
         # given
         user, _ = create_user_from_evecharacter(
@@ -990,6 +996,9 @@ class TestViewsOther(TestViewsBase):
         response = data_export(request)
         # then
         self.assertEqual(response.status_code, 302)
+
+    def test_should_return_exports_file(self):
+        ...
 
 
 class TestCharacterDataViewsOther(TestViewsBase):

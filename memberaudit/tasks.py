@@ -1050,7 +1050,7 @@ def export_data_for_topic(topic: str, user_pk: int) -> str:
 @shared_task(**TASK_DEFAULT_KWARGS)
 def _export_data_for_topic(topic: str, destination_folder: str = None) -> str:
     """Export data for given topic into a zipped file in destination."""
-    file_path = data_exporters.export_topic_to_file(
+    file_path = data_exporters.export_topic_to_archive(
         topic=topic, destination_folder=destination_folder
     )
     return str(file_path)

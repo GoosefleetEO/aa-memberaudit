@@ -802,7 +802,7 @@ class TestExportData(TestCase):
         load_entities()
         cls.character = create_memberaudit_character(1001)
 
-    @patch(TASKS_PATH + ".data_exporters.export_topic_to_file")
+    @patch(TASKS_PATH + ".data_exporters.export_topic_to_archive")
     def test_should_export_all_topics(self, mock_export_topic_to_file):
         # when
         export_data()
@@ -815,7 +815,7 @@ class TestExportData(TestCase):
             set(called_topics), {"contract", "contract-item", "wallet-journal"}
         )
 
-    @patch(TASKS_PATH + ".data_exporters.export_topic_to_file")
+    @patch(TASKS_PATH + ".data_exporters.export_topic_to_archive")
     def test_should_export_wallet_journal(self, mock_export_topic_to_file):
         # when
         _export_data_for_topic(topic="abc")

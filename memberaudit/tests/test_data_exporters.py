@@ -6,7 +6,7 @@ from pytz import utc
 
 from django.test import TestCase
 
-from ..core.data_exporters import export_topic_to_file
+from ..core.data_exporters import export_topic_to_archive
 from ..models import CharacterWalletJournalEntry
 from . import create_memberaudit_character
 from .testdata.load_entities import load_entities
@@ -36,9 +36,10 @@ class TestExportData(TestCase):
         )
         # when
         with tempfile.TemporaryDirectory() as tmpdirname:
-            result = export_topic_to_file(
+            result = export_topic_to_archive(
                 topic="wallet-journal", destination_folder=tmpdirname
             )
             # then
             output_file = Path(result)
             self.assertTrue(output_file.exists())
+            # self.assertEqual("memberaudit_wallet-journal.zip", output_file.name)

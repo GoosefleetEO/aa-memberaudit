@@ -1,5 +1,4 @@
 import datetime as dt
-import re
 from typing import Optional, Tuple
 
 import humanize
@@ -1948,9 +1947,13 @@ def data_export(request):
     destination = data_exporters.default_destination()
     files = [file for file in destination.glob("*.zip")]
     if files:
-        export_files = {
-            re.search(r"[^_]*_(.*)_\d*", file.name).group(1): file for file in files
-        }
+        export_files = {}
+        for file in files:
+            parts = file.with_suffix("").name.split("_")
+            try:
+                export_files[parts[1]] = file
+            except IndexError:
+                pass
     else:
         export_files = {}
     topics = []
@@ -2006,13 +2009,11 @@ def data_export(request):
 def download_export_file(request, topic: str) -> FileResponse:
     exporter = data_exporters.DataExporter.create_exporter(topic)
     destination = data_exporters.default_destination()
-    file_mask = f"{exporter.output_filebase}*.zip"
-    files = [file for file in destination.glob(file_mask)]
-    if len(files) < 1:
+    zip_file = destination / exporter.output_basename.with_suffix(".zip")
+    if not zip_file.exists():
         raise Http404(f"Could not find export file for {topic}")
-    export_file = files[0]
-    logger.info("Returning file %s for download of topic %s", export_file, topic)
-    return FileResponse(export_file.open("rb"))
+    logger.info("Returning file %s for download of topic %s", zip_file, topic)
+    return FileResponse(zip_file.open("rb"))
 
 
 @login_required
