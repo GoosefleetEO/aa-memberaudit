@@ -6,6 +6,7 @@ stages:
 before_script:
 - apt-get update
 - apt-get install redis-server -y
+- apt-get install zip -y
 - redis-server --daemonize yes
 - python -V
 - pip install tox
