@@ -160,19 +160,19 @@ urlpatterns = [
         views.character_attribute_data,
         name="character_attribute_data",
     ),
-    path("data_export/", views.data_export, name="data_export"),
+    path("data-export/", views.data_export, name="data_export"),
     path(
-        "data_export/run-update",
+        "data-export/run-update",
         views.data_export_run_update,
         name="data_export_run_update",
     ),
     path(
-        "data_export/run-update/<str:topic>",
+        "data-export/run-update/<str:topic>",
         views.data_export_run_update,
         name="data_export_run_update",
     ),
     path(
-        "data_export/download/<str:topic>",
+        "data-export/download/<str:topic>",
         views.download_export_file,
         name="download_export_file",
     ),
