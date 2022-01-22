@@ -1,36 +1,20 @@
-import csv
-import datetime as dt
 import tempfile
 from io import StringIO
 from pathlib import Path
-from unittest.mock import patch
-
-from pytz import utc
 
 from django.core.management import call_command
-from eveuniverse.models import EveEntity
 
 from app_utils.testing import NoSocketsTestCase
 
-from ..models import (
-    Character,
-    CharacterContract,
-    CharacterContractItem,
-    CharacterWalletJournalEntry,
-)
+from ..models import Character
 from . import (
     add_auth_character_to_user,
     create_memberaudit_character,
     create_user_from_evecharacter_with_access,
 )
+from .testdata.factories import create_contract, create_contract_item
 from .testdata.load_entities import load_entities
 from .testdata.load_eveuniverse import load_eveuniverse
-
-# from esi.models import Token
-
-
-# from allianceauth.authentication.models import CharacterOwnership
-
 
 PACKAGE_PATH = "memberaudit.management.commands"
 DATA_EXPORTERS_PATH = "memberaudit.core.data_exporters"
@@ -88,127 +72,22 @@ class TestDataExport(NoSocketsTestCase):
         load_eveuniverse()
         cls.character = create_memberaudit_character(1001)
 
-    def test_should_export_contract(self):
-        # given
-        contract = CharacterContract.objects.create(
-            character=self.character,
-            contract_id=42,
-            availability=CharacterContract.AVAILABILITY_PERSONAL,
-            contract_type=CharacterContract.TYPE_ITEM_EXCHANGE,
-            assignee=EveEntity.objects.get(id=1002),
-            date_issued=dt.datetime(2021, 1, 1, 12, 30, tzinfo=utc),
-            date_expired=dt.datetime(2021, 1, 4, 12, 30, tzinfo=utc),
-            for_corporation=False,
-            issuer=EveEntity.objects.get(id=1001),
-            issuer_corporation=EveEntity.objects.get(id=2001),
-            status=CharacterContract.STATUS_OUTSTANDING,
-            title="Dummy info",
-        )
-        CharacterContractItem.objects.create(
-            contract=contract,
-            record_id=1,
-            is_included=True,
-            is_singleton=False,
-            quantity=1,
-            eve_type_id=603,
-        )
-        out = StringIO()
-        # when
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            data = self._execute_command(out, tmpdirname, "contract")
-            # then
-            self.assertEqual(len(data), 1)
-            obj = data[0]
-            self.assertEqual(obj["owner character"], "Bruce Wayne")
-            self.assertEqual(obj["owner corporation"], "Wayne Technologies")
-            self.assertEqual(obj["contract id"], "42")
-            # TODO: test all properties and all contract types
-
     def test_should_export_contract_item(self):
-        # given
-        contract = CharacterContract.objects.create(
-            character=self.character,
-            contract_id=42,
-            availability=CharacterContract.AVAILABILITY_PERSONAL,
-            contract_type=CharacterContract.TYPE_ITEM_EXCHANGE,
-            assignee=EveEntity.objects.get(id=1002),
-            date_issued=dt.datetime(2021, 1, 1, 12, 30, tzinfo=utc),
-            date_expired=dt.datetime(2021, 1, 4, 12, 30, tzinfo=utc),
-            for_corporation=False,
-            issuer=EveEntity.objects.get(id=1001),
-            issuer_corporation=EveEntity.objects.get(id=2001),
-            status=CharacterContract.STATUS_OUTSTANDING,
-            title="Dummy info",
-        )
-        CharacterContractItem.objects.create(
-            contract=contract,
-            record_id=1,
-            is_included=True,
-            is_singleton=False,
-            quantity=1,
-            eve_type_id=603,
-        )
-        out = StringIO()
-        # when
         with tempfile.TemporaryDirectory() as tmpdirname:
-            data = self._execute_command(out, tmpdirname, "contract-item")
-            # then
-            self.assertEqual(len(data), 1)
-            obj = data[0]
-            self.assertEqual(obj["contract pk"], str(contract.pk))
-            self.assertEqual(obj["record id"], "1")
-            self.assertEqual(obj["type"], "Merlin")
-            self.assertEqual(obj["quantity"], "1")
-            # TODO: test all properties and all contract types
-
-    def test_should_export_wallet_journal(self):
-        # given
-        CharacterWalletJournalEntry.objects.create(
-            character=self.character,
-            entry_id=1,
-            amount=1000000.0,
-            balance=20000000.0,
-            ref_type="test_ref",
-            context_id_type=CharacterWalletJournalEntry.CONTEXT_ID_TYPE_UNDEFINED,
-            date=dt.datetime(2021, 1, 1, 12, 30, tzinfo=utc),
-            description="test description",
-            first_party=EveEntity.objects.get(id=1001),
-            second_party=EveEntity.objects.get(id=1002),
-            reason="test reason",
-        )
-        out = StringIO()
-        # when
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            data = self._execute_command(out, tmpdirname, "wallet-journal")
-            # then
-            self.assertEqual(len(data), 1)
-            obj = data[0]
-            self.assertEqual(obj["date"], "2021-01-01 12:30:00")
-            self.assertEqual(obj["owner character"], "Bruce Wayne")
-            self.assertEqual(obj["owner corporation"], "Wayne Technologies")
-            self.assertEqual(obj["ref type"], "Test Ref")
-            self.assertEqual(obj["first party"], "Bruce Wayne")
-            self.assertEqual(obj["second party"], "Clark Kent")
-            self.assertEqual(obj["amount"], "1000000.0")
-            self.assertEqual(obj["balance"], "20000000.0")
-            self.assertEqual(obj["description"], "test description")
-            self.assertEqual(obj["reason"], "test reason")
-
-    def _execute_command(self, out, tmpdirname, topic):
-        with patch(DATA_EXPORTERS_PATH + ".now") as mock_now:
-            mock_now.return_value = dt.datetime(2021, 12, 1, 12, 30, tzinfo=utc)
+            # given
+            contract = create_contract(character=self.character)
+            create_contract_item(contract=contract, record_id=12)
+            out = StringIO()
+            # when
             call_command(
                 "memberaudit_data_export",
-                topic,
+                "contract-item",
                 "--destination",
                 tmpdirname,
                 stdout=out,
             )
-        output_file = Path(tmpdirname) / Path(f"memberaudit_{topic}").with_suffix(
-            ".csv"
-        )
-        self.assertTrue(output_file.exists())
-        with output_file.open("r") as csv_file:
-            reader = csv.DictReader(csv_file)
-            data = [row for row in reader]
-        return data
+            # then
+            output_file = Path(tmpdirname) / Path(
+                "memberaudit_contract-item"
+            ).with_suffix(".csv")
+            self.assertTrue(output_file.exists())

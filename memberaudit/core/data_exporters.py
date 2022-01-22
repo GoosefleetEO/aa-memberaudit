@@ -31,7 +31,7 @@ from ..models import (
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
 
-def export_topic_to_archive(topic: str, destination_folder: str = None) -> Path:
+def export_topic_to_archive(topic: str, destination_folder: str = None) -> str:
     """Export data for given topic into a zipped file in destination.
 
     Args:
@@ -54,7 +54,7 @@ def export_topic_to_archive(topic: str, destination_folder: str = None) -> Path:
         csv_file = exporter.write_to_file(tmpdirname)
         zip_file_path = file_to_zip(csv_file, Path(destination_folder))
     gc.collect()
-    return zip_file_path
+    return str(zip_file_path)
 
 
 def file_to_zip(source_file: Path, destination: Path) -> Path:
@@ -209,21 +209,26 @@ class DataExporter(ABC):
         return output_file
 
     @classproperty
-    def exporters(cls) -> list:
-        """Provide list of supported exporters."""
+    def _exporters(cls) -> list:
+        """Supported exporter classes."""
         return [ContractExporter, ContractItemExporter, WalletJournalExporter]
 
     @classproperty
     def topics(cls) -> list:
-        return [exporter.topic for exporter in cls.exporters]
+        """Available export topics."""
+        return sorted([exporter.topic for exporter in cls._exporters])
 
     @classmethod
     def create_exporter(cls, topic: str) -> "DataExporter":
-        """Create an exporter for the requested topic."""
-        for exporter in cls.exporters:
+        """Create an exporter for the requested topic.
+
+        Raises:
+        - ValueError for invalid topics
+        """
+        for exporter in cls._exporters:
             if topic == exporter.topic:
                 return exporter()
-        raise NotImplementedError()
+        raise ValueError(f"Invalid topic: {topic}")
 
 
 class WalletJournalExporter(DataExporter):
@@ -237,16 +242,23 @@ class WalletJournalExporter(DataExporter):
         ).order_by("date")
 
     def format_obj(self, obj: models.Model) -> dict:
+        if not obj:
+            return dict()
         character = obj.character.character_ownership.character
         return {
             "date": obj.date.strftime("%Y-%m-%d %H:%M:%S"),
             "owner character": character.character_name,
             "owner corporation": character.corporation_name,
+            "entry id": obj.entry_id,
             "ref type": obj.ref_type.replace("_", " ").title(),
             "first party": _name_or_default(obj.first_party),
             "second party": _name_or_default(obj.second_party),
             "amount": float(obj.amount),
             "balance": float(obj.balance),
+            "context_id": obj.context_id,
+            "context_id_type": obj.get_context_id_type_display(),
+            "tax": float(obj.tax) if obj.tax else "",
+            "tax_receiver": _name_or_default(obj.tax_receiver),
             "description": obj.description,
             "reason": obj.reason,
         }
