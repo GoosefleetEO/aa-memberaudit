@@ -1037,14 +1037,14 @@ def export_data(user_pk: int = None) -> None:
     ]
     if user_pk:
         tasks.append(_export_data_inform_user.si(user_pk))
-    chain(tasks).apply_async(priority=9)
+    chain(tasks).apply_async(priority=DEFAULT_TASK_PRIORITY)
 
 
 @shared_task(**TASK_DEFAULT_KWARGS)
 def export_data_for_topic(topic: str, user_pk: int) -> str:
     chain(
         _export_data_for_topic.si(topic), _export_data_inform_user.si(user_pk, topic)
-    ).apply_async(priority=9)
+    ).apply_async(priority=DEFAULT_TASK_PRIORITY)
 
 
 @shared_task(**TASK_DEFAULT_KWARGS)
@@ -1060,11 +1060,14 @@ def _export_data_for_topic(topic: str, destination_folder: str = None) -> str:
 def _export_data_inform_user(user_pk: int, topic: str = None):
     user = User.objects.get(pk=user_pk)
     if topic:
-        title = f"{__title__}: Data export for {topic} completed "
-        message = f"Data export has been completed for {topic}."
+        title = f"{__title__}: Data export for {topic} completed"
+        message = f"Data export has been completed for topic {topic}."
     else:
-        title = f"{__title__}: Full data export completed "
-        message = "Data export has been completed. It covers the following topics:\n"
+        title = f"{__title__}: Full data export completed"
+        message = (
+            "Data export for all topics has been completed. "
+            "It covers the following:\n"
+        )
         for topic in data_exporters.DataExporter.topics:
             message += f"- {topic}\n"
     notify(user=user, title=title, message=message, level="INFO")

@@ -12,7 +12,7 @@ from . import create_memberaudit_character
 from .testdata.load_entities import load_entities
 
 
-class TestExportData(TestCase):
+class TestExportTopicToArchive(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
@@ -42,4 +42,4 @@ class TestExportData(TestCase):
             # then
             output_file = Path(result)
             self.assertTrue(output_file.exists())
-            # self.assertEqual("memberaudit_wallet-journal.zip", output_file.name)
+            self.assertEqual("memberaudit_wallet-journal.zip", output_file.name)

@@ -162,11 +162,6 @@ urlpatterns = [
     ),
     path("data-export/", views.data_export, name="data_export"),
     path(
-        "data-export/run-update",
-        views.data_export_run_update,
-        name="data_export_run_update",
-    ),
-    path(
         "data-export/run-update/<str:topic>",
         views.data_export_run_update,
         name="data_export_run_update",

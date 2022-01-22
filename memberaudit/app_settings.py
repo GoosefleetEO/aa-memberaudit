@@ -32,7 +32,7 @@ MEMBERAUDIT_ESI_ERROR_LIMIT_THRESHOLD = clean_setting(
 MEMBERAUDIT_LOCATION_STALE_HOURS = clean_setting("MEMBERAUDIT_LOCATION_STALE_HOURS", 24)
 
 MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE = clean_setting(
-    "MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE", 15
+    "MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE", 60
 )
 """Mininum age of existing export file before next update can be started in minutes."""
 

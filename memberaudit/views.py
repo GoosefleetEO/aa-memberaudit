@@ -2,7 +2,6 @@ import datetime as dt
 from typing import Optional, Tuple
 
 import humanize
-from pytz import utc
 
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ObjectDoesNotExist
@@ -1944,60 +1943,12 @@ def skill_sets_report_data(request) -> JsonResponse:
 @login_required
 @permission_required("memberaudit.exports_access")
 def data_export(request):
-    destination = data_exporters.default_destination()
-    files = [file for file in destination.glob("*.zip")]
-    if files:
-        export_files = {}
-        for file in files:
-            parts = file.with_suffix("").name.split("_")
-            try:
-                export_files[parts[1]] = file
-            except IndexError:
-                pass
-    else:
-        export_files = {}
-    topics = []
-    for topic in data_exporters.DataExporter.topics:
-        export_file = export_files[topic] if topic in export_files.keys() else None
-        if export_file:
-            timestamp = export_file.stat().st_mtime
-            last_updated_at = dt.datetime.fromtimestamp(timestamp, tz=utc)
-            MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE
-            update_allowed = request.user.is_superuser or (
-                now() - last_updated_at
-            ).total_seconds() > (MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE * 60)
-        else:
-            last_updated_at = None
-            update_allowed = True
-        exporter = data_exporters.DataExporter.create_exporter(topic)
-        topics.append(
-            {
-                "value": topic,
-                "title": exporter.title,
-                "rows": exporter.count(),
-                "last_updated_at": last_updated_at,
-                "has_file": export_file is not None,
-                "update_allowed": update_allowed,
-            }
-        )
-    all_dates = {
-        topic["last_updated_at"]
-        for topic in topics
-        if topic["last_updated_at"] is not None
-    }
-    if all_dates:
-        oldest = min(all_dates)
-        update_allowed = request.user.is_superuser or (
-            now() - oldest
-        ).total_seconds() > (MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE * 60)
-    else:
-        update_allowed = True
+    topics = data_exporters.topics_and_export_files()
     context = {
         "page_title": "Exports",
         "topics": topics,
         "character_count": Character.objects.count(),
         "minutes_until_next_update": MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE,
-        "update_allowed": update_allowed,
     }
     return render(
         request, "memberaudit/exports.html", add_common_context(request, context)
@@ -2018,19 +1969,16 @@ def download_export_file(request, topic: str) -> FileResponse:
 
 @login_required
 @permission_required("memberaudit.exports_access")
-def data_export_run_update(request, topic: str = None):
-    if topic:
-        tasks.export_data_for_topic.delay(topic=topic, user_pk=request.user.pk)
-        topic_text = f" for {topic}"
-    else:
-        tasks.export_data.delay(user_pk=request.user.pk)
-        topic_text = ""
+def data_export_run_update(request, topic: str):
+    tasks.export_data_for_topic.delay(topic=topic, user_pk=request.user.pk)
+    format_html
     messages_plus.info(
         request,
-        (
-            f"Data export{topic_text} has been started. "
+        format_html(
+            "Data export for topic <strong>{}</strong> has been started. "
             "This can take a couple of minutes. "
-            "You will get a notification once it is completed."
+            "You will get a notification once it is completed.",
+            topic,
         ),
     )
     return redirect("memberaudit:data_export")

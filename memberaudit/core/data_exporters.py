@@ -1,11 +1,15 @@
 """Export Member Audit data like wallet journals to CSV files."""
 import csv
+import datetime as dt
 import gc
 import shutil
 import subprocess
 import tempfile
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import List
+
+from pytz import utc
 
 from django.conf import settings
 from django.db import models
@@ -17,6 +21,7 @@ from app_utils.logging import LoggerAddTag
 from app_utils.views import yesno_str
 
 from .. import __title__
+from ..app_settings import MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE
 from ..models import (
     CharacterContract,
     CharacterContractItem,
@@ -94,8 +99,58 @@ def _zip_data_file(exporter, tmpdirname, destination):
     return zip_file
 
 
+def topics_and_export_files() -> List[dict]:
+    """Compile list of topics and currently available export files for download."""
+    export_files = _gather_export_files()
+    return _compile_topics(export_files)
+
+
+def _gather_export_files() -> dict:
+    destination = default_destination()
+    files = [file for file in destination.glob("*.zip")]
+    if files:
+        export_files = {}
+        for file in files:
+            parts = file.with_suffix("").name.split("_")
+            try:
+                export_files[parts[1]] = file
+            except IndexError:
+                pass
+    else:
+        export_files = {}
+    return export_files
+
+
+def _compile_topics(export_files):
+    topics = []
+    for topic in DataExporter.topics:
+        export_file = export_files[topic] if topic in export_files.keys() else None
+        if export_file:
+            timestamp = export_file.stat().st_mtime
+            last_updated_at = dt.datetime.fromtimestamp(timestamp, tz=utc)
+            MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE
+            update_allowed = settings.DEBUG or (
+                now() - last_updated_at
+            ).total_seconds() > (MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE * 60)
+        else:
+            last_updated_at = None
+            update_allowed = True
+        exporter = DataExporter.create_exporter(topic)
+        topics.append(
+            {
+                "value": topic,
+                "title": exporter.title,
+                "rows": exporter.count(),
+                "last_updated_at": last_updated_at,
+                "has_file": export_file is not None,
+                "update_allowed": update_allowed,
+            }
+        )
+    return topics
+
+
 def default_destination() -> Path:
-    return Path(settings.BASE_DIR) / f"{_app_name()}_export"
+    return Path(settings.BASE_DIR) / _app_name() / "data_exports"
 
 
 class DataExporter(ABC):
