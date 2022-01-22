@@ -81,7 +81,10 @@ def _zip_data_file(exporter, tmpdirname, destination):
     if not zip_command:
         raise RuntimeError("zip command not found on this system")
     zip_path = destination / exporter.output_basename
-    zip_path.with_suffix(".zip").unlink(missing_ok=True)
+    try:
+        zip_path.with_suffix(".zip").unlink()
+    except FileNotFoundError:
+        pass
     csv_file = exporter.output_path(tmpdirname)
     out = subprocess.DEVNULL if not settings.DEBUG else None
     result = subprocess.run(
