@@ -88,39 +88,6 @@ class TestDataExport(NoSocketsTestCase):
         load_eveuniverse()
         cls.character = create_memberaudit_character(1001)
 
-    def test_should_export_wallet_journal(self):
-        # given
-        CharacterWalletJournalEntry.objects.create(
-            character=self.character,
-            entry_id=1,
-            amount=1000000.0,
-            balance=20000000.0,
-            ref_type="test_ref",
-            context_id_type=CharacterWalletJournalEntry.CONTEXT_ID_TYPE_UNDEFINED,
-            date=dt.datetime(2021, 1, 1, 12, 30, tzinfo=utc),
-            description="test description",
-            first_party=EveEntity.objects.get(id=1001),
-            second_party=EveEntity.objects.get(id=1002),
-            reason="test reason",
-        )
-        out = StringIO()
-        # when
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            data = self._execute_command(out, tmpdirname, "wallet-journal")
-            # then
-            self.assertEqual(len(data), 1)
-            obj = data[0]
-            self.assertEqual(obj["date"], "2021-01-01 12:30:00")
-            self.assertEqual(obj["owner character"], "Bruce Wayne")
-            self.assertEqual(obj["owner corporation"], "Wayne Technologies")
-            self.assertEqual(obj["ref type"], "Test Ref")
-            self.assertEqual(obj["first party"], "Bruce Wayne")
-            self.assertEqual(obj["second party"], "Clark Kent")
-            self.assertEqual(obj["amount"], "1000000.0")
-            self.assertEqual(obj["balance"], "20000000.0")
-            self.assertEqual(obj["description"], "test description")
-            self.assertEqual(obj["reason"], "test reason")
-
     def test_should_export_contract(self):
         # given
         contract = CharacterContract.objects.create(
@@ -193,6 +160,39 @@ class TestDataExport(NoSocketsTestCase):
             self.assertEqual(obj["type"], "Merlin")
             self.assertEqual(obj["quantity"], "1")
             # TODO: test all properties and all contract types
+
+    def test_should_export_wallet_journal(self):
+        # given
+        CharacterWalletJournalEntry.objects.create(
+            character=self.character,
+            entry_id=1,
+            amount=1000000.0,
+            balance=20000000.0,
+            ref_type="test_ref",
+            context_id_type=CharacterWalletJournalEntry.CONTEXT_ID_TYPE_UNDEFINED,
+            date=dt.datetime(2021, 1, 1, 12, 30, tzinfo=utc),
+            description="test description",
+            first_party=EveEntity.objects.get(id=1001),
+            second_party=EveEntity.objects.get(id=1002),
+            reason="test reason",
+        )
+        out = StringIO()
+        # when
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            data = self._execute_command(out, tmpdirname, "wallet-journal")
+            # then
+            self.assertEqual(len(data), 1)
+            obj = data[0]
+            self.assertEqual(obj["date"], "2021-01-01 12:30:00")
+            self.assertEqual(obj["owner character"], "Bruce Wayne")
+            self.assertEqual(obj["owner corporation"], "Wayne Technologies")
+            self.assertEqual(obj["ref type"], "Test Ref")
+            self.assertEqual(obj["first party"], "Bruce Wayne")
+            self.assertEqual(obj["second party"], "Clark Kent")
+            self.assertEqual(obj["amount"], "1000000.0")
+            self.assertEqual(obj["balance"], "20000000.0")
+            self.assertEqual(obj["description"], "test description")
+            self.assertEqual(obj["reason"], "test reason")
 
     def _execute_command(self, out, tmpdirname, topic):
         with patch(DATA_EXPORTERS_PATH + ".now") as mock_now:

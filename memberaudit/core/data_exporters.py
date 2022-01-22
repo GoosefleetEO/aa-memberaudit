@@ -51,54 +51,47 @@ def export_topic_to_archive(topic: str, destination_folder: str = None) -> Path:
         return ""
     logger.info("Exported %s with %s objects", exporter, f"{exporter.count():,}")
     with tempfile.TemporaryDirectory() as tmpdirname:
-        exporter.write_to_file(tmpdirname)
-        zip_file_path = _produce_zip_file(exporter, tmpdirname, destination_folder)
+        csv_file = exporter.write_to_file(tmpdirname)
+        zip_file_path = file_to_zip(csv_file, Path(destination_folder))
     gc.collect()
     return zip_file_path
 
 
-def _produce_zip_file(
-    exporter: "DataExporter",
-    tmpdirname: str,
-    destination_folder: str,
-) -> Path:
-    destination = _create_destination_folder(destination_folder)
-    zip_file = _zip_data_file(exporter, tmpdirname, destination)
+def file_to_zip(source_file: Path, destination: Path) -> Path:
+    """Create a zip archive from a file."""
+    _create_destination_folder(destination)
+    zip_file = _zip_data_file(source_file, destination)
     return zip_file
 
 
-def _create_destination_folder(destination_folder: str) -> Path:
-    if not destination_folder:
+def _create_destination_folder(destination: Path) -> Path:
+    if destination:
         destination = default_destination()
-    else:
-        destination = Path(destination_folder)
     destination.mkdir(parents=True, exist_ok=True)
     return destination
 
 
-def _zip_data_file(exporter, tmpdirname, destination):
+def _zip_data_file(source_file: Path, destination: Path):
     zip_command = shutil.which("zip")
     if not zip_command:
         raise RuntimeError("zip command not found on this system")
-    zip_path = destination / exporter.output_basename
+    zip_path = destination / source_file.with_suffix("").name
     try:
         zip_path.with_suffix(".zip").unlink()
     except FileNotFoundError:
         pass
-    csv_file = exporter.output_path(tmpdirname)
     out = subprocess.DEVNULL if not settings.DEBUG else None
     result = subprocess.run(
-        [zip_command, "-j", zip_path.resolve(), csv_file.resolve()],
+        [zip_command, "-j", zip_path.resolve(), source_file.resolve()],
         stdout=out,
         stderr=out,
     )
     if result.returncode != 0:
         raise RuntimeError(
-            f"Failed to create export file for {exporter} in {zip_path}. "
-            f"returncode: {result.returncode}"
+            f"Failed to zip file: {source_file}. returncode: {result.returncode}"
         )
     zip_file = zip_path.with_suffix(".zip")
-    logger.info("Created export file for %s: %s", exporter, zip_file)
+    logger.info("Created export file: %s", zip_file)
     return zip_file
 
 
@@ -200,15 +193,20 @@ class DataExporter(ABC):
     def output_path(self, destination: str) -> Path:
         return Path(destination) / self.output_basename.with_suffix(".csv")
 
-    def write_to_file(self, destination: str):
-        path = self.output_path(destination)
-        with path.open("w", newline="") as csv_file:
+    def write_to_file(self, destination: str) -> Path:
+        """Write export data to CSV file.
+
+        Returns full path to CSV file.
+        """
+        output_file = self.output_path(destination)
+        with output_file.open("w", newline="") as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=self.fieldnames())
             writer.writeheader()
             chunk_size = 1000
             for obj in self.queryset.iterator(chunk_size=chunk_size):
                 row = self.format_obj(obj)
                 writer.writerow(row)
+        return output_file
 
     @classproperty
     def exporters(cls) -> list:
