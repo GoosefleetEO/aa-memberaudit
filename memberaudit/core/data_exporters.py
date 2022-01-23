@@ -71,25 +71,23 @@ def file_to_zip(source_file: Path, destination: Path) -> Path:
     return zip_file
 
 
-def topics_and_export_files() -> List[dict]:
+def topics_and_export_files(destination_folder: str = None) -> List[dict]:
     """Compile list of topics and currently available export files for download."""
-    export_files = _gather_export_files()
+    export_files = _gather_export_files(destination_folder)
     return _compile_topics(export_files)
 
 
-def _gather_export_files() -> dict:
-    destination = default_destination()
-    files = [file for file in destination.glob("*.zip")]
+def _gather_export_files(destination_folder: str) -> dict:
+    if not destination_folder:
+        destination_path = default_destination()
+    else:
+        destination_path = Path(destination_folder)
+    files = [file for file in destination_path.glob(f"{_app_name()}_*.zip")]
+    export_files = dict()
     if files:
-        export_files = {}
         for file in files:
             parts = file.with_suffix("").name.split("_")
-            try:
-                export_files[parts[1]] = file
-            except IndexError:
-                pass
-    else:
-        export_files = {}
+            export_files[parts[1]] = file
     return export_files
 
 
@@ -112,6 +110,7 @@ def _compile_topics(export_files):
             {
                 "value": topic,
                 "title": exporter.title,
+                "description": exporter.description,
                 "rows": exporter.count(),
                 "last_updated_at": last_updated_at,
                 "has_file": export_file is not None,
@@ -132,7 +131,9 @@ class DataExporter(ABC):
         self.queryset = self.get_queryset()
         self._now = now()
         if not hasattr(self, "topic"):
-            raise ValueError("You must define topic.")
+            raise ValueError("You must define 'topic'.")
+        if not hasattr(self, "description"):
+            raise ValueError("You must define 'description'.")
         if "_" in self.topic:
             raise ValueError("Topic can not contain underscores")
 
@@ -207,41 +208,9 @@ class DataExporter(ABC):
         raise ValueError(f"Invalid topic: {topic}")
 
 
-class WalletJournalExporter(DataExporter):
-    topic = "wallet-journal"
-
-    def get_queryset(self) -> models.QuerySet:
-        return CharacterWalletJournalEntry.objects.select_related(
-            "first_party",
-            "second_party",
-            "character__character_ownership__character",
-        ).order_by("date")
-
-    def format_obj(self, obj: models.Model) -> dict:
-        if not obj:
-            return dict()
-        character = obj.character.character_ownership.character
-        return {
-            "date": obj.date.strftime("%Y-%m-%d %H:%M:%S"),
-            "owner character": character.character_name,
-            "owner corporation": character.corporation_name,
-            "entry id": obj.entry_id,
-            "ref type": obj.ref_type.replace("_", " ").title(),
-            "first party": _name_or_default(obj.first_party),
-            "second party": _name_or_default(obj.second_party),
-            "amount": float(obj.amount),
-            "balance": float(obj.balance),
-            "context_id": obj.context_id,
-            "context_id_type": obj.get_context_id_type_display(),
-            "tax": float(obj.tax) if obj.tax else "",
-            "tax_receiver": _name_or_default(obj.tax_receiver),
-            "description": obj.description,
-            "reason": obj.reason,
-        }
-
-
 class ContractExporter(DataExporter):
     topic = "contract"
+    description = "List of contracts."
 
     def get_queryset(self) -> models.QuerySet:
         return CharacterContract.objects.select_related(
@@ -287,6 +256,9 @@ class ContractExporter(DataExporter):
 
 class ContractItemExporter(DataExporter):
     topic = "contract-item"
+    description = (
+        "List of items from contracts. Linked to Contract via 'contract pk' column."
+    )
 
     def get_queryset(self) -> models.QuerySet:
         return CharacterContractItem.objects.select_related(
@@ -305,6 +277,40 @@ class ContractItemExporter(DataExporter):
             "is blueprint_original": yesno_str(obj.is_blueprint_original),
             "is blueprint_copy": yesno_str(obj.is_blueprint_copy),
             "raw quantity": _value_or_default(obj.raw_quantity),
+        }
+
+
+class WalletJournalExporter(DataExporter):
+    topic = "wallet-journal"
+    description = "List of wallet journal entries."
+
+    def get_queryset(self) -> models.QuerySet:
+        return CharacterWalletJournalEntry.objects.select_related(
+            "first_party",
+            "second_party",
+            "character__character_ownership__character",
+        ).order_by("date")
+
+    def format_obj(self, obj: models.Model) -> dict:
+        if not obj:
+            return dict()
+        character = obj.character.character_ownership.character
+        return {
+            "date": obj.date.strftime("%Y-%m-%d %H:%M:%S"),
+            "owner character": character.character_name,
+            "owner corporation": character.corporation_name,
+            "entry id": obj.entry_id,
+            "ref type": obj.ref_type.replace("_", " ").title(),
+            "first party": _name_or_default(obj.first_party),
+            "second party": _name_or_default(obj.second_party),
+            "amount": float(obj.amount),
+            "balance": float(obj.balance),
+            "context_id": obj.context_id,
+            "context_id_type": obj.get_context_id_type_display(),
+            "tax": float(obj.tax) if obj.tax else "",
+            "tax_receiver": _name_or_default(obj.tax_receiver),
+            "description": obj.description,
+            "reason": obj.reason,
         }
 
 

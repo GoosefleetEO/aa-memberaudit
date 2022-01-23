@@ -7,12 +7,13 @@
 {% block details %}
     <div class="panel panel-default">
         <div class="panel-heading" style="display:flex;">
-            <h3 class="panel-title">{% translate 'Topics for download' %}</h3>
+            <h3 class="panel-title">{% translate 'Topics' %}</h3>
         </div>
         <div class="panel-body">
             <table id="tbl_data_exports" class="table table-striped">
                 <thead>
-                    <th>Topic</th>
+                    <th>Name</th>
+                    <th>Description</th>
                     <th>Rows</th>
                     <th>Export file age</th>
                     <th></th>
@@ -21,6 +22,7 @@
                     {% for topic in topics %}
                         <tr>
                             <td>{{ topic.title }}</td>
+                            <td>{{ topic.description }}</td>
                             <td>{{ topic.rows|intcomma }}</td>
                             <td>{{ topic.last_updated_at|timesince|default:"no file" }}</td>
                             <td>
@@ -49,7 +51,7 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'memberaudit/css/global.css' %}" type="text/css">
     <link rel="stylesheet" href="{% static 'memberaudit/css/memberaudit.css' %}" type="text/css">
-    <link rel="stylesheet" href="{% static 'memberaudit/css/exports.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'memberaudit/css/data_export.css' %}" type="text/css">
 {% endblock %}
 
 {% block extra_script %}

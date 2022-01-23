@@ -7,6 +7,7 @@ from zipfile import ZipFile
 from pytz import utc
 
 from django.test import TestCase
+from django.utils.timezone import now
 
 from ..core.data_exporters import (
     ContractExporter,
@@ -15,6 +16,7 @@ from ..core.data_exporters import (
     WalletJournalExporter,
     export_topic_to_archive,
     file_to_zip,
+    topics_and_export_files,
 )
 from ..models import CharacterWalletJournalEntry
 from . import create_memberaudit_character
@@ -246,3 +248,48 @@ class TestDataExporter(TestCase):
                 data = [row for row in reader]
         self.assertEqual(len(data), 1)
         return data[0]
+
+
+class TestTopicsAndExportFiles(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        load_entities()
+        load_eveuniverse()
+        cls.character = create_memberaudit_character(1001)
+
+    def test_should_return_correct_list(self):
+        with TemporaryDirectory() as tmpdirname:
+            # given
+            contract = create_contract(character=self.character)
+            create_contract_item(contract=contract)
+            contract_item_file = Path(tmpdirname) / "memberaudit_contract-item.zip"
+            with contract_item_file.open(mode="w") as _:
+                pass
+            contract_file = Path(tmpdirname) / "memberaudit_contract.zip"
+            with contract_file.open(mode="w") as _:
+                pass
+            wrong_file = Path(tmpdirname) / "memberaudit.zip"
+            with wrong_file.open(mode="w") as _:
+                pass
+            # when
+            result = topics_and_export_files(tmpdirname)
+            result_2 = {obj["value"]: obj for obj in result}
+            # then
+            self.assertListEqual(
+                list(result_2.keys()), ["contract", "contract-item", "wallet-journal"]
+            )
+            contract = result_2["contract"]
+            self.assertEqual(contract["value"], "contract")
+            self.assertEqual(contract["title"], "Contract")
+            self.assertEqual(contract["rows"], 1)
+            self.assertAlmostEqual(
+                contract["last_updated_at"], now(), delta=dt.timedelta(seconds=10)
+            )
+            self.assertTrue(contract["has_file"])
+            self.assertFalse(contract["update_allowed"])
+            contract_item = result_2["contract-item"]
+            self.assertTrue(contract_item["has_file"])
+            wallet_journal = result_2["wallet-journal"]
+            self.assertFalse(wallet_journal["has_file"])
+            self.assertEqual(wallet_journal["rows"], 0)

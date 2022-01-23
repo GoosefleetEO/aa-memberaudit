@@ -1945,13 +1945,13 @@ def skill_sets_report_data(request) -> JsonResponse:
 def data_export(request):
     topics = data_exporters.topics_and_export_files()
     context = {
-        "page_title": "Exports",
+        "page_title": "Data Export",
         "topics": topics,
         "character_count": Character.objects.count(),
         "minutes_until_next_update": MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE,
     }
     return render(
-        request, "memberaudit/exports.html", add_common_context(request, context)
+        request, "memberaudit/data_export.html", add_common_context(request, context)
     )
 
 
