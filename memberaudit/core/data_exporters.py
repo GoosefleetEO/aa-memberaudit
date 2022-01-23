@@ -2,9 +2,8 @@
 import csv
 import datetime as dt
 import gc
-import shutil
-import subprocess
 import tempfile
+import zipfile
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List
@@ -52,45 +51,22 @@ def export_topic_to_archive(topic: str, destination_folder: str = None) -> str:
     logger.info("Exported %s with %s objects", exporter, f"{exporter.count():,}")
     with tempfile.TemporaryDirectory() as tmpdirname:
         csv_file = exporter.write_to_file(tmpdirname)
-        zip_file_path = file_to_zip(csv_file, Path(destination_folder))
+        destination = (
+            Path(destination_folder) if destination_folder else default_destination()
+        )
+        zip_file_path = file_to_zip(csv_file, destination)
     gc.collect()
     return str(zip_file_path)
 
 
 def file_to_zip(source_file: Path, destination: Path) -> Path:
     """Create a zip archive from a file."""
-    _create_destination_folder(destination)
-    zip_file = _zip_data_file(source_file, destination)
-    return zip_file
-
-
-def _create_destination_folder(destination: Path) -> Path:
-    if destination:
-        destination = default_destination()
     destination.mkdir(parents=True, exist_ok=True)
-    return destination
-
-
-def _zip_data_file(source_file: Path, destination: Path):
-    zip_command = shutil.which("zip")
-    if not zip_command:
-        raise RuntimeError("zip command not found on this system")
-    zip_path = destination / source_file.with_suffix("").name
-    try:
-        zip_path.with_suffix(".zip").unlink()
-    except FileNotFoundError:
-        pass
-    out = subprocess.DEVNULL if not settings.DEBUG else None
-    result = subprocess.run(
-        [zip_command, "-j", zip_path.resolve(), source_file.resolve()],
-        stdout=out,
-        stderr=out,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(
-            f"Failed to zip file: {source_file}. returncode: {result.returncode}"
-        )
-    zip_file = zip_path.with_suffix(".zip")
+    zip_file = (destination / source_file.name).with_suffix(".zip")
+    with zipfile.ZipFile(
+        file=zip_file, mode="w", compression=zipfile.ZIP_DEFLATED
+    ) as myzip:
+        myzip.write(filename=source_file, arcname=source_file.name)
     logger.info("Created export file: %s", zip_file)
     return zip_file
 
