@@ -48,7 +48,7 @@ def export_topic_to_archive(topic: str, destination_folder: str = None) -> str:
     exporter = DataExporter.create_exporter(topic)
     if not exporter.has_data():
         return ""
-    logger.info("Exported %s with %s objects", exporter, f"{exporter.count():,}")
+    logger.info("Exporting %s with %s objects", exporter, f"{exporter.count():,}")
     with tempfile.TemporaryDirectory() as tmpdirname:
         csv_file = exporter.write_to_file(tmpdirname)
         destination = (

@@ -1,7 +1,9 @@
 import csv
 import datetime as dt
+import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 from zipfile import ZipFile
 
 from pytz import utc
@@ -27,6 +29,8 @@ from .testdata.factories import (
 )
 from .testdata.load_entities import load_entities
 from .testdata.load_eveuniverse import load_eveuniverse
+
+MODULE_PATH = "memberaudit.core.data_exporters"
 
 
 class TestExportTopicToArchive(TestCase):
@@ -258,20 +262,23 @@ class TestTopicsAndExportFiles(TestCase):
         load_eveuniverse()
         cls.character = create_memberaudit_character(1001)
 
+    @patch(MODULE_PATH + ".MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE", 60)
     def test_should_return_correct_list(self):
         with TemporaryDirectory() as tmpdirname:
             # given
             contract = create_contract(character=self.character)
             create_contract_item(contract=contract)
             contract_item_file = Path(tmpdirname) / "memberaudit_contract-item.zip"
-            with contract_item_file.open(mode="w") as _:
-                pass
+            contract_item_file.touch()
+            new_ts = (now() - dt.timedelta(minutes=10)).timestamp()
+            os.utime(contract_item_file, (new_ts, new_ts))
             contract_file = Path(tmpdirname) / "memberaudit_contract.zip"
-            with contract_file.open(mode="w") as _:
-                pass
+            contract_file.touch()
+            contract_file_dt = now() - dt.timedelta(minutes=61)
+            new_ts = contract_file_dt.timestamp()
+            os.utime(contract_file, (new_ts, new_ts))
             wrong_file = Path(tmpdirname) / "memberaudit.zip"
-            with wrong_file.open(mode="w") as _:
-                pass
+            wrong_file.touch()
             # when
             result = topics_and_export_files(tmpdirname)
             result_2 = {obj["value"]: obj for obj in result}
@@ -283,13 +290,17 @@ class TestTopicsAndExportFiles(TestCase):
             self.assertEqual(contract["value"], "contract")
             self.assertEqual(contract["title"], "Contract")
             self.assertEqual(contract["rows"], 1)
-            self.assertAlmostEqual(
-                contract["last_updated_at"], now(), delta=dt.timedelta(seconds=10)
-            )
+            self.assertEqual(contract["last_updated_at"], contract_file_dt)
             self.assertTrue(contract["has_file"])
-            self.assertFalse(contract["update_allowed"])
+            self.assertTrue(contract["update_allowed"])
             contract_item = result_2["contract-item"]
             self.assertTrue(contract_item["has_file"])
+            self.assertAlmostEqual(
+                contract_item["last_updated_at"],
+                now(),
+                delta=dt.timedelta(minutes=10, seconds=10),
+            )
+            self.assertFalse(contract_item["update_allowed"])
             wallet_journal = result_2["wallet-journal"]
             self.assertFalse(wallet_journal["has_file"])
             self.assertEqual(wallet_journal["rows"], 0)

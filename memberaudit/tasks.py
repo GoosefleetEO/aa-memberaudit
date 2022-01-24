@@ -1047,7 +1047,7 @@ def export_data_for_topic(topic: str, user_pk: int) -> str:
     ).apply_async(priority=DEFAULT_TASK_PRIORITY)
 
 
-@shared_task(**TASK_DEFAULT_KWARGS)
+@shared_task(**{**TASK_DEFAULT_KWARGS, **{"base": QueueOnce}})
 def _export_data_for_topic(topic: str, destination_folder: str = None) -> str:
     """Export data for given topic into a zipped file in destination."""
     file_path = data_exporters.export_topic_to_archive(

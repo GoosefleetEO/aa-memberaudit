@@ -7,11 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
-## [1.9.0] - tbd.
+## [1.9.0] - 2022-01-24
 
 ### Added
 
-- Ability to download data export files directly from the web site on the new page "Exports".
+- Ability to download data export files directly from the web site.
 
 ### Changed
 
