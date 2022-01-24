@@ -126,7 +126,15 @@ class TestCharacterManagerUserHasAccess(TestCase):
     def setUpClass(cls) -> None:
         super().setUpClass()
         load_entities()
-        cls.character_1001 = create_memberaudit_character(1001)
+        # main character with alts
+        cls.character_1001 = create_memberaudit_character(1001)  # main
+        cls.character_1110 = add_memberaudit_character_to_user(  # alt
+            cls.character_1001.character_ownership.user, 1110
+        )
+        cls.character_1121 = add_memberaudit_character_to_user(  # alt
+            cls.character_1001.character_ownership.user, 1121
+        )
+        # main character with alts
         cls.character_1002 = create_memberaudit_character(1002)
         cls.character_1002.is_shared = True
         cls.character_1002.save()
@@ -134,6 +142,10 @@ class TestCharacterManagerUserHasAccess(TestCase):
             "memberaudit.share_characters",
             cls.character_1002.character_ownership.user,
         )
+        cls.character_1103 = add_memberaudit_character_to_user(
+            cls.character_1002.character_ownership.user, 1103
+        )
+        # main characters
         cls.character_1003 = create_memberaudit_character(1003)
         cls.character_1101 = create_memberaudit_character(1101)
         cls.character_1102 = create_memberaudit_character(1102)
@@ -143,16 +155,7 @@ class TestCharacterManagerUserHasAccess(TestCase):
             "memberaudit.share_characters",
             cls.character_1102.character_ownership.user,
         )
-        cls.character_1103 = add_memberaudit_character_to_user(
-            cls.character_1002.character_ownership.user, 1103
-        )
-        cls.character_1110 = add_memberaudit_character_to_user(
-            cls.character_1001.character_ownership.user, 1110
-        )
         cls.character_1111 = create_memberaudit_character(1111)
-        cls.character_1121 = add_memberaudit_character_to_user(
-            cls.character_1001.character_ownership.user, 1121
-        )
         cls.character_1122 = create_memberaudit_character(1122)
         cls.member_state = AuthUtils.get_member_state()
         cls.member_state.member_alliances.add(
@@ -172,7 +175,7 @@ class TestCharacterManagerUserHasAccess(TestCase):
     def test_view_own_corporation_1(self):
         """
         when user has permission to view own corporation and not characters_access
-        then include own character only
+        then include own characters only
         """
         user = self.character_1001.character_ownership.user
         user = AuthUtils.add_permission_to_user_by_name(
@@ -195,7 +198,7 @@ class TestCharacterManagerUserHasAccess(TestCase):
         )
         result_qs = Character.objects.user_has_access(user=user)
         self.assertSetEqual(
-            result_qs.eve_character_ids(), {1001, 1002, 1103, 1110, 1111, 1121}
+            result_qs.eve_character_ids(), {1001, 1110, 1121, 1002, 1103}
         )
 
     def test_view_own_alliance_1a(self):
@@ -224,7 +227,7 @@ class TestCharacterManagerUserHasAccess(TestCase):
         )
         result_qs = Character.objects.user_has_access(user=user)
         self.assertSetEqual(
-            result_qs.eve_character_ids(), {1001, 1002, 1003, 1103, 1110, 1121, 1122}
+            result_qs.eve_character_ids(), {1001, 1110, 1121, 1002, 1003, 1103}
         )
 
     def test_view_own_alliance_2(self):

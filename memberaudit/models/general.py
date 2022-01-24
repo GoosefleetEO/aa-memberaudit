@@ -68,20 +68,12 @@ class General(models.Model):
             user.has_perm("memberaudit.view_same_alliance")
             and user.profile.main_character.alliance_id
         ):
-            return (
-                cls.users_with_basic_access()
-                .select_related("profile__main_character")
-                .filter(
-                    profile__main_character__alliance_id=user.profile.main_character.alliance_id
-                )
+            return cls.users_with_basic_access().filter(
+                profile__main_character__alliance_id=user.profile.main_character.alliance_id
             )
         elif user.has_perm("memberaudit.view_same_corporation"):
-            return (
-                cls.users_with_basic_access()
-                .select_related("profile__main_character")
-                .filter(
-                    profile__main_character__corporation_id=user.profile.main_character.corporation_id
-                )
+            return cls.users_with_basic_access().filter(
+                profile__main_character__corporation_id=user.profile.main_character.corporation_id
             )
         return User.objects.filter(pk=user.pk)
 

@@ -266,8 +266,8 @@ Name | Description | Type
 `characters_access`| Can access characters owned by others. | Feature
 `exports_access`| Can access data exports. Warning: This permission gives access to all data from all characters and does not require any additional scope permissions. | Feature
 `view_shared_characters`| All characters, which have been marked as shared & can access these characters | Feature & Scope
-`view_same_corporation`| All mains - incl. their alts -  of the same corporations the user's characters belong to | Scope
-`view_same_alliance`| All mains - incl. their alts -  of the same alliances the user's characters belong to | Scope
+`view_same_corporation`| All mains - incl. their alts -  of the same corporations the user's main belongs to | Scope
+`view_same_alliance`| All mains - incl. their alts -  of the same alliances the user's main belongs to | Scope
 `view_everything`| All characters registered with Member Audit | Scope
 
 > **Hint**<br>All permissions can be found under the category "memberaudit | general".

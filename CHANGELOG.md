@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+- Restricted access with `view_same_corporation` and `view_same_alliance` to affiliations from main character only (#106)
 - Removed support for outdated Python 3.6 & Django 3.1
 
 ## [1.8.0] - 2022-01-19
