@@ -5,11 +5,13 @@ from typing import Optional
 from bravado.exception import HTTPBadGateway, HTTPGatewayTimeout, HTTPServiceUnavailable
 from celery import chain, shared_task
 
+from django.contrib.auth.models import User
 from django.db import transaction
 from django.utils.timezone import now
 from esi.models import Token
 from eveuniverse.models import EveEntity, EveMarketPrice
 
+from allianceauth.notifications import notify
 from allianceauth.services.hooks import get_extension_logger
 from allianceauth.services.tasks import QueueOnce
 from app_utils.esi import EsiErrorLimitExceeded, EsiOffline, fetch_esi_status
@@ -24,6 +26,7 @@ from .app_settings import (
     MEMBERAUDIT_TASKS_TIME_LIMIT,
     MEMBERAUDIT_UPDATE_STALE_RING_2,
 )
+from .core import data_exporters
 from .models import (
     Character,
     CharacterAsset,
@@ -1024,3 +1027,47 @@ def delete_character(character_pk) -> None:
     character = Character.objects.get(pk=character_pk)
     logger.info("%s: Deleting character", character)
     character.delete()
+
+
+@shared_task(**TASK_DEFAULT_KWARGS)
+def export_data(user_pk: int = None) -> None:
+    """Export data to files."""
+    tasks = [
+        _export_data_for_topic.si(topic) for topic in data_exporters.DataExporter.topics
+    ]
+    if user_pk:
+        tasks.append(_export_data_inform_user.si(user_pk))
+    chain(tasks).apply_async(priority=DEFAULT_TASK_PRIORITY)
+
+
+@shared_task(**TASK_DEFAULT_KWARGS)
+def export_data_for_topic(topic: str, user_pk: int) -> str:
+    chain(
+        _export_data_for_topic.si(topic), _export_data_inform_user.si(user_pk, topic)
+    ).apply_async(priority=DEFAULT_TASK_PRIORITY)
+
+
+@shared_task(**{**TASK_DEFAULT_KWARGS, **{"base": QueueOnce}})
+def _export_data_for_topic(topic: str, destination_folder: str = None) -> str:
+    """Export data for given topic into a zipped file in destination."""
+    file_path = data_exporters.export_topic_to_archive(
+        topic=topic, destination_folder=destination_folder
+    )
+    return str(file_path)
+
+
+@shared_task(**TASK_DEFAULT_KWARGS)
+def _export_data_inform_user(user_pk: int, topic: str = None):
+    user = User.objects.get(pk=user_pk)
+    if topic:
+        title = f"{__title__}: Data export for {topic} completed"
+        message = f"Data export has been completed for topic {topic}."
+    else:
+        title = f"{__title__}: Full data export completed"
+        message = (
+            "Data export for all topics has been completed. "
+            "It covers the following:\n"
+        )
+        for topic in data_exporters.DataExporter.topics:
+            message += f"- {topic}\n"
+    notify(user=user, title=title, message=message, level="INFO")

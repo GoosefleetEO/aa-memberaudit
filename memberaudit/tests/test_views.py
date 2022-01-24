@@ -1,11 +1,13 @@
 import datetime as dt
 import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 import pytz
 
 from django.contrib.auth.models import Group
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from django.utils.timezone import now
@@ -14,7 +16,7 @@ from eveuniverse.models import EveEntity, EveMarketPrice, EveSolarSystem, EveTyp
 from allianceauth.authentication.models import State
 from allianceauth.eveonline.models import EveAllianceInfo, EveCorporationInfo
 from allianceauth.tests.auth_utils import AuthUtils
-from app_utils.testing import generate_invalid_pk
+from app_utils.testing import create_user_from_evecharacter, generate_invalid_pk
 
 from ..models import (
     Character,
@@ -68,6 +70,9 @@ from ..views import (
     character_wallet_journal_data,
     character_wallet_transactions_data,
     corporation_compliance_report_data,
+    data_export,
+    data_export_run_update,
+    download_export_file,
     index,
     launcher,
     remove_character,
@@ -106,7 +111,6 @@ def multi_assert_in(items, container) -> bool:
     for item in items:
         if item not in container:
             return False
-
     return True
 
 
@@ -114,7 +118,6 @@ def multi_assert_not_in(items, container) -> bool:
     for item in items:
         if item in container:
             return False
-
     return True
 
 
@@ -967,6 +970,99 @@ class TestViewsOther(TestViewsBase):
         request.user = self.user
         response = character_attribute_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
+
+
+class TestDataExport(TestViewsBase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+
+    def test_should_open_exports_page_with_permission(self):
+        # given
+        user, _ = create_user_from_evecharacter(
+            1122, permissions=["memberaudit.basic_access", "memberaudit.exports_access"]
+        )
+        request = self.factory.get(reverse("memberaudit:data_export"))
+        request.user = user
+        # when
+        response = data_export(request)
+        # then
+        self.assertEqual(response.status_code, 200)
+
+    def test_should_not_open_exports_page_without_permission(self):
+        # given
+        user, _ = create_user_from_evecharacter(
+            1122, permissions=["memberaudit.basic_access"]
+        )
+        request = self.factory.get(reverse("memberaudit:data_export"))
+        request.user = user
+        # when
+        response = data_export(request)
+        # then
+        self.assertEqual(response.status_code, 302)
+
+    @patch(MODULE_PATH + ".data_exporters.default_destination")
+    def test_should_return_export_file(self, mock_default_destination):
+        with TemporaryDirectory() as tmpdirname:
+            # given
+            contract_item_file = Path(tmpdirname) / "memberaudit_contract-item.zip"
+            with contract_item_file.open(mode="w") as _:
+                pass
+            mock_default_destination.return_value = Path(tmpdirname)
+            user, _ = create_user_from_evecharacter(
+                1122,
+                permissions=["memberaudit.basic_access", "memberaudit.exports_access"],
+            )
+            request = self.factory.get(
+                reverse("memberaudit:download_export_file", args=["contract-item"])
+            )
+            request.user = user
+            # when
+            response = download_export_file(request, "contract-item")
+            # then
+            self.assertEqual(response.status_code, 200)
+
+    @patch(MODULE_PATH + ".data_exporters.default_destination")
+    def test_should_raise_404_when_export_file_not_found(
+        self, mock_default_destination
+    ):
+        with TemporaryDirectory() as tmpdirname:
+            # given
+            mock_default_destination.return_value = Path(tmpdirname)
+            user, _ = create_user_from_evecharacter(
+                1122,
+                permissions=["memberaudit.basic_access", "memberaudit.exports_access"],
+            )
+            request = self.factory.get(
+                reverse("memberaudit:download_export_file", args=["contract-item"])
+            )
+            request.user = user
+            # when/then
+            with self.assertRaises(Http404):
+                download_export_file(request, "contract-item")
+
+    @patch(MODULE_PATH + ".messages_plus")
+    @patch(MODULE_PATH + ".tasks.export_data_for_topic")
+    def test_should_start_export_task(
+        self, mock_task_export_data_for_topic, mock_messages_plus
+    ):
+        # given
+        user, _ = create_user_from_evecharacter(
+            1122, permissions=["memberaudit.basic_access", "memberaudit.exports_access"]
+        )
+        request = self.factory.get(
+            reverse("memberaudit:data_export_run_update", args=["contract-item"])
+        )
+        request.user = user
+        # when
+        response = data_export_run_update(request, "contract-item")
+        # then
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(mock_task_export_data_for_topic.delay.called)
+        _, kwargs = mock_task_export_data_for_topic.delay.call_args
+        self.assertEqual(kwargs["topic"], "contract-item")
+        self.assertEqual(kwargs["user_pk"], user.pk)
+        self.assertTrue(mock_messages_plus.info.called)
 
 
 class TestCharacterDataViewsOther(TestViewsBase):

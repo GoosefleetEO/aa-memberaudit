@@ -1,0 +1,58 @@
+{% extends 'memberaudit/base.html' %}
+
+{% load i18n %}
+{% load humanize %}
+{% load static %}
+
+{% block details %}
+    <div class="panel panel-default">
+        <div class="panel-heading" style="display:flex;">
+            <h3 class="panel-title">{% translate 'Topics' %}</h3>
+        </div>
+        <div class="panel-body">
+            <table id="tbl_data_exports" class="table table-striped">
+                <thead>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Rows</th>
+                    <th>Export file age</th>
+                    <th></th>
+                </thead>
+                <tbody>
+                    {% for topic in topics %}
+                        <tr>
+                            <td>{{ topic.title }}</td>
+                            <td>{{ topic.description }}</td>
+                            <td>{{ topic.rows|intcomma }}</td>
+                            <td>{{ topic.last_updated_at|timesince|default:"no file" }}</td>
+                            <td>
+                                {% if topic.has_file %}
+                                    <a class="btn btn-primary" href="{% url 'memberaudit:download_export_file' topic.value %}">Download</a>
+                                {% else %}
+                                    <a class="btn btn-primary" href="#" disabled>Download</a>
+                                {% endif %}
+                                {% if topic.update_allowed %}
+                                    <a class="btn btn-default" href="{% url 'memberaudit:data_export_run_update' topic.value %}">Update now</a>
+                                {% else %}
+                                    <a class="btn btn-default" href="#" disabled>Update now</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p class="text-muted">
+                Export files contain the complete data of all <strong>{{ character_count|intcomma }}</strong> characters known to Member Audit. They are in CSV format and zipped. Existing export files can updated after {{ minutes_until_next_update }} minutes.
+            </p>
+        </div>
+    </div>
+{% endblock details %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'memberaudit/css/global.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'memberaudit/css/memberaudit.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'memberaudit/css/data_export.css' %}" type="text/css">
+{% endblock %}
+
+{% block extra_script %}
+{% endblock %}

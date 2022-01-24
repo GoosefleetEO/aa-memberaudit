@@ -4,10 +4,8 @@ This is a standalone scripts that generates test doctrines complete with ships a
 """
 
 import inspect
-import json
 import os
 import sys
-from datetime import timedelta
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 myauth_dir = (
@@ -19,8 +17,6 @@ sys.path.insert(0, myauth_dir)
 
 import django
 from django.apps import apps
-from django.db import transaction
-from django.utils.timezone import now
 
 # init and setup django project
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "myauth.settings.local")

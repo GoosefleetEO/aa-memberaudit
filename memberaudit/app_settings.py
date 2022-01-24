@@ -31,6 +31,11 @@ MEMBERAUDIT_ESI_ERROR_LIMIT_THRESHOLD = clean_setting(
 # e.g. for name changes of structures
 MEMBERAUDIT_LOCATION_STALE_HOURS = clean_setting("MEMBERAUDIT_LOCATION_STALE_HOURS", 24)
 
+MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE = clean_setting(
+    "MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE", 60
+)
+"""Mininum age of existing export file before next update can be started in minutes."""
+
 # When set True will log the update stats at the start of every run
 # The update stats include the measures durations from the last run per round and section
 MEMBERAUDIT_LOG_UPDATE_STATS = clean_setting("MEMBERAUDIT_LOG_UPDATE_STATS", False)

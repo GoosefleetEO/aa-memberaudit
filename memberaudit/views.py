@@ -8,6 +8,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 from django.db.models import Count, F, Max, Q, Sum
 from django.http import (
+    FileResponse,
+    Http404,
     HttpResponse,
     HttpResponseForbidden,
     HttpResponseNotFound,
@@ -40,8 +42,9 @@ from app_utils.views import (
 )
 
 from . import __title__, tasks
-from .app_settings import MEMBERAUDIT_APP_NAME
+from .app_settings import MEMBERAUDIT_APP_NAME, MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE
 from .constants import EVE_CATEGORY_ID_SHIP
+from .core import data_exporters
 from .decorators import fetch_character_if_allowed
 from .helpers import eve_solar_system_to_html
 from .models import (
@@ -1935,3 +1938,47 @@ def skill_sets_report_data(request) -> JsonResponse:
             data.append(create_data_row(None, character))
 
     return JsonResponse(data, safe=False)
+
+
+@login_required
+@permission_required("memberaudit.exports_access")
+def data_export(request):
+    topics = data_exporters.topics_and_export_files()
+    context = {
+        "page_title": "Data Export",
+        "topics": topics,
+        "character_count": Character.objects.count(),
+        "minutes_until_next_update": MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE,
+    }
+    return render(
+        request, "memberaudit/data_export.html", add_common_context(request, context)
+    )
+
+
+@login_required
+@permission_required("memberaudit.exports_access")
+def download_export_file(request, topic: str) -> FileResponse:
+    exporter = data_exporters.DataExporter.create_exporter(topic)
+    destination = data_exporters.default_destination()
+    zip_file = destination / exporter.output_basename.with_suffix(".zip")
+    if not zip_file.exists():
+        raise Http404(f"Could not find export file for {topic}")
+    logger.info("Returning file %s for download of topic %s", zip_file, topic)
+    return FileResponse(zip_file.open("rb"))
+
+
+@login_required
+@permission_required("memberaudit.exports_access")
+def data_export_run_update(request, topic: str):
+    tasks.export_data_for_topic.delay(topic=topic, user_pk=request.user.pk)
+    format_html
+    messages_plus.info(
+        request,
+        format_html(
+            "Data export for topic <strong>{}</strong> has been started. "
+            "This can take a couple of minutes. "
+            "You will get a notification once it is completed.",
+            topic,
+        ),
+    )
+    return redirect("memberaudit:data_export")

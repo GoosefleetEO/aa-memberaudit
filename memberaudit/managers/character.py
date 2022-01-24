@@ -6,7 +6,6 @@ from django.db import models
 from django.db.models import Avg, Count, ExpressionWrapper, F, Max, Min
 
 from allianceauth.authentication.models import CharacterOwnership
-from allianceauth.eveonline.models import EveCharacter
 from allianceauth.services.hooks import get_extension_logger
 from app_utils.caching import ObjectCacheMixin
 from app_utils.django import users_with_permission
@@ -44,26 +43,18 @@ class CharacterManagerBase(ObjectCacheMixin, models.Manager):
             and user.has_perm("memberaudit.view_same_alliance")
             and user.profile.main_character.alliance_id
         ):
-            user_alliance_ids = set(
-                EveCharacter.objects.filter(character_ownership__user=user).values_list(
-                    "alliance_id", flat=True
-                )
-            )
-            qs = qs | self.filter(
-                character_ownership__user__profile__main_character__alliance_id__in=(
-                    user_alliance_ids
+            qs |= self.filter(
+                character_ownership__user__profile__main_character__alliance_id=(
+                    user.profile.main_character.alliance_id
                 )
             )
         elif user.has_perm("memberaudit.characters_access") and user.has_perm(
             "memberaudit.view_same_corporation"
         ):
-            user_corporation_ids = set(
-                EveCharacter.objects.filter(character_ownership__user=user).values_list(
-                    "corporation_id", flat=True
+            qs |= self.filter(
+                character_ownership__user__profile__main_character__corporation_id=(
+                    user.profile.main_character.corporation_id
                 )
-            )
-            qs = qs | self.filter(
-                character_ownership__user__profile__main_character__corporation_id__in=user_corporation_ids
             )
         if user.has_perm("memberaudit.view_shared_characters"):
             permission_to_share_characters = Permission.objects.select_related(
@@ -73,7 +64,7 @@ class CharacterManagerBase(ObjectCacheMixin, models.Manager):
                 codename="share_characters",
             )
             viewable_users = users_with_permission(permission_to_share_characters)
-            qs = qs | self.filter(
+            qs |= self.filter(
                 is_shared=True, character_ownership__user__in=viewable_users
             )
         return qs
