@@ -1,5 +1,4 @@
 import datetime as dt
-import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
@@ -7,7 +6,7 @@ from unittest.mock import patch
 import pytz
 
 from django.contrib.auth.models import Group
-from django.http import Http404, JsonResponse
+from django.http import Http404
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from django.utils.timezone import now
@@ -16,7 +15,15 @@ from eveuniverse.models import EveEntity, EveMarketPrice, EveSolarSystem, EveTyp
 from allianceauth.authentication.models import State
 from allianceauth.eveonline.models import EveAllianceInfo, EveCorporationInfo
 from allianceauth.tests.auth_utils import AuthUtils
-from app_utils.testing import create_user_from_evecharacter, generate_invalid_pk
+from app_utils.testing import (
+    create_user_from_evecharacter,
+    generate_invalid_pk,
+    json_response_to_dict,
+    json_response_to_python,
+    multi_assert_in,
+    multi_assert_not_in,
+    response_text,
+)
 
 from ..models import (
     Character,
@@ -93,32 +100,6 @@ from .utils import (
 )
 
 MODULE_PATH = "memberaudit.views"
-
-
-def response_content_to_str(content) -> str:
-    return content.decode("utf-8")
-
-
-def json_response_to_python(response: JsonResponse) -> object:
-    return json.loads(response_content_to_str(response.content))
-
-
-def json_response_to_python_dict(response: JsonResponse) -> dict:
-    return {x["id"]: x for x in json_response_to_python(response)}
-
-
-def multi_assert_in(items, container) -> bool:
-    for item in items:
-        if item not in container:
-            return False
-    return True
-
-
-def multi_assert_not_in(items, container) -> bool:
-    for item in items:
-        if item in container:
-            return False
-    return True
 
 
 class TestViewsBase(TestCase):
@@ -260,9 +241,7 @@ class TestCharacterAssets(TestViewsBase):
             request, self.character.pk, parent_asset_pk
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIn(
-            "not found for character", response_content_to_str(response.content)
-        )
+        self.assertIn("not found for character", response_text(response))
 
     def test_character_asset_children_data(self):
         parent_asset = CharacterAsset.objects.create(
@@ -519,9 +498,7 @@ class TestCharacterContracts(TestViewsBase):
         request.user = self.user
         response = character_contract_details(request, self.character.pk, contract_pk)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(
-            "not found for character", response_content_to_str(response.content)
-        )
+        self.assertIn("not found for character", response_text(response))
 
     @patch(MODULE_PATH + ".now")
     def test_items_included_data_normal(self, mock_now):
@@ -574,7 +551,7 @@ class TestCharacterContracts(TestViewsBase):
             request, self.character.pk, contract.pk
         )
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python_dict(response)
+        data = json_response_to_dict(response)
 
         self.assertSetEqual(set(data.keys()), {1})
         obj = data[1]
@@ -638,7 +615,7 @@ class TestCharacterContracts(TestViewsBase):
             request, self.character.pk, contract.pk
         )
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python_dict(response)
+        data = json_response_to_dict(response)
 
         self.assertSetEqual(set(data.keys()), {1, 2})
         obj = data[1]
@@ -701,7 +678,7 @@ class TestCharacterContracts(TestViewsBase):
             request, self.character.pk, contract.pk
         )
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python_dict(response)
+        data = json_response_to_dict(response)
 
         self.assertSetEqual(set(data.keys()), {1})
         obj = data[1]
@@ -940,7 +917,7 @@ class TestViewsOther(TestViewsBase):
         )
         self.assertEqual(response.status_code, 200)
 
-        text = response_content_to_str(response.content)
+        text = response_text(response)
 
         self.assertIn(skill_set_1.name, text)
         self.assertIn(self.skill_type_1.name, text)
@@ -1085,7 +1062,7 @@ class TestCharacterDataViewsOther(TestViewsBase):
         request.user = self.user
         response = character_contacts_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python_dict(response)
+        data = json_response_to_dict(response)
 
         self.assertEqual(len(data), 2)
 
@@ -1126,7 +1103,7 @@ class TestCharacterDataViewsOther(TestViewsBase):
         request.user = self.user
         response = character_jump_clones_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python_dict(response)
+        data = json_response_to_dict(response)
         self.assertEqual(len(data), 2)
 
         row = data[clone_1.pk]
@@ -1360,7 +1337,7 @@ class TestCharacterDataViewsOther(TestViewsBase):
         response = character_implants_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
 
-        data = json_response_to_python_dict(response)
+        data = json_response_to_dict(response)
         self.assertSetEqual(
             set(data.keys()), {implant_1.pk, implant_2.pk, implant_3.pk}
         )
@@ -1726,7 +1703,7 @@ class TestUserComplianceReportTestData(TestCase):
         request.user = self.user
         response = user_compliance_report_data(request)
         self.assertEqual(response.status_code, 200)
-        return json_response_to_python_dict(response)
+        return json_response_to_dict(response)
 
     def test_should_show_own_user_only(self):
         # when
@@ -1835,7 +1812,7 @@ class TestCorporationComplianceReportTestData(TestCase):
         request.user = user
         response = corporation_compliance_report_data(request)
         self.assertEqual(response.status_code, 200)
-        return json_response_to_python_dict(response)
+        return json_response_to_dict(response)
 
     def test_should_return_full_list(self):
         # given
@@ -1980,7 +1957,7 @@ class TestSkillSetReportData(TestCase):
         response = skill_sets_report_data(request)
 
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python_dict(response)
+        data = json_response_to_dict(response)
         self.assertEqual(len(data), 9)
 
         mains = {x["main"] for x in data.values()}
@@ -2035,5 +2012,5 @@ class TestSkillSetReportData(TestCase):
     #     request = self.factory.get(reverse("memberaudit:skill_sets_report_data"))
     #     request.user = self.user
     #     response = skill_sets_report_data(request)
-    #     data = json_response_to_python_dict(response)
+    #     data = json_response_to_dict(response)
     #     self.assertEqual(len(data), 4)
