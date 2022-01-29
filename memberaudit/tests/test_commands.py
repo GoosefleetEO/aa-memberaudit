@@ -7,14 +7,14 @@ from django.core.management import call_command
 from app_utils.testing import NoSocketsTestCase
 
 from ..models import Character
-from . import (
+from .testdata.factories import create_contract, create_contract_item
+from .testdata.load_entities import load_entities
+from .testdata.load_eveuniverse import load_eveuniverse
+from .utils import (
     add_auth_character_to_user,
     create_memberaudit_character,
     create_user_from_evecharacter_with_access,
 )
-from .testdata.factories import create_contract, create_contract_item
-from .testdata.load_entities import load_entities
-from .testdata.load_eveuniverse import load_eveuniverse
 
 PACKAGE_PATH = "memberaudit.management.commands"
 DATA_EXPORTERS_PATH = "memberaudit.core.data_exporters"

@@ -2,7 +2,7 @@ import inspect
 import json
 import os
 
-from .esi_test_tools import EsiClientStub, EsiEndpoint
+from app_utils.esi_testing import EsiClientStub, EsiEndpoint
 
 _currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 _FILENAME_ESI_TESTDATA = "esi_testdata.json"

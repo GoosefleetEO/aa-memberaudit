@@ -82,15 +82,15 @@ from ..views import (
     unshare_character,
     user_compliance_report_data,
 )
-from . import (
+from .testdata.load_entities import load_entities
+from .testdata.load_eveuniverse import load_eveuniverse
+from .testdata.load_locations import load_locations
+from .utils import (
     add_auth_character_to_user,
     add_memberaudit_character_to_user,
     create_memberaudit_character,
     create_user_from_evecharacter_with_access,
 )
-from .testdata.load_entities import load_entities
-from .testdata.load_eveuniverse import load_eveuniverse
-from .testdata.load_locations import load_locations
 
 MODULE_PATH = "memberaudit.views"
 

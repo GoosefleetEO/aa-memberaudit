@@ -21,7 +21,6 @@ from ..core.data_exporters import (
     topics_and_export_files,
 )
 from ..models import CharacterWalletJournalEntry
-from . import create_memberaudit_character
 from .testdata.factories import (
     create_contract,
     create_contract_item,
@@ -29,6 +28,7 @@ from .testdata.factories import (
 )
 from .testdata.load_entities import load_entities
 from .testdata.load_eveuniverse import load_eveuniverse
+from .utils import create_memberaudit_character
 
 MODULE_PATH = "memberaudit.core.data_exporters"
 

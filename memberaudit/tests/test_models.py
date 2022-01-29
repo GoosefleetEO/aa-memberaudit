@@ -44,16 +44,16 @@ from ..models import (
     SkillSetSkill,
 )
 from ..models.character import data_retention_cutoff
-from . import (
+from .testdata.esi_client_stub import esi_client_stub
+from .testdata.load_entities import load_entities
+from .testdata.load_eveuniverse import load_eveuniverse
+from .testdata.load_locations import load_locations
+from .utils import (
     add_memberaudit_character_to_user,
     create_memberaudit_character,
     create_user_from_evecharacter_with_access,
     scope_names_set,
 )
-from .testdata.esi_client_stub import esi_client_stub
-from .testdata.load_entities import load_entities
-from .testdata.load_eveuniverse import load_eveuniverse
-from .testdata.load_locations import load_locations
 
 MODELS_PATH = "memberaudit.models"
 MANAGERS_PATH = "memberaudit.managers"

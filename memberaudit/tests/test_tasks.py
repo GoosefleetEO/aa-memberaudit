@@ -10,6 +10,7 @@ from esi.models import Token
 from eveuniverse.models import EveSolarSystem, EveType
 
 from app_utils.esi import EsiErrorLimitExceeded, EsiOffline, EsiStatus
+from app_utils.esi_testing import BravadoResponseStub
 from app_utils.testing import generate_invalid_pk
 
 from ..models import Character, CharacterAsset, CharacterUpdateStatus, Location
@@ -30,12 +31,11 @@ from ..tasks import (
     update_market_prices,
     update_structure_esi,
 )
-from . import create_memberaudit_character
 from .testdata.esi_client_stub import esi_client_error_stub, esi_client_stub
-from .testdata.esi_test_tools import BravadoResponseStub
 from .testdata.load_entities import load_entities
 from .testdata.load_eveuniverse import load_eveuniverse
 from .testdata.load_locations import load_locations
+from .utils import create_memberaudit_character
 
 MODELS_PATH = "memberaudit.models"
 MANAGERS_PATH = "memberaudit.managers"

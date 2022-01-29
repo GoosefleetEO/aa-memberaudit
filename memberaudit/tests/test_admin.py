@@ -6,9 +6,12 @@ from django.urls import reverse
 
 from ..admin import CharacterAdmin, SkillSetAdmin, SkillSetShipTypeFilter
 from ..models import Character, EveShipType, SkillSet
-from . import create_memberaudit_character, create_user_from_evecharacter_with_access
 from .testdata.load_entities import load_entities
 from .testdata.load_eveuniverse import load_eveuniverse
+from .utils import (
+    create_memberaudit_character,
+    create_user_from_evecharacter_with_access,
+)
 
 ADMIN_PATH = "memberaudit.admin"
 
