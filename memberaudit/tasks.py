@@ -195,7 +195,6 @@ def update_character(self, character_pk: int, force_update: bool = False) -> boo
             },
             priority=DEFAULT_TASK_PRIORITY,
         )
-
     if force_update or character.is_update_section_stale(
         Character.UpdateSection.WALLET_JOURNAL
     ):
@@ -207,7 +206,6 @@ def update_character(self, character_pk: int, force_update: bool = False) -> boo
             },
             priority=DEFAULT_TASK_PRIORITY,
         )
-
     if force_update or character.is_update_section_stale(
         Character.UpdateSection.ASSETS
     ):
@@ -220,7 +218,6 @@ def update_character(self, character_pk: int, force_update: bool = False) -> boo
             },
             priority=DEFAULT_TASK_PRIORITY,
         )
-
     if (
         force_update
         or character.is_update_section_stale(Character.UpdateSection.SKILLS)
@@ -242,7 +239,11 @@ def update_character(self, character_pk: int, force_update: bool = False) -> boo
                 self.request.id,
             ),
         ).apply_async(priority=DEFAULT_TASK_PRIORITY)
-
+    if character.is_shared:
+        check_character_consistency.apply_async(
+            kwargs={"character_pk": character.pk},
+            priority=DEFAULT_TASK_PRIORITY,
+        )
     return True
 
 
@@ -1019,6 +1020,15 @@ def update_characters_skill_checks(force_update: bool = False) -> None:
                 },
                 priority=DEFAULT_TASK_PRIORITY,
             )
+
+
+@shared_task(**TASK_DEFAULT_KWARGS)
+def check_character_consistency(character_pk) -> None:
+    """Check consistency of a character."""
+    character = Character.objects.get_cached(
+        pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
+    )
+    character.update_sharing_consistency()
 
 
 @shared_task(**TASK_DEFAULT_KWARGS)

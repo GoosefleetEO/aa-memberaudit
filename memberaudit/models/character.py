@@ -1096,6 +1096,19 @@ class Character(models.Model):
         else:
             logger.info("%s: Attributes have not changed", self)
 
+    def update_sharing_consistency(self):
+        """Update sharing to ensure consistency with permissions."""
+        if self.is_shared and not self.character_ownership.user.has_perm(
+            "memberaudit.share_characters"
+        ):
+            self.is_shared = False
+            self.save()
+            logger.info(
+                "%s: Unshared this character, "
+                "because it's owner no longer has the permission to share characters.",
+                self,
+            )
+
 
 class CharacterUpdateStatus(models.Model):
     """Update status for a character"""

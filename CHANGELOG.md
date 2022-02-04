@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.9.1] - 2022-02-04
+
+### Fixed
+
+- Shared characters that lost the sharing permission are automatically unshared
+
 ## [1.9.0] - 2022-01-24
 
 ### Added

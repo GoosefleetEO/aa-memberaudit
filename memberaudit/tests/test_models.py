@@ -17,7 +17,11 @@ from eveuniverse.models import EveEntity, EveMarketPrice, EveSolarSystem, EveTyp
 from allianceauth.tests.auth_utils import AuthUtils
 from app_utils.esi import EsiStatus
 from app_utils.esi_testing import BravadoResponseStub
-from app_utils.testing import NoSocketsTestCase, queryset_pks
+from app_utils.testing import (
+    NoSocketsTestCase,
+    create_user_from_evecharacter,
+    queryset_pks,
+)
 
 from ..core.xml_converter import eve_xml_to_html
 from ..models import (
@@ -45,6 +49,7 @@ from ..models import (
 )
 from ..models.character import data_retention_cutoff
 from .testdata.esi_client_stub import esi_client_stub
+from .testdata.factories import create_character
 from .testdata.load_entities import load_entities
 from .testdata.load_eveuniverse import load_eveuniverse
 from .testdata.load_locations import load_locations
@@ -2875,6 +2880,36 @@ class TestCharacter(NoSocketsTestCase):
         self.user.profile.main_character = None
         self.user.profile.save()
         self.assertFalse(self.character_1001.is_main)
+
+    def test_should_keep_sharing(self):
+        # given
+        _, character_ownership = create_user_from_evecharacter(
+            1001,
+            permissions=["memberaudit.basic_access", "memberaudit.share_characters"],
+        )
+        character = create_character(
+            character_ownership=character_ownership, is_shared=True
+        )
+        # when
+        character.update_sharing_consistency()
+        # then
+        character.refresh_from_db()
+        self.assertTrue(character.is_shared)
+
+    def test_should_remove_sharing(self):
+        # given
+        _, character_ownership = create_user_from_evecharacter(
+            1001,
+            permissions=["memberaudit.basic_access"],
+        )
+        character = create_character(
+            character_ownership=character_ownership, is_shared=True
+        )
+        # when
+        character.update_sharing_consistency()
+        # then
+        character.refresh_from_db()
+        self.assertFalse(character.is_shared)
 
 
 class TestMailEntity(NoSocketsTestCase):

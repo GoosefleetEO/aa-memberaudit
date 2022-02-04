@@ -5,10 +5,15 @@ from django.db import models
 from django.utils.timezone import now
 
 from ...models import (
+    Character,
     CharacterContract,
     CharacterContractItem,
     CharacterWalletJournalEntry,
 )
+
+
+def create_character(**kwargs):
+    return Character.objects.create(**kwargs)
 
 
 def create_wallet_journal_entry(**kwargs) -> models.Model:
