@@ -2,7 +2,7 @@
 
 <div role="tabpanel" class="tab-pane" id="bio">
     {{ character_details.description_html|default:"-" }}
-    <br />
-    <br />
+    <br>
+    <br>
     {% include 'memberaudit/partials/character_viewer/tabs/last_updated.html' with update_section=last_updates.character_details %}
 </div>

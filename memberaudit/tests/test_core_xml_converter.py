@@ -74,43 +74,54 @@ class TestXMLConversion(NoSocketsTestCase):
             )
             self.assertTrue(result.find(dotlan.solar_system_url("Polaris")) != -1)
 
-    # def test_convert_bio_1(self):
-    #     """can convert a bio includes lots of non-ASCII characters and handle the u-bug"""
-    #     with patch(
-    #         "eveuniverse.models.EveEntity.objects.resolve_name",
-    #         Mock(return_value="An Alliance"),
-    #     ):
-    #         result = eve_xml_to_html(
-    #             load_test_data()
-    #             .get("Character")
-    #             .get("get_characters_character_id")
-    #             .get("1002")
-    #             .get("description")
-    #         )
-    #         self.assertIn(
-    #             "Zuverlässigkeit, Eigeninitiative, Hilfsbereitschaft, Teamfähigkeit",
-    #             result,
-    #         )
-    #         self.assertNotEqual(result[:2], "u'")
+    def test_convert_bio_1(self):
+        """can convert a bio includes lots of non-ASCII characters and handle the u-bug"""
+        with patch(
+            "eveuniverse.models.EveEntity.objects.resolve_name",
+            Mock(return_value="An Alliance"),
+        ):
+            result = eve_xml_to_html(
+                load_test_data()
+                .get("Character")
+                .get("get_characters_character_id")
+                .get("1002")
+                .get("description")
+            )
+            self.assertIn(
+                "Zuverlässigkeit, Eigeninitiative, Hilfsbereitschaft, Teamfähigkeit",
+                result,
+            )
+            self.assertNotEqual(result[:2], "u'")
 
-    # def test_convert_bio_2(self):
-    #     """can convert a bio that resulted in a syntax error (#77)"""
-    #     with patch(
-    #         "eveuniverse.models.EveEntity.objects.resolve_name",
-    #         Mock(return_value="An Alliance"),
-    #     ):
-    #         try:
-    #             result = eve_xml_to_html(
-    #                 load_test_data()
-    #                 .get("Character")
-    #                 .get("get_characters_character_id")
-    #                 .get("1003")
-    #                 .get("description")
-    #             )
-    #         except Exception as ex:
-    #             self.fail(f"Unexpected exception was raised: {ex}")
+    def test_convert_bio_2(self):
+        """can convert a bio that resulted in a syntax error (#77)"""
+        with patch(
+            "eveuniverse.models.EveEntity.objects.resolve_name",
+            Mock(return_value="An Alliance"),
+        ):
+            try:
+                result = eve_xml_to_html(
+                    load_test_data()
+                    .get("Character")
+                    .get("get_characters_character_id")
+                    .get("1003")
+                    .get("description")
+                )
+            except Exception as ex:
+                self.fail(f"Unexpected exception was raised: {ex}")
 
-    #         self.assertNotEqual(result[:2], "u'")
+            self.assertNotEqual(result[:2], "u'")
+
+    def test_convert_bio_3(self):
+        """can convert a bio includes lots of non-ASCII characters and handle the u-bug"""
+        result = eve_xml_to_html(
+            load_test_data()
+            .get("Character")
+            .get("get_characters_character_id")
+            .get("1099")
+            .get("description")
+        )
+        self.assertNotEqual(result[:2], "u'")
 
 
 class TestXMLConversion2(NoSocketsTestCase):

@@ -1,4 +1,6 @@
+import ast
 import re
+import unicodedata
 
 from bs4 import BeautifulSoup
 
@@ -29,11 +31,32 @@ def is_string_an_url(url_string: str) -> bool:
 
 def eve_xml_to_html(xml_doc: str) -> str:
     """Converts Eve Online XML to HTML."""
+    xml_doc = _convert_unicode(xml_doc)
+
+    # temporary fix to address u-bug in ESI endpoint
+    # workaround to address syntax error bug (#77)
+    # see also: https://github.com/esi/esi-issues/issues/1265
+    # TODO: remove when fixed
+    if xml_doc.startswith("u'") and xml_doc.endswith("'"):
+        try:
+            xml_doc = ast.literal_eval(xml_doc)
+        except SyntaxError:
+            logger.warning("Failed to convert XML")
+            xml_doc = ""
     xml_doc = _remove_loc_tag(xml_doc)
     soup = BeautifulSoup(xml_doc, "html.parser")
     _convert_font_tag(soup)
     _convert_a_tag(soup)
     return str(soup)
+
+
+def _convert_unicode(xml_doc: str) -> str:
+    try:
+        xml_doc = xml_doc.encode("utf-8").decode("unicode-escape")
+        xml_doc = unicodedata.normalize("NFKC", xml_doc)
+    except ValueError:
+        xml_doc = ""
+    return xml_doc
 
 
 def _remove_loc_tag(xml: str) -> str:
