@@ -1,8 +1,8 @@
 {% load i18n %}
 
 <div role="tabpanel" class="tab-pane" id="bio">
-    {{ character_details.description_plain|default:"-" }}
-    <br>
-    <br>
+    {{ character_details.description_html|default:"-" }}
+    <br />
+    <br />
     {% include 'memberaudit/partials/character_viewer/tabs/last_updated.html' with update_section=last_updates.character_details %}
 </div>
