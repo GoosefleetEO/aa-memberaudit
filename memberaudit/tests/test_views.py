@@ -66,7 +66,7 @@ from ..views import (
     character_implants_data,
     character_jump_clones_data,
     character_loyalty_data,
-    character_mail_data,
+    character_mail,
     character_mail_headers_by_label_data,
     character_mail_headers_by_list_data,
     character_skill_set_details,
@@ -1470,32 +1470,22 @@ class TestMailData(TestCase):
     def test_character_mail_data_normal(self):
         mail = self.character.mails.get(mail_id=7001)
         request = self.factory.get(
-            reverse(
-                "memberaudit:character_mail_data", args=[self.character.pk, mail.pk]
-            )
+            reverse("memberaudit:character_mail", args=[self.character.pk, mail.pk])
         )
         request.user = self.user
-        response = character_mail_data(request, self.character.pk, mail.pk)
+        response = character_mail(request, self.character.pk, mail.pk)
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
-        self.assertEqual(data["mail_id"], 7001)
-        self.assertIn("Clark Kent", data["from"])
-        self.assertIn("Bruce Wayne", data["to"])
-        self.assertIn("Mailing List", data["to"])
-        self.assertEqual(
-            data["body"], "Mail with normal entity and mailing list as recipient"
-        )
 
     def test_character_mail_data_error(self):
         invalid_mail_pk = generate_invalid_pk(CharacterMail)
         request = self.factory.get(
             reverse(
-                "memberaudit:character_mail_data",
+                "memberaudit:character_mail",
                 args=[self.character.pk, invalid_mail_pk],
             )
         )
         request.user = self.user
-        response = character_mail_data(request, self.character.pk, invalid_mail_pk)
+        response = character_mail(request, self.character.pk, invalid_mail_pk)
         self.assertEqual(response.status_code, 404)
 
 

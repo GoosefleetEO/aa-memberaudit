@@ -1041,13 +1041,13 @@ def _character_mail_headers_data(request, character, mail_headers_qs) -> JsonRes
             "recipients"
         ):
             mail_ajax_url = reverse(
-                "memberaudit:character_mail_data", args=[character.pk, mail.pk]
+                "memberaudit:character_mail", args=[character.pk, mail.pk]
             )
             if mail.body:
                 actions_html = (
                     '<button type="button" class="btn btn-primary" '
                     'data-toggle="modal" data-target="#modalCharacterMail" '
-                    f"data-ajax_mail_body={mail_ajax_url}>"
+                    f"data-ajax_url={mail_ajax_url}>"
                     '<i class="fas fa-search"></i></button>'
                 )
             else:
@@ -1100,7 +1100,7 @@ def character_mail_headers_by_list_data(
 @login_required
 @permission_required("memberaudit.basic_access")
 @fetch_character_if_allowed()
-def character_mail_data(
+def character_mail(
     request, character_pk: int, character: Character, mail_pk: int
 ) -> JsonResponse:
     try:
@@ -1113,7 +1113,6 @@ def character_mail_data(
         error_msg = f"Mail with pk {mail_pk} not found for character {character}"
         logger.warning(error_msg)
         return HttpResponseNotFound(error_msg)
-
     recipients = sorted(
         [
             {
@@ -1124,17 +1123,21 @@ def character_mail_data(
         ],
         key=lambda k: k["name"],
     )
-
-    data = {
+    context = {
         "mail_id": mail.mail_id,
         "labels": list(mail.labels.values_list("label_id", flat=True)),
-        "from": link_html(mail.sender.external_url(), mail.sender.name_plus),
-        "to": ", ".join([obj["link"] for obj in recipients]),
+        "sender": link_html(mail.sender.external_url(), mail.sender.name_plus),
+        "recipients": format_html(", ".join([obj["link"] for obj in recipients])),
         "subject": mail.subject,
-        "sent": mail.timestamp.isoformat(),
-        "body": mail.body_html if mail.body != "" else "(no data yet)",
+        "timestamp": mail.timestamp,
+        "body": format_html(mail.body_html) if mail.body else None,
+        "MY_DATETIME_FORMAT": MY_DATETIME_FORMAT,
     }
-    return JsonResponse(data, safe=False)
+    return render(
+        request,
+        "memberaudit/modals/character_viewer/mail_content.html",
+        context,
+    )
 
 
 @login_required

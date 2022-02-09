@@ -99,9 +99,9 @@ urlpatterns = [
         name="character_mail_headers_by_list_data",
     ),
     path(
-        "character_mail_data/<int:character_pk>/<int:mail_pk>/",
-        views.character_mail_data,
-        name="character_mail_data",
+        "character_mail/<int:character_pk>/<int:mail_pk>/",
+        views.character_mail,
+        name="character_mail",
     ),
     path(
         "character_skillqueue_data/<int:character_pk>/",

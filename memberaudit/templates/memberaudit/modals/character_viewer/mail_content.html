@@ -1,0 +1,10 @@
+{% load i18n %}
+
+<dl class="dl-horizontal">
+    <p class="mail-title">{{ subject }}</p>
+    <dt>{% translate 'From:' %}</dt><dd>{{ sender }}</dd>
+    <dt>{% translate 'To:' %}</dt><dd>{{ recipients }}</dd>
+    <dt>{% translate 'Sent:' %}</dt><dd>{{ timestamp|date:MY_DATETIME_FORMAT }}</dd>
+    <br>
+    <div>{{ body|default_if_none:"(no data yet)" }}</div>
+</dl>
