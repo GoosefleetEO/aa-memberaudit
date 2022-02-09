@@ -165,6 +165,11 @@ class TestXMLConversion2(NoSocketsTestCase):
         expected = """<a href="http://evemaps.dotlan.net/system/Abune" target="_blank">Abune</a>"""
         self.assertHTMLEqual(eve_xml_to_html(input), expected)
 
+    def test_should_convert_kill_link(self):
+        input = """<a href="killReport:84900666:9e6fe9e5392ff0cfc6ab956677dbe1deb69c4b04">Kill: Yuna Kobayashi (Badger)</a>"""
+        expected = """<a href="https://zkillboard.com/kill/84900666" target="_blank">Kill: Yuna Kobayashi (Badger)</a>"""
+        self.assertHTMLEqual(eve_xml_to_html(input), expected)
+
     def test_should_disable_unknown_types(self):
         input = """<a href="showinfo:666//30004984">Abune</a>"""
         expected = """<a href="#">Abune</a>"""

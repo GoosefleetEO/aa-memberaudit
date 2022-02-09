@@ -1,6 +1,7 @@
 import ast
 import re
 import unicodedata
+from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 
@@ -17,6 +18,7 @@ from .. import __title__
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
 DEFAULT_TEXT_COLOR = "ffffffb3"  # RGBA in hex
+ZKILLBOARD_KILL_URL = "https://zkillboard.com/kill/"
 
 
 def is_string_an_url(url_string: str) -> bool:
@@ -94,9 +96,7 @@ def _ccp_color_to_rgba(ccp_color) -> str:
 def _convert_a_tag(soup: BeautifulSoup):
     for element in soup.find_all("a"):
         href = element["href"]
-        new_href = (
-            element["href"] if is_string_an_url(href) else _match_eve_entity(href)
-        )
+        new_href = element["href"] if is_string_an_url(href) else _parse_eve_link(href)
         if new_href:
             element["href"] = new_href
             element["target"] = "_blank"
@@ -104,14 +104,11 @@ def _convert_a_tag(soup: BeautifulSoup):
             element["href"] = "#"
 
 
-def _match_eve_entity(href: str) -> str:
-    link_match = re.match(
-        r"(?P<schema>[a-zA-Z]+):(?P<type_id>\d+)\/\/(?P<entity_id>[0-9a-f]+)",
-        href,
-    )
-    if link_match and link_match.group("schema") == "showinfo":
-        type_id = int(link_match.group("type_id"))
-        entity_id = link_match.group("entity_id")
+def _parse_eve_link(href: str) -> str:
+    showinfo_match = re.match(r"showinfo:(?P<type_id>\d+)\/\/(?P<entity_id>\d+)", href)
+    if showinfo_match:
+        type_id = int(showinfo_match.group("type_id"))
+        entity_id = showinfo_match.group("entity_id")
         if entity_id is not None:
             entity_id = int(entity_id)
         if 1373 <= type_id <= 1386:  # Character
@@ -125,4 +122,12 @@ def _match_eve_entity(href: str) -> str:
         elif type_id == 16159:  # Alliance
             alliance_name = EveEntity.objects.resolve_name(entity_id)
             return dotlan.alliance_url(alliance_name)
+        return None
+
+    killreport_match = re.match(
+        r"killReport:(?P<killmail_id>\d+):(?P<killmail_hash>\w+)", href
+    )
+    if killreport_match:
+        killmail_id = int(killreport_match.group("killmail_id"))
+        return urljoin(ZKILLBOARD_KILL_URL, str(killmail_id))
     return None
