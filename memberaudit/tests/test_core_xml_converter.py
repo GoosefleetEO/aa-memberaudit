@@ -133,7 +133,7 @@ class TestXMLConversion2(NoSocketsTestCase):
 
     def test_should_convert_font_tag(self):
         input = """<font size="13" color="#b3ffffff">Character</font>"""
-        expected = """<span style="font-size:13;color:#ffffffb3">Character</span>"""
+        expected = """<span style="font-size: 13px">Character</span>"""
         self.assertHTMLEqual(eve_xml_to_html(input), expected)
 
     def test_should_remove_loc_tag(self):
@@ -179,3 +179,12 @@ class TestXMLConversion2(NoSocketsTestCase):
         input = """<a href="unknown">Abune</a>"""
         expected = """<a href="#">Abune</a>"""
         self.assertHTMLEqual(eve_xml_to_html(input), expected)
+
+    def test_should_set_default_font(self):
+        input = 'First<br><span style="font-size: 20px">Second</span>Third'
+        expected = (
+            '<span style="font-size: 13px">First</span>'
+            '<br><span style="font-size: 20px">Second</span>'
+            '<span style="font-size: 13px">Third</span>'
+        )
+        self.assertHTMLEqual(eve_xml_to_html(input, add_default_style=True), expected)

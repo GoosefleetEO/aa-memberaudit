@@ -574,7 +574,7 @@ class CharacterDetails(models.Model):
 
     def description_html(self) -> str:
         """returns the description without tags"""
-        return format_html(eve_xml_to_html(self.description))
+        return format_html(eve_xml_to_html(self.description, add_default_style=True))
 
 
 class CharacterImplant(models.Model):
@@ -735,7 +735,7 @@ class CharacterMail(models.Model):
     @property
     def body_html(self) -> str:
         """returns the body as html"""
-        return eve_xml_to_html(self.body)
+        return eve_xml_to_html(self.body, add_default_style=True)
 
 
 class CharacterMailLabel(models.Model):
