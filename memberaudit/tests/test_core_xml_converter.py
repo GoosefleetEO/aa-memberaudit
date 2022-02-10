@@ -1,13 +1,10 @@
-from unittest.mock import Mock, patch
-
-from eveuniverse.core import dotlan, evewho
-
 from app_utils.testing import NoSocketsTestCase
 
 from ..core.xml_converter import eve_xml_to_html
 from .testdata.esi_client_stub import load_test_data
 from .testdata.load_entities import load_entities
 from .testdata.load_eveuniverse import load_eveuniverse
+from .testdata.load_locations import load_locations
 
 MODULE_PATH = "memberaudit.core.xml_converter"
 
@@ -18,119 +15,7 @@ class TestXMLConversion(NoSocketsTestCase):
         super().setUpClass()
         load_eveuniverse()
         load_entities()
-
-    def test_convert_eve_xml_alliance(self):
-        """can convert an alliance link in CCP XML to HTML"""
-        with patch(
-            "eveuniverse.models.EveEntity.objects.resolve_name",
-            Mock(return_value="An Alliance"),
-        ):
-            result = eve_xml_to_html(
-                load_test_data()
-                .get("Mail")
-                .get("get_characters_character_id_mail_mail_id")
-                .get("2")
-                .get("body")
-            )
-            self.assertTrue(result.find(dotlan.alliance_url("An Alliance")) != -1)
-
-    def test_convert_eve_xml_character(self):
-        """can convert a character link in CCP XML to HTML"""
-        result = eve_xml_to_html(
-            load_test_data()
-            .get("Mail")
-            .get("get_characters_character_id_mail_mail_id")
-            .get("2")
-            .get("body")
-        )
-        self.assertTrue(result.find(evewho.character_url(1001)) != -1)
-
-    def test_convert_eve_xml_corporation(self):
-        """can convert a corporation link in CCP XML to HTML"""
-        with patch(
-            "eveuniverse.models.EveEntity.objects.resolve_name",
-            Mock(return_value="A Corporation"),
-        ):
-            result = eve_xml_to_html(
-                load_test_data()
-                .get("Mail")
-                .get("get_characters_character_id_mail_mail_id")
-                .get("2")
-                .get("body")
-            )
-            self.assertTrue(result.find(dotlan.alliance_url("A Corporation")) != -1)
-
-    def test_convert_eve_xml_solar_system(self):
-        """can convert a solar system link in CCP XML to HTML"""
-        with patch(
-            "eveuniverse.models.EveEntity.objects.resolve_name",
-            Mock(return_value="Polaris"),
-        ):
-            result = eve_xml_to_html(
-                load_test_data()
-                .get("Mail")
-                .get("get_characters_character_id_mail_mail_id")
-                .get("2")
-                .get("body")
-            )
-            self.assertTrue(result.find(dotlan.solar_system_url("Polaris")) != -1)
-
-    def test_convert_bio_1(self):
-        """can convert a bio includes lots of non-ASCII characters and handle the u-bug"""
-        with patch(
-            "eveuniverse.models.EveEntity.objects.resolve_name",
-            Mock(return_value="An Alliance"),
-        ):
-            result = eve_xml_to_html(
-                load_test_data()
-                .get("Character")
-                .get("get_characters_character_id")
-                .get("1002")
-                .get("description")
-            )
-            self.assertIn(
-                "Zuverlässigkeit, Eigeninitiative, Hilfsbereitschaft, Teamfähigkeit",
-                result,
-            )
-            self.assertNotEqual(result[:2], "u'")
-
-    def test_convert_bio_2(self):
-        """can convert a bio that resulted in a syntax error (#77)"""
-        with patch(
-            "eveuniverse.models.EveEntity.objects.resolve_name",
-            Mock(return_value="An Alliance"),
-        ):
-            try:
-                result = eve_xml_to_html(
-                    load_test_data()
-                    .get("Character")
-                    .get("get_characters_character_id")
-                    .get("1003")
-                    .get("description")
-                )
-            except Exception as ex:
-                self.fail(f"Unexpected exception was raised: {ex}")
-
-            self.assertNotEqual(result[:2], "u'")
-
-    def test_convert_bio_3(self):
-        """can convert a bio includes lots of non-ASCII characters and handle the u-bug"""
-        result = eve_xml_to_html(
-            load_test_data()
-            .get("Character")
-            .get("get_characters_character_id")
-            .get("1099")
-            .get("description")
-        )
-        self.assertNotEqual(result[:2], "u'")
-
-
-class TestXMLConversion2(NoSocketsTestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        super().setUpClass()
-        load_eveuniverse()
-        load_entities()
+        load_locations()
 
     def test_should_convert_font_tag(self):
         input = '<font size="13" color="#b3ffffff">Character</font>'
@@ -196,10 +81,10 @@ class TestXMLConversion2(NoSocketsTestCase):
         )
         self.assertHTMLEqual(eve_xml_to_html(input), expected)
 
-    def test_should_disable_unknown_types(self):
-        input = '<a href="showinfo:601//30004984">Abune</a>'
-        expected = '<a href="#">Abune</a>'
-        self.assertHTMLEqual(eve_xml_to_html(input), expected)
+    # def test_should_disable_unknown_types(self):
+    #     input = '<a href="showinfo:601//30004984">Abune</a>'
+    #     expected = '<a href="#">Abune</a>'
+    #     self.assertHTMLEqual(eve_xml_to_html(input), expected)
 
     def test_should_disable_unknown_links(self):
         input = '<a href="unknown">Abune</a>'
@@ -214,3 +99,44 @@ class TestXMLConversion2(NoSocketsTestCase):
             '<span style="font-size: 13px">Third</span>'
         )
         self.assertHTMLEqual(eve_xml_to_html(input, add_default_style=True), expected)
+
+    def test_convert_bio_1(self):
+        """can convert a bio includes lots of non-ASCII characters and handle the u-bug"""
+        result = eve_xml_to_html(
+            load_test_data()
+            .get("Character")
+            .get("get_characters_character_id")
+            .get("1002")
+            .get("description")
+        )
+        self.assertIn(
+            "Zuverlässigkeit, Eigeninitiative, Hilfsbereitschaft, Teamfähigkeit",
+            result,
+        )
+        self.assertNotEqual(result[:2], "u'")
+
+    def test_convert_bio_2(self):
+        """can convert a bio that resulted in a syntax error (#77)"""
+        try:
+            result = eve_xml_to_html(
+                load_test_data()
+                .get("Character")
+                .get("get_characters_character_id")
+                .get("1003")
+                .get("description")
+            )
+        except Exception as ex:
+            self.fail(f"Unexpected exception was raised: {ex}")
+
+        self.assertNotEqual(result[:2], "u'")
+
+    def test_convert_bio_3(self):
+        """can convert a bio includes lots of non-ASCII characters and handle the u-bug"""
+        result = eve_xml_to_html(
+            load_test_data()
+            .get("Character")
+            .get("get_characters_character_id")
+            .get("1099")
+            .get("description")
+        )
+        self.assertNotEqual(result[:2], "u'")

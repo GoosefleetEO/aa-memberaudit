@@ -6,7 +6,7 @@ import bs4
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from eveuniverse.core import dotlan, evewho, zkillboard
+from eveuniverse.core import zkillboard
 from eveuniverse.models import EveEntity, EveType
 
 from allianceauth.services.hooks import get_extension_logger
@@ -39,7 +39,7 @@ def eve_xml_to_html(xml_doc: str, add_default_style: bool = False) -> str:
     """
     xml_doc = _convert_unicode(xml_doc)
 
-    # temporary fix to address u-bug in ESI endpoint
+    # temporary fix to address u-bug in ESI endpoint for character bio
     # workaround to address syntax error bug (#77)
     # see also: https://github.com/esi/esi-issues/issues/1265
     # TODO: remove when fixed
@@ -91,8 +91,7 @@ def _convert_font_tag(soup):
 def _convert_a_tag(soup: bs4.BeautifulSoup):
     """Convert links into HTML."""
     for element in soup.find_all("a"):
-        href = element["href"]
-        new_href = element["href"] if is_string_an_url(href) else _eve_link_to_url(href)
+        new_href = _eve_link_to_url(element["href"])
         if new_href:
             element["href"] = new_href
             element["target"] = "_blank"
@@ -101,35 +100,42 @@ def _convert_a_tag(soup: bs4.BeautifulSoup):
 
 
 def _eve_link_to_url(href: str) -> str:
-    """Convert an eve style link into an URL."""
+    """Convert an eve style link into a normal URL."""
+    if is_string_an_url(href):
+        return href
     showinfo_match = re.match(r"showinfo:(?P<type_id>\d+)\/\/(?P<entity_id>\d+)", href)
     if showinfo_match:
-        type_id = int(showinfo_match.group("type_id"))
-        eve_type, _ = EveType.objects.get_or_create_esi(id=type_id)
-        entity_id = showinfo_match.group("entity_id")
-        if eve_type.eve_group_id == EveGroupId.CHARACTER:
-            return evewho.character_url(entity_id)
-        elif eve_type.eve_group_id == EveGroupId.SOLAR_SYSTEM:
-            system_name = EveEntity.objects.resolve_name(entity_id)
-            return dotlan.solar_system_url(system_name)
-        elif eve_type.eve_group_id == EveGroupId.CORPORATION:
-            corp_name = EveEntity.objects.resolve_name(entity_id)
-            return dotlan.corporation_url(corp_name)
-        elif eve_type.eve_group_id == EveGroupId.ALLIANCE:
-            alliance_name = EveEntity.objects.resolve_name(entity_id)
-            return dotlan.alliance_url(alliance_name)
-        elif eve_type.eve_group_id == EveGroupId.STATION:
-            station_name = EveEntity.objects.resolve_name(entity_id)
-            return dotlan.station_url(station_name)
-        return None
-
+        return _convert_type_link(showinfo_match)
     killreport_match = re.match(
         r"killReport:(?P<killmail_id>\d+):(?P<killmail_hash>\w+)", href
     )
     if killreport_match:
+        return _convert_killmail_link(killreport_match)
+    return ""
+
+
+def _convert_type_link(showinfo_match: re.Match) -> str:
+    if showinfo_match:
+        type_id = int(showinfo_match.group("type_id"))
+        eve_type, _ = EveType.objects.get_or_create_esi(id=type_id)
+        if eve_type.eve_group_id in {
+            EveGroupId.ALLIANCE.value,
+            EveGroupId.CHARACTER.value,
+            EveGroupId.CORPORATION.value,
+            EveGroupId.SOLAR_SYSTEM.value,
+            EveGroupId.STATION.value,
+        }:
+            entity_id = showinfo_match.group("entity_id")
+            eve_entity, _ = EveEntity.objects.get_or_create_esi(id=entity_id)
+            return eve_entity.profile_url
+    return ""
+
+
+def _convert_killmail_link(killreport_match: re.Match) -> str:
+    if killreport_match:
         killmail_id = int(killreport_match.group("killmail_id"))
         return zkillboard.killmail_url(killmail_id)
-    return None
+    return ""
 
 
 def _add_default_style(soup: bs4.BeautifulSoup):
