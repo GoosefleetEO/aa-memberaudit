@@ -7,9 +7,9 @@ import bs4
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
+from eveuniverse.core import dotlan, evewho
 from eveuniverse.models import EveEntity
 
-from allianceauth.eveonline.evelinks import dotlan, evewho
 from allianceauth.services.hooks import get_extension_logger
 from app_utils.logging import LoggerAddTag
 

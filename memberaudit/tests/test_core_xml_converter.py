@@ -1,6 +1,7 @@
 from unittest.mock import Mock, patch
 
-from allianceauth.eveonline.evelinks import dotlan, evewho
+from eveuniverse.core import dotlan, evewho
+
 from app_utils.testing import NoSocketsTestCase
 
 from ..core.xml_converter import eve_xml_to_html
@@ -152,17 +153,17 @@ class TestXMLConversion2(NoSocketsTestCase):
 
     def test_should_convert_corporation_link(self):
         input = """<a href="showinfo:2//2001">Wayne Technologies</a>"""
-        expected = """<a href="http://evemaps.dotlan.net/corp/Wayne_Technologies" target="_blank">Wayne Technologies</a>"""
+        expected = """<a href="https://evemaps.dotlan.net/corp/Wayne_Technologies" target="_blank">Wayne Technologies</a>"""
         self.assertHTMLEqual(eve_xml_to_html(input), expected)
 
     def test_should_convert_alliance_link(self):
         input = """<a href="showinfo:16159//3001">Wayne Enterprises</a>"""
-        expected = """<a href="http://evemaps.dotlan.net/alliance/Wayne_Enterprises" target="_blank">Wayne Enterprises</a>"""
+        expected = """<a href="https://evemaps.dotlan.net/alliance/Wayne_Enterprises" target="_blank">Wayne Enterprises</a>"""
         self.assertHTMLEqual(eve_xml_to_html(input), expected)
 
     def test_should_convert_solar_system_link(self):
         input = """<a href="showinfo:5//30004984">Abune</a>"""
-        expected = """<a href="http://evemaps.dotlan.net/system/Abune" target="_blank">Abune</a>"""
+        expected = """<a href="https://evemaps.dotlan.net/system/Abune" target="_blank">Abune</a>"""
         self.assertHTMLEqual(eve_xml_to_html(input), expected)
 
     def test_should_convert_kill_link(self):

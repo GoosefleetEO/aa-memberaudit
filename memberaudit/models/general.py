@@ -7,9 +7,9 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from eveuniverse.core import dotlan, evewho
 from eveuniverse.models import EveEntity, EveSolarSystem, EveType
 
-from allianceauth.eveonline.evelinks import dotlan, evewho
 from allianceauth.services.hooks import get_extension_logger
 from app_utils.django import users_with_permission
 from app_utils.logging import LoggerAddTag
