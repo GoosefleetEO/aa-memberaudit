@@ -1,13 +1,12 @@
 import ast
 import re
 import unicodedata
-from urllib.parse import urljoin
 
 import bs4
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from eveuniverse.core import dotlan, evewho
+from eveuniverse.core import dotlan, evewho, zkillboard
 from eveuniverse.models import EveEntity
 
 from allianceauth.services.hooks import get_extension_logger
@@ -18,7 +17,6 @@ from .. import __title__
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
 DEFAULT_FONT_SIZE = 13
-ZKILLBOARD_KILL_URL = "https://zkillboard.com/kill/"
 
 
 def is_string_an_url(url_string: str) -> bool:
@@ -127,7 +125,7 @@ def _eve_link_to_url(href: str) -> str:
     )
     if killreport_match:
         killmail_id = int(killreport_match.group("killmail_id"))
-        return urljoin(ZKILLBOARD_KILL_URL, str(killmail_id))
+        return zkillboard.killmail_url(killmail_id)
     return None
 
 

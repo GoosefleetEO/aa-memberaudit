@@ -168,7 +168,7 @@ class TestXMLConversion2(NoSocketsTestCase):
 
     def test_should_convert_kill_link(self):
         input = """<a href="killReport:84900666:9e6fe9e5392ff0cfc6ab956677dbe1deb69c4b04">Kill: Yuna Kobayashi (Badger)</a>"""
-        expected = """<a href="https://zkillboard.com/kill/84900666" target="_blank">Kill: Yuna Kobayashi (Badger)</a>"""
+        expected = """<a href="https://zkillboard.com/kill/84900666/" target="_blank">Kill: Yuna Kobayashi (Badger)</a>"""
         self.assertHTMLEqual(eve_xml_to_html(input), expected)
 
     def test_should_disable_unknown_types(self):
