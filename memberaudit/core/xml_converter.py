@@ -118,6 +118,9 @@ def _eve_link_to_url(href: str) -> str:
         elif eve_type.eve_group_id == EveGroupId.ALLIANCE:
             alliance_name = EveEntity.objects.resolve_name(entity_id)
             return dotlan.alliance_url(alliance_name)
+        elif eve_type.eve_group_id == EveGroupId.STATION:
+            station_name = EveEntity.objects.resolve_name(entity_id)
+            return dotlan.station_url(station_name)
         return None
 
     killreport_match = re.match(
