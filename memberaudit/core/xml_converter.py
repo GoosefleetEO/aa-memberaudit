@@ -7,12 +7,13 @@ import bs4
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from eveuniverse.core import dotlan, evewho, zkillboard
-from eveuniverse.models import EveEntity
+from eveuniverse.models import EveEntity, EveType
 
 from allianceauth.services.hooks import get_extension_logger
 from app_utils.logging import LoggerAddTag
 
 from .. import __title__
+from ..constants import EveGroupId
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
@@ -104,18 +105,17 @@ def _eve_link_to_url(href: str) -> str:
     showinfo_match = re.match(r"showinfo:(?P<type_id>\d+)\/\/(?P<entity_id>\d+)", href)
     if showinfo_match:
         type_id = int(showinfo_match.group("type_id"))
+        eve_type, _ = EveType.objects.get_or_create_esi(id=type_id)
         entity_id = showinfo_match.group("entity_id")
-        if entity_id is not None:
-            entity_id = int(entity_id)
-        if 1373 <= type_id <= 1386:  # Character
+        if eve_type.eve_group_id == EveGroupId.CHARACTER:
             return evewho.character_url(entity_id)
-        elif type_id == 5:  # Solar System
+        elif eve_type.eve_group_id == EveGroupId.SOLAR_SYSTEM:
             system_name = EveEntity.objects.resolve_name(entity_id)
             return dotlan.solar_system_url(system_name)
-        elif type_id == 2:  # Corporation
+        elif eve_type.eve_group_id == EveGroupId.CORPORATION:
             corp_name = EveEntity.objects.resolve_name(entity_id)
             return dotlan.corporation_url(corp_name)
-        elif type_id == 16159:  # Alliance
+        elif eve_type.eve_group_id == EveGroupId.ALLIANCE:
             alliance_name = EveEntity.objects.resolve_name(entity_id)
             return dotlan.alliance_url(alliance_name)
         return None

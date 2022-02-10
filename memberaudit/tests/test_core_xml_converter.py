@@ -172,7 +172,7 @@ class TestXMLConversion2(NoSocketsTestCase):
         self.assertHTMLEqual(eve_xml_to_html(input), expected)
 
     def test_should_disable_unknown_types(self):
-        input = """<a href="showinfo:666//30004984">Abune</a>"""
+        input = """<a href="showinfo:601//30004984">Abune</a>"""
         expected = """<a href="#">Abune</a>"""
         self.assertHTMLEqual(eve_xml_to_html(input), expected)
 
