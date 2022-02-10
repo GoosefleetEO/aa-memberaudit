@@ -43,7 +43,7 @@ from app_utils.views import (
 
 from . import __title__, tasks
 from .app_settings import MEMBERAUDIT_APP_NAME, MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE
-from .constants import EVE_CATEGORY_ID_SHIP
+from .constants import EveCategoryId
 from .core import data_exporters
 from .decorators import fetch_character_if_allowed
 from .helpers import eve_solar_system_to_html
@@ -511,7 +511,7 @@ def character_assets_data(
             solar_system = ""
 
         is_ship = yesno_str(
-            asset.eve_type.eve_group.eve_category_id == EVE_CATEGORY_ID_SHIP
+            asset.eve_type.eve_group.eve_category_id == EveCategoryId.SHIP
         )
 
         if asset.item_id in assets_with_children_ids:

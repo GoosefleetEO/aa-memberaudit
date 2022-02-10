@@ -6,7 +6,7 @@ from django.utils.html import format_html
 from eveuniverse.models import EveType
 
 from . import tasks
-from .constants import EVE_CATEGORY_ID_SHIP
+from .constants import EveCategoryId
 from .models import (
     Character,
     CharacterUpdateStatus,
@@ -432,7 +432,7 @@ class SkillSetAdmin(admin.ModelAdmin):
         if db_field.name == "ship_type":
             kwargs["queryset"] = (
                 EveType.objects.select_related("eve_group__eve_category")
-                .filter(eve_group__eve_category=EVE_CATEGORY_ID_SHIP)
+                .filter(eve_group__eve_category=EveCategoryId.SHIP)
                 .order_by("name")
             )
         return super().formfield_for_foreignkey(db_field, request, **kwargs)

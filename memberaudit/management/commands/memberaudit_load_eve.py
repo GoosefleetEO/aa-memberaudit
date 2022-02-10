@@ -6,17 +6,7 @@ from django.core.management.base import BaseCommand
 from app_utils.logging import LoggerAddTag
 
 from ... import __title__
-from ...constants import (
-    EVE_CATEGORY_ID_BLUEPRINT,
-    EVE_CATEGORY_ID_CHARGE,
-    EVE_CATEGORY_ID_DRONE,
-    EVE_CATEGORY_ID_FIGHTER,
-    EVE_CATEGORY_ID_IMPLANT,
-    EVE_CATEGORY_ID_MODULE,
-    EVE_CATEGORY_ID_SHIP,
-    EVE_CATEGORY_ID_SKILL,
-    EVE_CATEGORY_ID_STRUCTURE,
-)
+from ...constants import EveCategoryId
 
 logger = LoggerAddTag(logging.getLogger(__name__), __title__)
 
@@ -29,21 +19,21 @@ class Command(BaseCommand):
             "eveuniverse_load_types",
             __title__,
             "--category_id",
-            str(EVE_CATEGORY_ID_BLUEPRINT),
+            str(EveCategoryId.BLUEPRINT.value),
             "--category_id",
-            str(EVE_CATEGORY_ID_SHIP),
+            str(EveCategoryId.SHIP.value),
             "--category_id",
-            str(EVE_CATEGORY_ID_MODULE),
+            str(EveCategoryId.MODULE.value),
             "--category_id",
-            str(EVE_CATEGORY_ID_CHARGE),
+            str(EveCategoryId.CHARGE.value),
             "--category_id",
-            str(EVE_CATEGORY_ID_SKILL),
+            str(EveCategoryId.SKILL.value),
             "--category_id",
-            str(EVE_CATEGORY_ID_DRONE),
+            str(EveCategoryId.DRONE.value),
             "--category_id_with_dogma",
-            str(EVE_CATEGORY_ID_IMPLANT),
+            str(EveCategoryId.IMPLANT.value),
             "--category_id",
-            str(EVE_CATEGORY_ID_FIGHTER),
+            str(EveCategoryId.FIGHTER.value),
             "--category_id",
-            str(EVE_CATEGORY_ID_STRUCTURE),
+            str(EveCategoryId.STRUCTURE.value),
         )
