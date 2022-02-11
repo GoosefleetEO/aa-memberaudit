@@ -1,4 +1,5 @@
 import ast
+import unicodedata
 
 import bs4
 
@@ -14,6 +15,15 @@ logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 DEFAULT_FONT_SIZE = 13
 
 
+def _normalize_utf8(xml_doc: str) -> str:
+    """Convert unicode encodings into UTF-8 characters."""
+    try:
+        xml_doc = unicodedata.normalize("NFKC", xml_doc)
+    except ValueError:
+        xml_doc = ""
+    return xml_doc
+
+
 def eve_xml_to_html(xml_doc: str, add_default_style: bool = False) -> str:
     """Converts Eve Online XML to HTML.
 
@@ -21,7 +31,7 @@ def eve_xml_to_html(xml_doc: str, add_default_style: bool = False) -> str:
     - xml_doc: XML document
     - add_default_style: When set true will add the default style to all unstyled fragments
     """
-    xml_doc = evexml.unicode_to_utf8(xml_doc)
+    xml_doc = _normalize_utf8(xml_doc)
 
     # temporary fix to address u-bug in ESI endpoint for character bio
     # workaround to address syntax error bug (#77)
