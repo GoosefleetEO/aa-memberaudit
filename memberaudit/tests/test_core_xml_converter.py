@@ -1,7 +1,6 @@
 from app_utils.testing import NoSocketsTestCase
 
 from ..core.xml_converter import eve_xml_to_html
-from .testdata.esi_client_stub import load_test_data
 from .testdata.load_entities import load_entities
 from .testdata.load_eveuniverse import load_eveuniverse
 from .testdata.load_locations import load_locations
@@ -99,44 +98,3 @@ class TestXMLConversion(NoSocketsTestCase):
             '<span style="font-size: 13px">Third</span>'
         )
         self.assertHTMLEqual(eve_xml_to_html(input, add_default_style=True), expected)
-
-    def test_convert_bio_1(self):
-        """can convert a bio includes lots of non-ASCII characters and handle the u-bug"""
-        result = eve_xml_to_html(
-            load_test_data()
-            .get("Character")
-            .get("get_characters_character_id")
-            .get("1002")
-            .get("description")
-        )
-        self.assertIn(
-            "Zuverlässigkeit, Eigeninitiative, Hilfsbereitschaft, Teamfähigkeit",
-            result,
-        )
-        self.assertNotEqual(result[:2], "u'")
-
-    def test_convert_bio_2(self):
-        """can convert a bio that resulted in a syntax error (#77)"""
-        try:
-            result = eve_xml_to_html(
-                load_test_data()
-                .get("Character")
-                .get("get_characters_character_id")
-                .get("1003")
-                .get("description")
-            )
-        except Exception as ex:
-            self.fail(f"Unexpected exception was raised: {ex}")
-
-        self.assertNotEqual(result[:2], "u'")
-
-    def test_convert_bio_3(self):
-        """can convert a bio includes lots of non-ASCII characters and handle the u-bug"""
-        result = eve_xml_to_html(
-            load_test_data()
-            .get("Character")
-            .get("get_characters_character_id")
-            .get("1099")
-            .get("description")
-        )
-        self.assertNotEqual(result[:2], "u'")

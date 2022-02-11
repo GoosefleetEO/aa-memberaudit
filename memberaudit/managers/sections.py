@@ -1,3 +1,4 @@
+import ast
 import datetime as dt
 from typing import Dict, List
 
@@ -437,18 +438,30 @@ class CharacterDetailsManager(models.Manager):
         description = (
             details.get("description", "") if details.get("description") else ""
         )
-        if description:
-            eve_xml_to_html(description)  # resolve names early
 
+        # TODO: remove when fixed
+        # temporary fix to address u-bug in ESI endpoint for character bio
+        # workaround to address syntax error bug (#77)
+        # see also: https://github.com/esi/esi-issues/issues/1265
+        if description and description.startswith("u'") and description.endswith("'"):
+            try:
+                description = ast.literal_eval(description)
+            except SyntaxError:
+                logger.warning("Failed to convert description with u-bug.")
+                description = ""
+
+        if description:
+            eve_xml_to_html(description)  # resolve entities early
         gender = (
             self.model.GENDER_MALE
             if details.get("gender") == "male"
             else self.model.GENDER_FEMALE
         )
 
-        # Workaround because of ESI issue #1264
         # TODO: Remove once issue is fixed
+        # Workaround because of ESI issue #1264
         eve_ancestry = get_or_none("ancestry_id", details, EveAncestry)
+
         self.update_or_create(
             character=character,
             defaults={

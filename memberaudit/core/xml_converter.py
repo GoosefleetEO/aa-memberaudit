@@ -1,4 +1,3 @@
-import ast
 import unicodedata
 
 import bs4
@@ -23,17 +22,6 @@ def eve_xml_to_html(xml_doc: str, add_default_style: bool = False) -> str:
     - add_default_style: When set true will add the default style to all unstyled fragments
     """
     xml_doc = unicodedata.normalize("NFKC", xml_doc)
-
-    # temporary fix to address u-bug in ESI endpoint for character bio
-    # workaround to address syntax error bug (#77)
-    # see also: https://github.com/esi/esi-issues/issues/1265
-    # TODO: remove when fixed
-    if xml_doc.startswith("u'") and xml_doc.endswith("'"):
-        try:
-            xml_doc = ast.literal_eval(xml_doc)
-        except SyntaxError:
-            logger.warning("Failed to convert XML")
-            xml_doc = ""
     xml_doc = evexml.remove_loc_tag(xml_doc)
     soup = bs4.BeautifulSoup(xml_doc, "html.parser")
     _convert_font_tag(soup)
