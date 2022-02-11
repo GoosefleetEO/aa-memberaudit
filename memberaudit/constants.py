@@ -14,13 +14,5 @@ class EveCategoryId(IntEnum):
     STRUCTURE = 65
 
 
-class EveGroupId(IntEnum):
-    CHARACTER = 1
-    CORPORATION = 2
-    SOLAR_SYSTEM = 5
-    STATION = 15
-    ALLIANCE = 32
-
-
 class EveTypeId(IntEnum):
     SOLAR_SYSTEM = 5
