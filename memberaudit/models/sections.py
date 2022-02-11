@@ -4,7 +4,8 @@ Character sections models
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.utils.html import format_html, strip_tags
+from django.utils.html import strip_tags
+from django.utils.safestring import mark_safe
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from eveuniverse.models import (
@@ -574,7 +575,7 @@ class CharacterDetails(models.Model):
 
     def description_html(self) -> str:
         """returns the description without tags"""
-        return format_html(eve_xml_to_html(self.description, add_default_style=True))
+        return mark_safe(eve_xml_to_html(self.description, add_default_style=True))
 
 
 class CharacterImplant(models.Model):
@@ -735,7 +736,7 @@ class CharacterMail(models.Model):
     @property
     def body_html(self) -> str:
         """returns the body as html"""
-        return eve_xml_to_html(self.body, add_default_style=True)
+        return mark_safe(eve_xml_to_html(self.body, add_default_style=True))
 
 
 class CharacterMailLabel(models.Model):

@@ -1130,13 +1130,11 @@ def character_mail(
         "recipients": format_html(", ".join([obj["link"] for obj in recipients])),
         "subject": mail.subject,
         "timestamp": mail.timestamp,
-        "body": format_html(mail.body_html) if mail.body else None,
+        "body": mail.body_html if mail.body else None,
         "MY_DATETIME_FORMAT": MY_DATETIME_FORMAT,
     }
     return render(
-        request,
-        "memberaudit/modals/character_viewer/mail_content.html",
-        context,
+        request, "memberaudit/modals/character_viewer/mail_content.html", context
     )
 
 
