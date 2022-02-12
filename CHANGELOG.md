@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.9.2] - 2022-02-11
+
+### Changed
+
+- Improved rendering of bios and mails. Now fully supports font sizes and most links. Colors are ignored on purpose to ensure good readibility with both light and dark theme.
+
 ## [1.9.1] - 2022-02-04
 
 ### Fixed
@@ -120,7 +126,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
-- Disabled fetching EveAncestry objects since current ESI bug is causing HTTP errors. See also: https://github.com/esi/esi-issues/issues/1264
+- Disabled fetching EveAncestry objects since current ESI bug is causing HTTP errors. See also: <https://github.com/esi/esi-issues/issues/1264>
 - Performance tuning for various view queries
 
 Big thanks to @gray_73 for the feature contribution!

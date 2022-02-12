@@ -310,12 +310,9 @@ class TestUICharacterViewer(WebTest):
         )
         self.assertEqual(character_viewer.status_code, 200)
 
-        # open asset container
+        # open mail
         mail_details = self.app.get(
-            reverse(
-                "memberaudit:character_mail_data",
-                args=[self.character.pk, mail.pk],
-            )
+            reverse("memberaudit:character_mail", args=[self.character.pk, mail.pk])
         )
         self.assertEqual(mail_details.status_code, 200)
         self.assertIn(body_text, mail_details.text)

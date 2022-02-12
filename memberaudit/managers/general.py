@@ -17,11 +17,7 @@ from ..app_settings import (
     MEMBERAUDIT_BULK_METHODS_BATCH_SIZE,
     MEMBERAUDIT_LOCATION_STALE_HOURS,
 )
-from ..constants import (
-    EVE_CATEGORY_ID_SHIP,
-    EVE_CATEGORY_ID_SKILL,
-    EVE_TYPE_ID_SOLAR_SYSTEM,
-)
+from ..constants import EveCategoryId, EveTypeId
 from ..providers import esi
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
@@ -34,7 +30,7 @@ class EveShipTypeManger(models.Manager):
             .get_queryset()
             .select_related("eve_group")
             .filter(published=True)
-            .filter(eve_group__eve_category_id=EVE_CATEGORY_ID_SHIP)
+            .filter(eve_group__eve_category_id=EveCategoryId.SHIP)
         )
 
 
@@ -45,7 +41,7 @@ class EveSkillTypeManger(models.Manager):
             .get_queryset()
             .select_related("eve_group")
             .filter(published=True)
-            .filter(eve_group__eve_category_id=EVE_CATEGORY_ID_SKILL)
+            .filter(eve_group__eve_category_id=EveCategoryId.SKILL)
         )
 
 
@@ -127,7 +123,7 @@ class LocationManager(models.Manager):
         id = int(id)
         if self.model.is_solar_system_id(id):
             eve_solar_system, _ = EveSolarSystem.objects.get_or_create_esi(id=id)
-            eve_type, _ = EveType.objects.get_or_create_esi(id=EVE_TYPE_ID_SOLAR_SYSTEM)
+            eve_type, _ = EveType.objects.get_or_create_esi(id=EveTypeId.SOLAR_SYSTEM)
             location, created = self.update_or_create(
                 id=id,
                 defaults={

@@ -155,6 +155,16 @@
                 "name": "Peter Parker",
                 "race_id": 1,
                 "title": "Bio with is causing a syntax error (#77)"
+            },
+            "1101": {
+                "birthday": "2016-04-05T17:09:25Z",
+                "bloodline_id": 1,
+                "corporation_id": 2101,
+                "description": "u'<font size=\"13\" color=\"#ff999999\"><\/font><font size=\"12\" color=\"#ffd98d00\"><a href=\"killReport:64347713:cd667c154b00e441588d9514aace5fa62c0c2334\">The Definition Of Overkill<\/a><\/font><font size=\"12\" color=\"#bfffffff\"> <br><br><\/font><font size=\"12\" color=\"#ff007fff\">Your<\/font><font size=\"12\" color=\"#bfffffff\"> <\/font><font size=\"12\" color=\"#ff00ff00\">tears<\/font><font size=\"12\" color=\"#bfffffff\"> <\/font><font size=\"12\" color=\"#ffffff00\">fuel<\/font><font size=\"12\" color=\"#bfffffff\"> <\/font><font size=\"12\" color=\"#ffff00ff\">me.<br><\/font><font size=\"12\" color=\"#ffff0000\">\\u256d\\u2229\\u256e(\\u25e3_\\u25e2)\\u256d\\u2229\\u256e <br><br><\/font><font size=\"12\" color=\"#ffffff00\">Hagel Baltrom glorreicher Anf\\xfchrer des Kongressabgeordneten<br><br><\/font><font size=\"12\" color=\"#ff7f007f\">.\\u3000 \\u2022 \\u25cb \\xb0 \\u2605\\u3000  .\\u3000 \\u3000 \\u3000.\\u2605 \\u3000\\xb0  .\\u3000  \\u2022  \\u25cb .\\u3000\\u3000\\u3000\\u3000*\\u3000.  \\u3000 \\u263e \\xb0  \\u3000\\xb8. * \\u25cf \\xb8 \\u3000\\u3000\\u3000\\u3000\\xb0 \\u263e \\xb0\\u2606 \\u3000. * \\xb8.\\u3000\\u3000\\u3000\\u2605\\u3000\\u2605 \\xb0 .  .\\u3000\\u3000\\u3000\\u3000.\\u3000 \\u263e \\xb0\\u2606  \\u3000.  *   \\u25cf  \\xb8 .\\u3000  \\u3000\\u3000\\u2605\\u3000\\xb0 :   .\\u3000  . \\u2022 \\u25cb \\xb0 \\u2605 \\u3000 .\\u3000 *\\u3000.\\u3000\\u3000\\u3000\\u3000\\u3000\\u3000. \\u3000 \\xb0 \\u3000. \\u25cf .\\u3000\\u3000\\u3000\\u3000\\xb0 \\u263e \\xb0\\u2606  \\u3000 \\u3000\\u3000\\u2605 \\u3000 \\u3000 \\u2605 \\xb0 \\u263e  \\u2606 \\xb8. \\xb8 \\u3000\\u2605 \\u3000 : . \\u3000   . \\u2022 \\u25cb   \\xb0 \\u2605\\u3000 . \\u3000 *\\u3000.\\u3000.\\u3000\\u3000\\xb8 .\\u3000\\u3000 \\xb0 \\u3000\\xb8. * \\u25cf \\xb8 .\\u3000.\\u3000\\xb0 \\u263e\\u3000  \\u2605 \\xb0 . .\\u3000  \\u3000\\u3000\\u3000.\\u3000\\u263e \\xb0\\u2606  \\u3000. * \\u25cf \\xb8 .\\u3000 \\u3000\\u3000\\u2605\\u3000\\xb0 :  .\\u3000 . \\u2022 \\u25cb \\xb0  \\u2605\\u3000  .\\u3000 *\\u3000.\\u3000\\u3000\\u3000\\u3000\\u3000\\u3000. \\u3000 \\xb0 \\u3000. \\u25cf .\\u3000\\u3000 \\u3000 \\xb0 \\u263e \\xb0\\u2606 \\u3000\\xb8.\\u25cf .\\u3000\\u3000 \\u2605\\u3000\\u3000\\u2605 \\xb0 \\u263e  \\u2606 \\xb8. \\xb8 \\u3000\\u2605\\u3000 :  .\\u3000 . \\u2022 \\u25cb \\xb0  \\u2605\\u3000 . \\u3000 *\\u3000.\\u3000.\\u3000\\u3000\\xb8 .\\u3000\\u3000 \\xb0 \\u3000\\xb8.  * \\u25cf   \\xb8 .\\u3000\\u3000\\u3000\\u3000\\xb0  \\u263e  \\xb0 \\u2605 \\u3000\\u3000\\u2605 \\xb0 \\u263e \\u2606 \\xb8 , \\xb8 \\u3000\\u2605\\u3000 :.\\u3000\\u3000\\xb8. \\u25cf \\xb8 .\\u3000\\u3000\\u2605\\u3000\\xb0 :  .  \\u3000 . \\u2022 \\xb0 \\u3000  .\\u3000 * \\u3000:.\\u3000 .\\u3000\\xb8  . \\u25cf \\xb8 \\u3000\\u3000\\u3000\\u2605\\u3000\\u3000\\u2605  \\u263e \\xb0\\u2605 . \\u3000\\u3000\\u2605 \\xb0 . .\\u3000\\u3000\\u3000\\u3000.  \\u3000\\u263e \\xb0\\u2606  \\u3000. * \\u25cf \\xb8 .\\u3000\\u3000\\u3000 \\u2605\\u3000\\xb0  :  .\\u3000 . \\u2022 \\u25cb   \\xb0 \\u2605  \\u3000 .\\u3000 *\\u3000.\\u3000\\u3000 \\u3000\\u3000. \\u3000 \\xb0\\u2605 \\u3000\\u3000\\u2605 \\xb0 \\u263e \\u2606 \\xb8. \\xb8 \\u3000\\u2605\\u3000 :.\\u3000 . \\u2022 \\u25cb \\xb0 \\u2605  \\u3000 . \\u3000 * \\u3000. \\u3000.\\u3000\\u3000  \\xb8 .\\u3000\\u3000 \\xb0 \\u3000\\xb8. * \\u25cf \\xb8 .\\u3000\\u3000\\u3000\\u3000\\xb0 \\u263e \\xb0 \\u3000\\xb8.  \\u25cf  \\xb8 .\\u3000\\u3000\\u2605\\u3000\\xb0 :.\\u3000 . \\u2022  \\xb0  \\u3000 .\\u3000 *\\u3000:.\\u3000.\\u3000\\xb8 . \\u25cf \\xb8 \\u3000\\u3000\\u3000\\u2605\\u3000\\u3000\\u2605\\u263e \\xb0\\u2605  .  \\u3000\\u3000 \\u3000\\u3000.\\u3000 \\u2606 \\u3000. \\u25cf \\xb8 .\\u3000\\u3000\\u3000 \\u2605\\u3000\\xb0 .\\u3000  \\u2022\\u2605 \\u3000\\u3000\\u2605 \\xb0 \\u263e \\u2606 \\xb8. \\xb8\\u263e \\u2606 \\xb8. \\xb8 \\u3000 \\u2605\\u3000  \\u2022  \\u25cb \\xb0 \\u2605\\u3000 .\\u3000 *\\u3000.\\u263e \\u2606 \\xb8. \\xb8<\/font>'",
+                "gender": "male",
+                "name": "Lex Luther",
+                "race_id": 1,
+                "security_status": 0
             }
         },
         "get_characters_character_id_corporationhistory": {
@@ -396,9 +406,9 @@
         },
         "get_characters_character_id_ship": {
             "1001": {
-            "ship_item_id": 1000000016991,
-            "ship_name": "Shooter Boy",
-            "ship_type_id": 603
+                "ship_item_id": 1000000016991,
+                "ship_name": "Shooter Boy",
+                "ship_type_id": 603
             }
         }
     },
@@ -525,7 +535,7 @@
                 "timestamp": "2015-09-30T16:07:00Z"
             },
             "2": {
-                "body": "<font size=\"13\" color=\"#b3ffffff\">Character: </font><font size=\"13\" color=\"#ffd98d00\"><loc><a href=\"showinfo:1376//1001\">Bruce Wayne</a></loc><br><br></font><font size=\"13\" color=\"#b3ffffff\">Corporation: </font><font size=\"13\" color=\"#ffd98d00\"><a href=\"showinfo:2//2001\">Wayne Technologies</a><br><br></font><font size=\"13\" color=\"#b3ffffff\">Alliance: </font><font size=\"13\" color=\"#ffd98d00\"><loc><a href=\"showinfo:16159//3001\">Wayne Enterprises</a></loc><br><br></font><font size=\"13\" color=\"#b3ffffff\">Solar System: </font><font size=\"13\" color=\"#ffd98d00\"><a href=\"showinfo:5//30004984\">Abune</a><br><br></font><font size=\"13\" color=\"#b3ffffff\">Structure:  </font><font size=\"13\" color=\"#ffd98d00\"><a href=\"showinfo:35834//1000000000001\">Amamake - Test Structure Alpha</a></font><font size=\"13\" color=\"#b3ffffff\"> <br><br>Station: </font><font size=\"13\" color=\"#ffd98d00\"><a href=\"showinfo:1531//60003760\">Jita IV - Moon 4 - Caldari Navy Assembly Plant</a></font><font size=\"13\" color=\"#b3ffffff\"> <br><br>Type: </font><font size=\"13\" color=\"#ffd98d00\"><loc><a href=\"showinfo:603\">Merlin</loc>n</a><br><br></font><font size=\"13\" color=\"#b3ffffff\">Killmail:  </font><font size=\"13\" color=\"#ffd98d00\"><a href=\"killReport:84900666:9e6fe9e5392ff0cfc6ab956677dbe1deb69c4b04\">Kill: Yuna Kobayashi (Badger)</a></font><font size=\"13\" color=\"#b3ffffff\"> <br><br>URL: </font><font size=\"13\" color=\"#ffffe400\"><loc><a href=\"http://www.google.com\">https://www.google.co</loc>m</a><br><br></font><font size=\"13\" color=\"#b3ffffff\">Very nice!</font>",
+                "body": "<font size=\"13\" color=\"#b3ffffff\">Character: </font><font size=\"13\" color=\"#ffd98d00\"><loc><a href=\"showinfo:1376//1001\">Bruce Wayne</a></loc><br><br></font><font size=\"13\" color=\"#b3ffffff\">Corporation: </font><font size=\"13\" color=\"#ffd98d00\"><a href=\"showinfo:2//2001\">Wayne Technologies</a><br><br></font><font size=\"13\" color=\"#b3ffffff\">Alliance: </font><font size=\"13\" color=\"#ffd98d00\"><loc><a href=\"showinfo:16159//3001\">Wayne Enterprises</a></loc><br><br></font><font size=\"13\" color=\"#b3ffffff\">Solar System: </font><font size=\"13\" color=\"#ffd98d00\"><a href=\"showinfo:5//30004984\">Abune</a><br><br></font><font size=\"13\" color=\"#b3ffffff\">Structure:  </font><font size=\"13\" color=\"#ffd98d00\"><a href=\"showinfo:35835//1000000000001\">Amamake - Test Structure Alpha</a></font><font size=\"13\" color=\"#b3ffffff\"> <br><br>Station: </font><font size=\"13\" color=\"#ffd98d00\"><a href=\"showinfo:52678//60003760\">Jita IV - Moon 4 - Caldari Navy Assembly Plant</a></font><font size=\"13\" color=\"#b3ffffff\"> <br><br>Type: </font><font size=\"13\" color=\"#ffd98d00\"><loc><a href=\"showinfo:603\">Merlin</loc>n</a><br><br></font><font size=\"13\" color=\"#b3ffffff\">Killmail:  </font><font size=\"13\" color=\"#ffd98d00\"><a href=\"killReport:84900666:9e6fe9e5392ff0cfc6ab956677dbe1deb69c4b04\">Kill: Yuna Kobayashi (Badger)</a></font><font size=\"13\" color=\"#b3ffffff\"> <br><br>URL: </font><font size=\"13\" color=\"#ffffe400\"><loc><a href=\"http://www.google.com\">https://www.google.co</loc>m</a><br><br></font><font size=\"13\" color=\"#b3ffffff\">Very nice!</font>",
                 "from": 1101,
                 "labels": null,
                 "subject": "Mail 2",
@@ -540,6 +550,14 @@
                 "read": true,
                 "subject": "Unknown mailing list",
                 "timestamp": "2015-09-30T16:07:00Z"
+            },
+            "4": {
+                "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.<br>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+                "from": 1002,
+                "labels": null,
+                "read": true,
+                "subject": "Mail with no formatting",
+                "timestamp": "2015-09-30T18:07:00Z"
             },
             "21": {
                 "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",

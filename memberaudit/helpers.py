@@ -2,9 +2,9 @@ from typing import Optional
 
 from django.db import models
 from django.utils.html import format_html
+from eveuniverse.core import dotlan
 from eveuniverse.models import EveSolarSystem
 
-from allianceauth.eveonline.evelinks import dotlan
 from allianceauth.services.hooks import get_extension_logger
 from app_utils.logging import LoggerAddTag
 from app_utils.views import link_html

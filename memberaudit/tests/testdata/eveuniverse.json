@@ -26,6 +26,11 @@
     ],
     "EveCategory": [
         {
+            "id": 1,
+            "name": "Owner",
+            "published": false
+        },
+        {
             "id": 2,
             "name": "Celestial",
             "published": true
@@ -597,7 +602,7 @@
             "domain": "charID",
             "eve_dogma_effect_id": 302,
             "func": "ItemModifier",
-            "id": 51,
+            "id": 86,
             "modified_attribute_id": 164,
             "modifying_attribute_id": 175,
             "modifying_effect_id": null,
@@ -607,7 +612,7 @@
             "domain": "charID",
             "eve_dogma_effect_id": 304,
             "func": "ItemModifier",
-            "id": 52,
+            "id": 87,
             "modified_attribute_id": 166,
             "modifying_attribute_id": 177,
             "modifying_effect_id": null,
@@ -617,7 +622,7 @@
             "domain": "charID",
             "eve_dogma_effect_id": 306,
             "func": "ItemModifier",
-            "id": 53,
+            "id": 88,
             "modified_attribute_id": 165,
             "modifying_attribute_id": 176,
             "modifying_effect_id": null,
@@ -627,7 +632,7 @@
             "domain": "charID",
             "eve_dogma_effect_id": 308,
             "func": "ItemModifier",
-            "id": 54,
+            "id": 89,
             "modified_attribute_id": 168,
             "modifying_attribute_id": 179,
             "modifying_effect_id": null,
@@ -637,7 +642,7 @@
             "domain": "charID",
             "eve_dogma_effect_id": 310,
             "func": "ItemModifier",
-            "id": 55,
+            "id": 90,
             "modified_attribute_id": 167,
             "modifying_attribute_id": 178,
             "modifying_effect_id": null,
@@ -647,7 +652,7 @@
             "domain": "shipID",
             "eve_dogma_effect_id": 394,
             "func": "ItemModifier",
-            "id": 56,
+            "id": 91,
             "modified_attribute_id": 37,
             "modifying_attribute_id": 315,
             "modifying_effect_id": null,
@@ -657,7 +662,7 @@
             "domain": "charID",
             "eve_dogma_effect_id": 1244,
             "func": "ItemModifier",
-            "id": 57,
+            "id": 92,
             "modified_attribute_id": 445,
             "modifying_attribute_id": 447,
             "modifying_effect_id": null,
@@ -667,7 +672,7 @@
             "domain": "charID",
             "eve_dogma_effect_id": 1261,
             "func": "LocationGroupModifier",
-            "id": 58,
+            "id": 93,
             "modified_attribute_id": 315,
             "modifying_attribute_id": 802,
             "modifying_effect_id": null,
@@ -677,7 +682,7 @@
             "domain": "charID",
             "eve_dogma_effect_id": 1262,
             "func": "LocationGroupModifier",
-            "id": 59,
+            "id": 94,
             "modified_attribute_id": 803,
             "modifying_attribute_id": 447,
             "modifying_effect_id": null,
@@ -699,6 +704,18 @@
         }
     ],
     "EveGroup": [
+        {
+            "eve_category_id": 1,
+            "id": 1,
+            "name": "Character",
+            "published": false
+        },
+        {
+            "eve_category_id": 1,
+            "id": 2,
+            "name": "Corporation",
+            "published": false
+        },
         {
             "eve_category_id": 2,
             "id": 5,
@@ -722,6 +739,12 @@
             "id": 25,
             "name": "Frigate",
             "published": true
+        },
+        {
+            "eve_category_id": 1,
+            "id": 32,
+            "name": "Alliance",
+            "published": false
         },
         {
             "eve_category_id": 6,
@@ -792,6 +815,7 @@
     ],
     "EveSolarSystem": [
         {
+            "enabled_sections": 0,
             "eve_constellation_id": 20000020,
             "eve_star_id": null,
             "id": 30000142,
@@ -802,6 +826,7 @@
             "security_status": 0.9459131360054016
         },
         {
+            "enabled_sections": 0,
             "eve_constellation_id": 20000020,
             "eve_star_id": null,
             "id": 30000145,
@@ -812,6 +837,7 @@
             "security_status": 1.0
         },
         {
+            "enabled_sections": 0,
             "eve_constellation_id": 20000169,
             "eve_star_id": null,
             "id": 30001161,
@@ -822,6 +848,7 @@
             "security_status": -0.14632222056388855
         },
         {
+            "enabled_sections": 0,
             "eve_constellation_id": 20000372,
             "eve_star_id": null,
             "id": 30002537,
@@ -832,6 +859,7 @@
             "security_status": 0.43876123428344727
         },
         {
+            "enabled_sections": 0,
             "eve_constellation_id": 20000729,
             "eve_star_id": null,
             "id": 30004984,
@@ -845,6 +873,23 @@
     "EveType": [
         {
             "capacity": 0.0,
+            "enabled_sections": 0,
+            "eve_graphic_id": null,
+            "eve_group_id": 2,
+            "eve_market_group_id": null,
+            "icon_id": null,
+            "id": 2,
+            "mass": 0.0,
+            "name": "Corporation",
+            "packaged_volume": 0.0,
+            "portion_size": 1,
+            "published": false,
+            "radius": 1.0,
+            "volume": 0.0
+        },
+        {
+            "capacity": 0.0,
+            "enabled_sections": 0,
             "eve_graphic_id": null,
             "eve_group_id": 5,
             "eve_market_group_id": null,
@@ -860,6 +905,7 @@
         },
         {
             "capacity": 27500.0,
+            "enabled_sections": 0,
             "eve_graphic_id": null,
             "eve_group_id": 12,
             "eve_market_group_id": null,
@@ -875,6 +921,7 @@
         },
         {
             "capacity": 125.0,
+            "enabled_sections": 0,
             "eve_graphic_id": null,
             "eve_group_id": 237,
             "eve_market_group_id": null,
@@ -890,6 +937,7 @@
         },
         {
             "capacity": 150.0,
+            "enabled_sections": 0,
             "eve_graphic_id": null,
             "eve_group_id": 25,
             "eve_market_group_id": null,
@@ -905,6 +953,39 @@
         },
         {
             "capacity": 0.0,
+            "enabled_sections": 0,
+            "eve_graphic_id": null,
+            "eve_group_id": 1,
+            "eve_market_group_id": null,
+            "icon_id": null,
+            "id": 1376,
+            "mass": 0.0,
+            "name": "CharacterLegacy4",
+            "packaged_volume": 1.0,
+            "portion_size": 1,
+            "published": false,
+            "radius": 1.0,
+            "volume": 1.0
+        },
+        {
+            "capacity": 0.0,
+            "enabled_sections": 0,
+            "eve_graphic_id": null,
+            "eve_group_id": 32,
+            "eve_market_group_id": null,
+            "icon_id": null,
+            "id": 16159,
+            "mass": 0.0,
+            "name": "Alliance",
+            "packaged_volume": 0.0,
+            "portion_size": 1,
+            "published": false,
+            "radius": 1.0,
+            "volume": 0.0
+        },
+        {
+            "capacity": 0.0,
+            "enabled_sections": 1,
             "eve_graphic_id": null,
             "eve_group_id": 300,
             "eve_market_group_id": null,
@@ -920,6 +1001,7 @@
         },
         {
             "capacity": 0.0,
+            "enabled_sections": 1,
             "eve_graphic_id": null,
             "eve_group_id": 300,
             "eve_market_group_id": null,
@@ -935,6 +1017,7 @@
         },
         {
             "capacity": 0.0,
+            "enabled_sections": 1,
             "eve_graphic_id": null,
             "eve_group_id": 300,
             "eve_market_group_id": null,
@@ -950,6 +1033,7 @@
         },
         {
             "capacity": 465000.0,
+            "enabled_sections": 0,
             "eve_graphic_id": null,
             "eve_group_id": 513,
             "eve_market_group_id": null,
@@ -965,6 +1049,7 @@
         },
         {
             "capacity": 0.0,
+            "enabled_sections": 0,
             "eve_graphic_id": null,
             "eve_group_id": 257,
             "eve_market_group_id": null,
@@ -980,6 +1065,7 @@
         },
         {
             "capacity": 0.0,
+            "enabled_sections": 0,
             "eve_graphic_id": null,
             "eve_group_id": 257,
             "eve_market_group_id": null,
@@ -995,6 +1081,7 @@
         },
         {
             "capacity": 0.0,
+            "enabled_sections": 0,
             "eve_graphic_id": null,
             "eve_group_id": 257,
             "eve_market_group_id": null,
@@ -1010,6 +1097,7 @@
         },
         {
             "capacity": 0.0,
+            "enabled_sections": 0,
             "eve_graphic_id": null,
             "eve_group_id": 257,
             "eve_market_group_id": null,
@@ -1025,6 +1113,7 @@
         },
         {
             "capacity": 0.0,
+            "enabled_sections": 0,
             "eve_graphic_id": null,
             "eve_group_id": 1657,
             "eve_market_group_id": null,
@@ -1040,6 +1129,7 @@
         },
         {
             "capacity": 0.0,
+            "enabled_sections": 0,
             "eve_graphic_id": null,
             "eve_group_id": 1406,
             "eve_market_group_id": null,
@@ -1055,6 +1145,7 @@
         },
         {
             "capacity": 0.0,
+            "enabled_sections": 0,
             "eve_graphic_id": null,
             "eve_group_id": 15,
             "eve_market_group_id": null,
@@ -1073,307 +1164,307 @@
         {
             "eve_dogma_attribute_id": 161,
             "eve_type_id": 19540,
-            "id": 229,
+            "id": 3440,
             "value": 1.0
         },
         {
             "eve_dogma_attribute_id": 802,
             "eve_type_id": 19540,
-            "id": 230,
+            "id": 3441,
             "value": 1.15
         },
         {
             "eve_dogma_attribute_id": 4,
             "eve_type_id": 19540,
-            "id": 231,
+            "id": 3442,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 38,
             "eve_type_id": 19540,
-            "id": 232,
+            "id": 3443,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 422,
             "eve_type_id": 19540,
-            "id": 233,
+            "id": 3444,
             "value": 2.0
         },
         {
             "eve_dogma_attribute_id": 331,
             "eve_type_id": 19540,
-            "id": 234,
+            "id": 3445,
             "value": 1.0
         },
         {
             "eve_dogma_attribute_id": 162,
             "eve_type_id": 19540,
-            "id": 235,
+            "id": 3446,
             "value": 1.0
         },
         {
             "eve_dogma_attribute_id": 175,
             "eve_type_id": 19540,
-            "id": 236,
+            "id": 3447,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 176,
             "eve_type_id": 19540,
-            "id": 237,
+            "id": 3448,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 177,
             "eve_type_id": 19540,
-            "id": 238,
+            "id": 3449,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 178,
             "eve_type_id": 19540,
-            "id": 239,
+            "id": 3450,
             "value": 4.0
         },
         {
             "eve_dogma_attribute_id": 179,
             "eve_type_id": 19540,
-            "id": 240,
+            "id": 3451,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 277,
             "eve_type_id": 19540,
-            "id": 241,
+            "id": 3452,
             "value": 2.0
         },
         {
             "eve_dogma_attribute_id": 182,
             "eve_type_id": 19540,
-            "id": 242,
+            "id": 3453,
             "value": 3411.0
         },
         {
             "eve_dogma_attribute_id": 633,
             "eve_type_id": 19540,
-            "id": 243,
+            "id": 3454,
             "value": 9.0
         },
         {
             "eve_dogma_attribute_id": 315,
             "eve_type_id": 19540,
-            "id": 244,
+            "id": 3455,
             "value": 0.5
         },
         {
             "eve_dogma_attribute_id": 447,
             "eve_type_id": 19540,
-            "id": 245,
+            "id": 3456,
             "value": 0.01
         },
         {
             "eve_dogma_attribute_id": 161,
             "eve_type_id": 19551,
-            "id": 246,
+            "id": 3457,
             "value": 1.0
         },
         {
             "eve_dogma_attribute_id": 802,
             "eve_type_id": 19551,
-            "id": 247,
+            "id": 3458,
             "value": 1.15
         },
         {
             "eve_dogma_attribute_id": 4,
             "eve_type_id": 19551,
-            "id": 248,
+            "id": 3459,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 38,
             "eve_type_id": 19551,
-            "id": 249,
+            "id": 3460,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 422,
             "eve_type_id": 19551,
-            "id": 250,
+            "id": 3461,
             "value": 2.0
         },
         {
             "eve_dogma_attribute_id": 331,
             "eve_type_id": 19551,
-            "id": 251,
+            "id": 3462,
             "value": 2.0
         },
         {
             "eve_dogma_attribute_id": 162,
             "eve_type_id": 19551,
-            "id": 252,
+            "id": 3463,
             "value": 1.0
         },
         {
             "eve_dogma_attribute_id": 175,
             "eve_type_id": 19551,
-            "id": 253,
+            "id": 3464,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 176,
             "eve_type_id": 19551,
-            "id": 254,
+            "id": 3465,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 177,
             "eve_type_id": 19551,
-            "id": 255,
+            "id": 3466,
             "value": 4.0
         },
         {
             "eve_dogma_attribute_id": 178,
             "eve_type_id": 19551,
-            "id": 256,
+            "id": 3467,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 179,
             "eve_type_id": 19551,
-            "id": 257,
+            "id": 3468,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 277,
             "eve_type_id": 19551,
-            "id": 258,
+            "id": 3469,
             "value": 2.0
         },
         {
             "eve_dogma_attribute_id": 182,
             "eve_type_id": 19551,
-            "id": 259,
+            "id": 3470,
             "value": 3411.0
         },
         {
             "eve_dogma_attribute_id": 633,
             "eve_type_id": 19551,
-            "id": 260,
+            "id": 3471,
             "value": 9.0
         },
         {
             "eve_dogma_attribute_id": 315,
             "eve_type_id": 19551,
-            "id": 261,
+            "id": 3472,
             "value": 0.625
         },
         {
             "eve_dogma_attribute_id": 447,
             "eve_type_id": 19551,
-            "id": 262,
+            "id": 3473,
             "value": 0.02
         },
         {
             "eve_dogma_attribute_id": 161,
             "eve_type_id": 19553,
-            "id": 263,
+            "id": 3474,
             "value": 1.0
         },
         {
             "eve_dogma_attribute_id": 802,
             "eve_type_id": 19553,
-            "id": 264,
+            "id": 3475,
             "value": 1.15
         },
         {
             "eve_dogma_attribute_id": 4,
             "eve_type_id": 19553,
-            "id": 265,
+            "id": 3476,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 38,
             "eve_type_id": 19553,
-            "id": 266,
+            "id": 3477,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 422,
             "eve_type_id": 19553,
-            "id": 267,
+            "id": 3478,
             "value": 2.0
         },
         {
             "eve_dogma_attribute_id": 331,
             "eve_type_id": 19553,
-            "id": 268,
+            "id": 3479,
             "value": 3.0
         },
         {
             "eve_dogma_attribute_id": 162,
             "eve_type_id": 19553,
-            "id": 269,
+            "id": 3480,
             "value": 1.0
         },
         {
             "eve_dogma_attribute_id": 175,
             "eve_type_id": 19553,
-            "id": 270,
+            "id": 3481,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 176,
             "eve_type_id": 19553,
-            "id": 271,
+            "id": 3482,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 177,
             "eve_type_id": 19553,
-            "id": 272,
+            "id": 3483,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 178,
             "eve_type_id": 19553,
-            "id": 273,
+            "id": 3484,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 179,
             "eve_type_id": 19553,
-            "id": 274,
+            "id": 3485,
             "value": 4.0
         },
         {
             "eve_dogma_attribute_id": 277,
             "eve_type_id": 19553,
-            "id": 275,
+            "id": 3486,
             "value": 3.0
         },
         {
             "eve_dogma_attribute_id": 182,
             "eve_type_id": 19553,
-            "id": 276,
+            "id": 3487,
             "value": 3411.0
         },
         {
             "eve_dogma_attribute_id": 633,
             "eve_type_id": 19553,
-            "id": 277,
+            "id": 3488,
             "value": 9.0
         },
         {
             "eve_dogma_attribute_id": 315,
             "eve_type_id": 19553,
-            "id": 278,
+            "id": 3489,
             "value": 0.75
         },
         {
             "eve_dogma_attribute_id": 447,
             "eve_type_id": 19553,
-            "id": 279,
+            "id": 3490,
             "value": 0.03
         }
     ],
@@ -1381,163 +1472,163 @@
         {
             "eve_dogma_effect_id": 302,
             "eve_type_id": 19540,
-            "id": 133,
+            "id": 198,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 304,
             "eve_type_id": 19540,
-            "id": 134,
+            "id": 199,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 306,
             "eve_type_id": 19540,
-            "id": 135,
+            "id": 200,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 308,
             "eve_type_id": 19540,
-            "id": 136,
+            "id": 201,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 310,
             "eve_type_id": 19540,
-            "id": 137,
+            "id": 202,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 394,
             "eve_type_id": 19540,
-            "id": 138,
+            "id": 203,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 1244,
             "eve_type_id": 19540,
-            "id": 139,
+            "id": 204,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 1261,
             "eve_type_id": 19540,
-            "id": 140,
+            "id": 205,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 1262,
             "eve_type_id": 19540,
-            "id": 141,
+            "id": 206,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 302,
             "eve_type_id": 19551,
-            "id": 142,
+            "id": 207,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 304,
             "eve_type_id": 19551,
-            "id": 143,
+            "id": 208,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 306,
             "eve_type_id": 19551,
-            "id": 144,
+            "id": 209,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 308,
             "eve_type_id": 19551,
-            "id": 145,
+            "id": 210,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 310,
             "eve_type_id": 19551,
-            "id": 146,
+            "id": 211,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 394,
             "eve_type_id": 19551,
-            "id": 147,
+            "id": 212,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 1244,
             "eve_type_id": 19551,
-            "id": 148,
+            "id": 213,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 1261,
             "eve_type_id": 19551,
-            "id": 149,
+            "id": 214,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 1262,
             "eve_type_id": 19551,
-            "id": 150,
+            "id": 215,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 302,
             "eve_type_id": 19553,
-            "id": 151,
+            "id": 216,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 304,
             "eve_type_id": 19553,
-            "id": 152,
+            "id": 217,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 306,
             "eve_type_id": 19553,
-            "id": 153,
+            "id": 218,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 308,
             "eve_type_id": 19553,
-            "id": 154,
+            "id": 219,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 310,
             "eve_type_id": 19553,
-            "id": 155,
+            "id": 220,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 394,
             "eve_type_id": 19553,
-            "id": 156,
+            "id": 221,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 1244,
             "eve_type_id": 19553,
-            "id": 157,
+            "id": 222,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 1261,
             "eve_type_id": 19553,
-            "id": 158,
+            "id": 223,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 1262,
             "eve_type_id": 19553,
-            "id": 159,
+            "id": 224,
             "is_default": false
         }
     ]

@@ -4,7 +4,7 @@ import os
 
 from eveuniverse.models import EveEntity
 
-from ...constants import EVE_CATEGORY_ID_STATION
+from ...constants import EveCategoryId
 from ...models import Location
 
 _currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -33,7 +33,7 @@ def load_locations():
         Location.objects._station_update_or_create_dict(id=station_id, station=station)
 
     for obj in Location.objects.filter(
-        eve_type__eve_group__eve_category_id=EVE_CATEGORY_ID_STATION
+        eve_type__eve_group__eve_category_id=EveCategoryId.STATION
     ):
         EveEntity.objects.create(
             id=obj.id,

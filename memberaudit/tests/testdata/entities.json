@@ -120,28 +120,23 @@
     "EveEntity": [
         {
             "id": 3011,
-            "category": 3,
+            "category": "alliance",
             "name": "Big Bad Alliance"
         },
         {
             "id": 2011,
-            "category": 2,
+            "category": "corporation",
             "name": "Bad Company"
         },
         {
             "id": 1011,
-            "category": 1,
+            "category": "character",
             "name": "Bad Dude"
         },
         {
             "id": 2021,
-            "category": 2,
+            "category": "corporation",
             "name": "Dummy Corp 1"
-        },
-        {
-            "id": 2022,
-            "category": 2,
-            "name": "Dummy Corp 2"
         }
     ]
 }

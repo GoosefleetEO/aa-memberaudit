@@ -16,9 +16,12 @@ class CreateEveUniverseTestData(TestCase):
             ModelSpec(
                 "EveType",
                 ids=[
+                    2,
                     5,
                     23,
                     603,
+                    1376,
+                    16159,
                     20185,
                     24311,
                     24312,

@@ -39,13 +39,11 @@ from ..models import (
     CharacterLocation,
     CharacterLoyaltyEntry,
     CharacterMail,
-    CharacterMailLabel,
     CharacterSkill,
     CharacterSkillqueueEntry,
     CharacterWalletJournalEntry,
     CharacterWalletTransaction,
     Location,
-    MailEntity,
     SkillSet,
     SkillSetGroup,
     SkillSetSkill,
@@ -66,7 +64,7 @@ from ..views import (
     character_implants_data,
     character_jump_clones_data,
     character_loyalty_data,
-    character_mail_data,
+    character_mail,
     character_mail_headers_by_label_data,
     character_mail_headers_by_list_data,
     character_skill_set_details,
@@ -88,6 +86,12 @@ from ..views import (
     skill_sets_report_data,
     unshare_character,
     user_compliance_report_data,
+)
+from .testdata.factories import (
+    create_character_mail,
+    create_character_mail_label,
+    create_mail_entity_from_eve_entity,
+    create_mailing_list,
 )
 from .testdata.load_entities import load_entities
 from .testdata.load_eveuniverse import load_eveuniverse
@@ -1358,82 +1362,54 @@ class TestMailData(TestCase):
         cls.character = create_memberaudit_character(1001)
         cls.user = cls.character.character_ownership.user
         cls.corporation_2001 = EveEntity.objects.get(id=2001)
-        label_1 = CharacterMailLabel.objects.create(
-            character=cls.character, label_id=42, name="Dummy"
-        )
-        labels2 = CharacterMailLabel.objects.create(
-            character=cls.character, label_id=8, name="Another label"
-        )
-        sender_1002, _ = MailEntity.objects.update_or_create_from_eve_entity_id(id=1002)
-        mail_1 = CharacterMail.objects.create(
+        cls.label_1 = create_character_mail_label(character=cls.character)
+        cls.label_2 = create_character_mail_label(character=cls.character)
+        sender_1002 = create_mail_entity_from_eve_entity(id=1002)
+        recipient_1001 = create_mail_entity_from_eve_entity(id=1001)
+        cls.mailing_list_5 = create_mailing_list()
+        cls.mail_1 = create_character_mail(
             character=cls.character,
-            mail_id=7001,
             sender=sender_1002,
-            subject="Dummy 1",
-            body="Mail with normal entity and mailing list as recipient",
-            timestamp=now(),
+            recipients=[recipient_1001, cls.mailing_list_5],
+            labels=[cls.label_1],
         )
-        recipient_1001, _ = MailEntity.objects.update_or_create_from_eve_entity_id(
-            id=1001
+        cls.mail_2 = create_character_mail(
+            character=cls.character, sender=sender_1002, labels=[cls.label_2]
         )
-        mailing_list_5 = MailEntity.objects.create(
-            id=5, category=MailEntity.Category.MAILING_LIST, name="Mailing List"
+        cls.mail_3 = create_character_mail(
+            character=cls.character, sender=cls.mailing_list_5
         )
-        mail_1.recipients.add(recipient_1001, mailing_list_5)
-        mail_1.labels.add(label_1)
-
-        mail_2 = CharacterMail.objects.create(
-            character=cls.character,
-            mail_id=7002,
-            sender=sender_1002,
-            subject="Dummy 2",
-            body="Mail with another label",
-            timestamp=now(),
+        cls.mail_4 = create_character_mail(
+            character=cls.character, sender=sender_1002, recipients=[cls.mailing_list_5]
         )
-        mail_2.labels.add(labels2)
-        CharacterMail.objects.create(
-            character=cls.character,
-            mail_id=7003,
-            sender=mailing_list_5,
-            subject="Dummy 3",
-            body="Mailing List as sender",
-            timestamp=now(),
-        )
-
-        mail_4 = CharacterMail.objects.create(
-            character=cls.character,
-            mail_id=7004,
-            sender=sender_1002,
-            subject="Dummy 4",
-            body="Mailing List as recipient",
-            timestamp=now(),
-        )
-        mail_4.recipients.add(mailing_list_5)
 
     def test_mail_by_Label(self):
         """returns list of mails for given label only"""
-
+        # given
         request = self.factory.get(
             reverse(
                 "memberaudit:character_mail_headers_by_label_data",
-                args=[self.character.pk, 42],
+                args=[self.character.pk, self.label_1.label_id],
             )
         )
         request.user = self.user
-        response = character_mail_headers_by_label_data(request, self.character.pk, 42)
-
+        # when
+        response = character_mail_headers_by_label_data(
+            request, self.character.pk, self.label_1.label_id
+        )
+        # then
         self.assertEqual(response.status_code, 200)
         data = json_response_to_python(response)
-
-        self.assertSetEqual({x["mail_id"] for x in data}, {7001})
+        self.assertSetEqual({x["mail_id"] for x in data}, {self.mail_1.mail_id})
         row = data[0]
-        self.assertEqual(row["mail_id"], 7001)
+        self.assertEqual(row["mail_id"], self.mail_1.mail_id)
         self.assertEqual(row["from"], "Clark Kent")
-        self.assertEqual(row["to"], "Bruce Wayne, Mailing List")
+        self.assertIn("Bruce Wayne", row["to"])
+        self.assertIn(self.mailing_list_5.name, row["to"])
 
     def test_all_mails(self):
         """can return all mails"""
-
+        # given
         request = self.factory.get(
             reverse(
                 "memberaudit:character_mail_headers_by_label_data",
@@ -1441,61 +1417,80 @@ class TestMailData(TestCase):
             )
         )
         request.user = self.user
+        # when
         response = character_mail_headers_by_label_data(request, self.character.pk, 0)
-
+        # then
         self.assertEqual(response.status_code, 200)
         data = json_response_to_python(response)
-
-        self.assertSetEqual({x["mail_id"] for x in data}, {7001, 7002, 7003, 7004})
+        self.assertSetEqual(
+            {x["mail_id"] for x in data},
+            {
+                self.mail_1.mail_id,
+                self.mail_2.mail_id,
+                self.mail_3.mail_id,
+                self.mail_4.mail_id,
+            },
+        )
 
     def test_mail_to_mailinglist(self):
         """can return mail sent to mailing list"""
-
+        # given
         request = self.factory.get(
             reverse(
                 "memberaudit:character_mail_headers_by_list_data",
-                args=[self.character.pk, 5],
+                args=[self.character.pk, self.mailing_list_5.id],
             )
         )
         request.user = self.user
-        response = character_mail_headers_by_list_data(request, self.character.pk, 5)
-
+        # when
+        response = character_mail_headers_by_list_data(
+            request, self.character.pk, self.mailing_list_5.id
+        )
+        # then
         self.assertEqual(response.status_code, 200)
         data = json_response_to_python(response)
-
-        self.assertSetEqual({x["mail_id"] for x in data}, {7001, 7004})
+        self.assertSetEqual(
+            {x["mail_id"] for x in data}, {self.mail_1.mail_id, self.mail_4.mail_id}
+        )
         row = data[0]
-        self.assertEqual(row["to"], "Bruce Wayne, Mailing List")
+        self.assertIn("Bruce Wayne", row["to"])
+        self.assertIn("Mailing List", row["to"])
 
     def test_character_mail_data_normal(self):
-        mail = self.character.mails.get(mail_id=7001)
+        # given
         request = self.factory.get(
             reverse(
-                "memberaudit:character_mail_data", args=[self.character.pk, mail.pk]
+                "memberaudit:character_mail", args=[self.character.pk, self.mail_1.pk]
             )
         )
         request.user = self.user
-        response = character_mail_data(request, self.character.pk, mail.pk)
+        # when
+        response = character_mail(request, self.character.pk, self.mail_1.pk)
+        # then
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
-        self.assertEqual(data["mail_id"], 7001)
-        self.assertIn("Clark Kent", data["from"])
-        self.assertIn("Bruce Wayne", data["to"])
-        self.assertIn("Mailing List", data["to"])
-        self.assertEqual(
-            data["body"], "Mail with normal entity and mailing list as recipient"
+
+    def test_character_mail_data_normal_special_chars(self):
+        # given
+        mail = create_character_mail(character=self.character, body="{}abc")
+        request = self.factory.get(
+            reverse("memberaudit:character_mail", args=[self.character.pk, mail.pk])
         )
+        request.user = self.user
+        # when
+        response = character_mail(request, self.character.pk, mail.pk)
+        # then
+        self.assertEqual(response.status_code, 200)
 
     def test_character_mail_data_error(self):
         invalid_mail_pk = generate_invalid_pk(CharacterMail)
         request = self.factory.get(
             reverse(
-                "memberaudit:character_mail_data",
+                "memberaudit:character_mail",
                 args=[self.character.pk, invalid_mail_pk],
             )
         )
         request.user = self.user
-        response = character_mail_data(request, self.character.pk, invalid_mail_pk)
+        response = character_mail(request, self.character.pk, invalid_mail_pk)
         self.assertEqual(response.status_code, 404)
 
 

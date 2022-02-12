@@ -551,12 +551,13 @@ class TestCharacterUpdateContracts(CharacterUpdateTestDataMixin, NoSocketsTestCa
 class TestCharacterUpdateCharacterDetails(
     CharacterUpdateTestDataMixin, NoSocketsTestCase
 ):
-    def test_create(self, mock_esi, mock_eve_xml_to_html):
-        """can create from scratch"""
+    def test_can_create_from_scratch(self, mock_esi, mock_eve_xml_to_html):
+        # given
         mock_esi.client = esi_client_stub
         mock_eve_xml_to_html.side_effect = lambda x: eve_xml_to_html(x)
-
+        # when
         self.character_1001.update_character_details()
+        # then
         self.assertEqual(self.character_1001.details.eve_ancestry.id, 11)
         self.assertEqual(
             self.character_1001.details.birthday, parse_datetime("2015-03-24T11:37:00Z")
@@ -574,8 +575,8 @@ class TestCharacterUpdateCharacterDetails(
         )
         self.assertTrue(mock_eve_xml_to_html.called)
 
-    def test_update(self, mock_esi, mock_eve_xml_to_html):
-        """can update existing data"""
+    def test_can_update_existing_data(self, mock_esi, mock_eve_xml_to_html):
+        # given
         mock_esi.client = esi_client_stub
         mock_eve_xml_to_html.side_effect = lambda x: eve_xml_to_html(x)
         CharacterDetails.objects.create(
@@ -587,8 +588,9 @@ class TestCharacterUpdateCharacterDetails(
             eve_race_id=1,
             name="Change me also",
         )
-
+        # when
         self.character_1001.update_character_details()
+        # then
         self.character_1001.details.refresh_from_db()
         self.assertEqual(self.character_1001.details.eve_ancestry_id, 11)
         self.assertEqual(
@@ -609,29 +611,60 @@ class TestCharacterUpdateCharacterDetails(
 
     def test_skip_update_1(self, mock_esi, mock_eve_xml_to_html):
         """when data from ESI has not changed, then skip update"""
+        # given
         mock_esi.client = esi_client_stub
         mock_eve_xml_to_html.side_effect = lambda x: eve_xml_to_html(x)
-
         self.character_1001.update_character_details()
         self.character_1001.details.name = "John Doe"
         self.character_1001.details.save()
-
+        # when
         self.character_1001.update_character_details()
+        # then
         self.character_1001.details.refresh_from_db()
         self.assertEqual(self.character_1001.details.name, "John Doe")
 
     def test_skip_update_2(self, mock_esi, mock_eve_xml_to_html):
         """when data from ESI has not changed and update is forced, then do update"""
+        # given
         mock_esi.client = esi_client_stub
         mock_eve_xml_to_html.side_effect = lambda x: eve_xml_to_html(x)
-
         self.character_1001.update_character_details()
         self.character_1001.details.name = "John Doe"
         self.character_1001.details.save()
-
+        # when
         self.character_1001.update_character_details(force_update=True)
+        # then
         self.character_1001.details.refresh_from_db()
         self.assertEqual(self.character_1001.details.name, "Bruce Wayne")
+
+    def test_can_handle_u_bug_1(self, mock_esi, mock_eve_xml_to_html):
+        # given
+        mock_esi.client = esi_client_stub
+        mock_eve_xml_to_html.side_effect = lambda x: eve_xml_to_html(x)
+        # when
+        self.character_1002.update_character_details()
+        # then
+        self.assertNotEqual(self.character_1002.details.description[:2], "u'")
+
+    def test_can_handle_u_bug_2(self, mock_esi, mock_eve_xml_to_html):
+        # given
+        mock_esi.client = esi_client_stub
+        mock_eve_xml_to_html.side_effect = lambda x: eve_xml_to_html(x)
+        character = create_memberaudit_character(1003)
+        # when
+        character.update_character_details()
+        # then
+        self.assertNotEqual(character.details.description[:2], "u'")
+
+    def test_can_handle_u_bug_3(self, mock_esi, mock_eve_xml_to_html):
+        # given
+        mock_esi.client = esi_client_stub
+        mock_eve_xml_to_html.side_effect = lambda x: eve_xml_to_html(x)
+        character = create_memberaudit_character(1101)
+        # when
+        character.update_character_details()
+        # then
+        self.assertNotEqual(character.details.description[:2], "u'")
 
     # @patch(MANAGERS_PATH + ".sections.get_or_create_esi_or_none")
     # def test_esi_ancestry_bug(

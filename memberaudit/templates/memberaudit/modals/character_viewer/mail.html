@@ -7,15 +7,15 @@
 <div class="modal" id="modalCharacterMail" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
+
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">
                     &times;
                 </span></button>
-                <h4 class="modal-title" id="myModalLabel">{% translate 'Loading...' %}</h4>
+                <h4 class="modal-title" id="myModalLabel">{% translate 'Mail' %}</h4>
             </div>
 
             <div class="modal-body">
-
                 <div id="div_mail_body_loader">
                     {% if NIGHT_MODE %}
                         <img src="{% static 'memberaudit/images/Spinner-1s-64px-dark.gif' %}"/>
@@ -23,20 +23,7 @@
                         <img src="{% static 'memberaudit/images/Spinner-1s-64px-light.gif' %}"/>
                     {% endif %}
                 </div>
-
-                <div id="div_mail_body_main" style="display: none !important;">
-                    <dl class="dl-horizontal">
-                        <dt>{% translate 'From:' %}</dt>
-                        <dd id="mail_from">{% translate 'Loading...' %}</dd>
-                        <dt>{% translate 'To:' %}</dt>
-                        <dd id="mail_to">{% translate 'Loading...' %}</dd>
-                        <dt>{% translate 'Sent:' %}</dt>
-                        <dd id="mail_sent">{% translate 'Loading...' %}</dd>
-                        <br>
-                        <div id="mail_body">{% translate 'Loading...' %}</div>
-                    </dl>
-                </div>
-
+                <div id="div_mail_body_main" style="display: none !important;"></div>
             </div>
 
             <div class="modal-footer">
