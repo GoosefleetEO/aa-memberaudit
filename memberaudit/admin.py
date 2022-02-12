@@ -128,33 +128,33 @@ class CharacterAdmin(admin.ModelAdmin):
             del actions["delete_selected"]
         return actions
 
+    @admin.display(description="")
     def _character_pic(self, obj):
         character = obj.character_ownership.character
         return format_html(
             '<img src="{}" class="img-circle">', character.portrait_url(size=32)
         )
 
-    _character_pic.short_description = ""
+    @admin.display(ordering="character_ownership__character__character_name")
+    def _character(self, obj) -> str:
+        return str(obj.character_ownership.character)
 
-    def _character(self, obj):
-        return obj.character_ownership.character
-
-    _character.admin_order_field = "character_ownership__character__character_name"
-
-    def _main(self, obj):
+    @admin.display(ordering="character_ownership__user__profile__main_character")
+    def _main(self, obj) -> str:
         try:
-            return obj.character_ownership.user.profile.main_character
+            name = obj.character_ownership.user.profile.main_character.character_name
         except AttributeError:
             return None
+        return str(name)
 
-    _main.admin_order_field = "character_ownership__user__profile__main_character"
+    @admin.display(ordering="character_ownership__user__profile__state__name")
+    def _state(self, obj) -> str:
+        return str(obj.character_ownership.user.profile.state)
 
-    def _state(self, obj):
-        return obj.character_ownership.user.profile.state
-
-    _main.admin_order_field = "character_ownership__user__profile__state__name"
-
-    def _organization(self, obj):
+    @admin.display(
+        ordering="character_ownership__user__profile__main_character__corporation_name"
+    )
+    def _organization(self, obj) -> str:
         try:
             main = obj.character_ownership.user.profile.main_character
             return "{}{}".format(
@@ -164,10 +164,7 @@ class CharacterAdmin(admin.ModelAdmin):
         except AttributeError:
             return None
 
-    _organization.admin_order_field = (
-        "character_ownership__user__profile__main_character__corporation_name"
-    )
-
+    @admin.display(boolean=True)
     def _last_update_ok(self, obj):
         return obj.is_update_status_ok()
 
@@ -175,15 +172,14 @@ class CharacterAdmin(admin.ModelAdmin):
         latest_obj = obj.update_status_set.latest("finished_at")
         return latest_obj.finished_at
 
-    _last_update_ok.boolean = True
-
     def _missing_sections(self, obj):
         existing = set(obj.update_status_set.values_list("section", flat=True))
         all_sections = set(Character.UpdateSection.values)
         missing = all_sections.difference(existing)
         if missing:
-            return sorted([Character.UpdateSection.display_name(x) for x in missing])
-
+            return sorted(
+                [Character.UpdateSection.display_name(obj) for obj in missing]
+            )
         return None
 
     actions = [
@@ -194,6 +190,7 @@ class CharacterAdmin(admin.ModelAdmin):
         "update_online_status",
     ]
 
+    @admin.display(description="Delete selected characters")
     def delete_characters(self, request, queryset):
         if "apply" in request.POST:
             for obj in queryset:
@@ -204,25 +201,22 @@ class CharacterAdmin(admin.ModelAdmin):
                 "This can take a minute.",
             )
             return redirect(request.get_full_path())
-        else:
-            return render(
-                request,
-                "admin/confirm_character_deletion.html",
-                {
-                    "title": "Are you sure you want to delete these characters?",
-                    "queryset": queryset.all(),
-                },
-            )
+        return render(
+            request,
+            "admin/confirm_character_deletion.html",
+            {
+                "title": "Are you sure you want to delete these characters?",
+                "queryset": queryset.all(),
+            },
+        )
 
-    delete_characters.short_description = "Delete selected characters"
-
+    @admin.display(description="Update selected characters from EVE server")
     def update_characters(self, request, queryset):
         for obj in queryset:
             tasks.update_character.delay(character_pk=obj.pk, force_update=True)
             self.message_user(request, f"Started updating character: {obj}. ")
 
-    update_characters.short_description = "Update selected characters from EVE server"
-
+    @admin.display(description="Update assets for selected characters from EVE server")
     def update_assets(self, request, queryset):
         for obj in queryset:
             tasks.update_character_assets.delay(character_pk=obj.pk, force_update=True)
@@ -230,10 +224,12 @@ class CharacterAdmin(admin.ModelAdmin):
                 request, f"Started updating assets for character: {obj}. "
             )
 
-    update_assets.short_description = (
-        "Update assets for selected characters from EVE server"
+    @admin.display(
+        description=(
+            f"Update {Character.UpdateSection.display_name(Character.UpdateSection.LOCATION)} "
+            "for selected characters from EVE server"
+        )
     )
-
     def update_location(self, request, queryset):
         section = Character.UpdateSection.LOCATION
         for obj in queryset:
@@ -243,11 +239,13 @@ class CharacterAdmin(admin.ModelAdmin):
                 f"Started updating {Character.UpdateSection.display_name(section)} for character: {obj}. ",
             )
 
-    update_location.short_description = (
-        f"Update {Character.UpdateSection.display_name(Character.UpdateSection.LOCATION)} "
-        "for selected characters from EVE server"
+    @admin.display(
+        description=(
+            "Update "
+            f"{Character.UpdateSection.display_name(Character.UpdateSection.ONLINE_STATUS)} "
+            "for selected characters from EVE server"
+        )
     )
-
     def update_online_status(self, request, queryset):
         section = Character.UpdateSection.ONLINE_STATUS
         for obj in queryset:
@@ -256,12 +254,6 @@ class CharacterAdmin(admin.ModelAdmin):
                 request,
                 f"Started updating {Character.UpdateSection.display_name(section)} for character: {obj}. ",
             )
-
-    update_online_status.short_description = (
-        "Update "
-        f"{Character.UpdateSection.display_name(Character.UpdateSection.ONLINE_STATUS)} "
-        "for selected characters from EVE server"
-    )
 
     inlines = (SyncStatusAdminInline,)
 
@@ -293,25 +285,21 @@ class LocationAdmin(admin.ModelAdmin):
     )
     ordering = ["name"]
 
+    @admin.display(ordering="name")
     def _name(self, obj):
         return obj.name_plus
 
-    _name.admin_order_field = "name"
-
+    @admin.display(ordering="eve_solar_system__name")
     def _solar_system(self, obj):
         return obj.eve_solar_system.name if obj.eve_solar_system else None
 
-    _solar_system.admin_order_field = "eve_solar_system__name"
-
+    @admin.display(ordering="eve_type__name")
     def _type(self, obj):
         return obj.eve_type.name if obj.eve_type else None
 
-    _type.admin_order_field = "eve_type__name"
-
+    @admin.display(ordering="eve_type__eve_group__name")
     def _group(self, obj):
         return obj.eve_type.eve_group.name if obj.eve_type else None
-
-    _group.admin_order_field = "eve_type__eve_group__name"
 
     def has_add_permission(self, request):
         return False

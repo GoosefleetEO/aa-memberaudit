@@ -6,6 +6,7 @@ from django.urls import reverse
 
 from ..admin import CharacterAdmin, SkillSetAdmin, SkillSetShipTypeFilter
 from ..models import Character, EveShipType, SkillSet
+from .testdata.factories import create_character_update_status
 from .testdata.load_entities import load_entities
 from .testdata.load_eveuniverse import load_eveuniverse
 from .utils import (
@@ -23,6 +24,111 @@ class MockRequest(object):
 
     def get_full_path(self):
         return "/dummy-full-path"
+
+
+class TestCharacterAdmin(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.modeladmin = CharacterAdmin(model=Character, admin_site=AdminSite())
+        load_eveuniverse()
+        load_entities()
+        cls.character = create_memberaudit_character(1001)
+        cls.user = cls.character.character_ownership.user
+
+    def test_column_character(self):
+        self.assertEqual(self.modeladmin._character(self.character), "Bruce Wayne")
+
+    def test_column_main_normal(self):
+        self.assertEqual(self.modeladmin._main(self.character), "Bruce Wayne")
+
+    def test_column_main_no_main(self):
+        # given
+        character = create_memberaudit_character(1002)
+        user = character.character_ownership.user
+        user.profile.main_character = None
+        user.profile.save()
+        # when
+        self.assertIsNone(self.modeladmin._main(character))
+
+    def test_column_state(self):
+        self.assertEqual(self.modeladmin._state(self.character), "Guest")
+
+    def test_column_organization_normal(self):
+        self.assertEqual(
+            self.modeladmin._organization(self.character), "Wayne Technologies [WYN]"
+        )
+
+    def test_column_organization_no_main(self):
+        # given
+        character = create_memberaudit_character(1002)
+        user = character.character_ownership.user
+        user.profile.main_character = None
+        user.profile.save()
+        # when
+        self.assertIsNone(self.modeladmin._organization(character))
+
+    def test_column_missing_sections_none(self):
+        # given
+        for section in Character.UpdateSection:
+            create_character_update_status(character=self.character, section=section)
+        self.assertIsNone(self.modeladmin._missing_sections(self.character))
+
+    def test_column_missing_sections_two_missing(self):
+        # given
+        sections = [
+            obj
+            for obj in Character.UpdateSection
+            if obj is not Character.UpdateSection.ASSETS
+            and obj is not Character.UpdateSection.CONTRACTS
+        ]
+        for section in sections:
+            create_character_update_status(character=self.character, section=section)
+        self.assertListEqual(
+            self.modeladmin._missing_sections(self.character), ["assets", "contracts"]
+        )
+
+    @patch(ADMIN_PATH + ".CharacterAdmin.message_user")
+    @patch(ADMIN_PATH + ".tasks.update_character")
+    def test_should_update_characters(
+        self, mock_task_update_character, mock_message_user
+    ):
+        # given
+        request = MockRequest(user=self.user)
+        queryset = Character.objects.all()
+        # when
+        self.modeladmin.update_characters(request, queryset)
+        # then
+        self.assertEqual(mock_task_update_character.delay.call_count, 1)
+        self.assertTrue(mock_message_user.called)
+
+    @patch(ADMIN_PATH + ".CharacterAdmin.message_user")
+    @patch(ADMIN_PATH + ".tasks.delete_character")
+    def test_should_delete_characters_1(
+        self, mock_task_delete_character, mock_message_user
+    ):
+        # given
+        factory = RequestFactory()
+        request = factory.get(reverse("admin:memberaudit_character_changelist"))
+        queryset = Character.objects.all()
+        # when
+        response = self.modeladmin.delete_characters(request, queryset)
+        # then
+        self.assertEqual(response.status_code, 200)
+
+    @patch(ADMIN_PATH + ".CharacterAdmin.message_user")
+    @patch(ADMIN_PATH + ".tasks.delete_character")
+    def test_should_delete_characters_2(
+        self, mock_task_delete_character, mock_message_user
+    ):
+        # given
+        request = MockRequest(user=self.user, post="apply")
+        queryset = Character.objects.all()
+        # when
+        self.modeladmin.delete_characters(request, queryset)
+        # then
+        self.assertEqual(mock_task_delete_character.delay.call_count, 1)
+        self.assertTrue(mock_message_user.called)
 
 
 class TestSkillSetAdmin(TestCase):
@@ -87,56 +193,3 @@ class TestSkillSetAdmin(TestCase):
         queryset = changelist.get_queryset(request)
         expected = {ss_1}
         self.assertSetEqual(set(queryset), expected)
-
-
-class TestCharacterAdmin(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.modeladmin = CharacterAdmin(model=Character, admin_site=AdminSite())
-        load_eveuniverse()
-        load_entities()
-        cls.character = create_memberaudit_character(1001)
-        cls.user = cls.character.character_ownership.user
-
-    @patch(ADMIN_PATH + ".CharacterAdmin.message_user")
-    @patch(ADMIN_PATH + ".tasks.update_character")
-    def test_should_update_characters(
-        self, mock_task_update_character, mock_message_user
-    ):
-        # given
-        request = MockRequest(user=self.user)
-        queryset = Character.objects.all()
-        # when
-        self.modeladmin.update_characters(request, queryset)
-        # then
-        self.assertEqual(mock_task_update_character.delay.call_count, 1)
-        self.assertTrue(mock_message_user.called)
-
-    @patch(ADMIN_PATH + ".CharacterAdmin.message_user")
-    @patch(ADMIN_PATH + ".tasks.delete_character")
-    def test_should_delete_characters_1(
-        self, mock_task_delete_character, mock_message_user
-    ):
-        # given
-        factory = RequestFactory()
-        request = factory.get(reverse("admin:memberaudit_character_changelist"))
-        queryset = Character.objects.all()
-        # when
-        response = self.modeladmin.delete_characters(request, queryset)
-        # then
-        self.assertEqual(response.status_code, 200)
-
-    @patch(ADMIN_PATH + ".CharacterAdmin.message_user")
-    @patch(ADMIN_PATH + ".tasks.delete_character")
-    def test_should_delete_characters_2(
-        self, mock_task_delete_character, mock_message_user
-    ):
-        # given
-        request = MockRequest(user=self.user, post="apply")
-        queryset = Character.objects.all()
-        # when
-        self.modeladmin.delete_characters(request, queryset)
-        # then
-        self.assertEqual(mock_task_delete_character.delay.call_count, 1)
-        self.assertTrue(mock_message_user.called)
