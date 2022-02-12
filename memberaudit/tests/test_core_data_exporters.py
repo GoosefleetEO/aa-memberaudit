@@ -22,8 +22,8 @@ from ..core.data_exporters import (
 )
 from ..models import CharacterWalletJournalEntry
 from .testdata.factories import (
-    create_contract,
-    create_contract_item,
+    create_character_contract,
+    create_character_contract_item,
     create_wallet_journal_entry,
 )
 from .testdata.load_entities import load_entities
@@ -44,8 +44,8 @@ class TestExportTopicToArchive(TestCase):
     def test_should_export_contract(self):
         with TemporaryDirectory() as tmpdirname:
             # given
-            contract = create_contract(character=self.character)
-            create_contract_item(contract=contract)
+            contract = create_character_contract(character=self.character)
+            create_character_contract_item(contract=contract)
             # when
             result = export_topic_to_archive(
                 topic="contract", destination_folder=tmpdirname
@@ -58,8 +58,8 @@ class TestExportTopicToArchive(TestCase):
     def test_should_export_contract_item(self):
         with TemporaryDirectory() as tmpdirname:
             # given
-            contract = create_contract(character=self.character)
-            create_contract_item(contract=contract)
+            contract = create_character_contract(character=self.character)
+            create_character_contract_item(contract=contract)
             # when
             result = export_topic_to_archive(
                 topic="contract-item", destination_folder=tmpdirname
@@ -180,7 +180,7 @@ class TestDataExporter(TestCase):
 
     def test_should_create_csv_file_for_contract(self):
         # given
-        create_contract(character=self.character, contract_id=42)
+        create_character_contract(character=self.character, contract_id=42)
         exporter = DataExporter.create_exporter("contract")
         # when
         obj = self._write_to_file(exporter)
@@ -192,8 +192,8 @@ class TestDataExporter(TestCase):
 
     def test_should_create_csv_file_for_contract_item(self):
         # given
-        contract = create_contract(character=self.character)
-        create_contract_item(contract=contract, record_id=12)
+        contract = create_character_contract(character=self.character)
+        create_character_contract_item(contract=contract, record_id=12)
         exporter = DataExporter.create_exporter("contract-item")
         # when
         obj = self._write_to_file(exporter)
@@ -266,8 +266,8 @@ class TestTopicsAndExportFiles(TestCase):
     def test_should_return_correct_list(self):
         with TemporaryDirectory() as tmpdirname:
             # given
-            contract = create_contract(character=self.character)
-            create_contract_item(contract=contract)
+            contract = create_character_contract(character=self.character)
+            create_character_contract_item(contract=contract)
             contract_item_file = Path(tmpdirname) / "memberaudit_contract-item.zip"
             contract_item_file.touch()
             new_ts = (now() - dt.timedelta(minutes=10)).timestamp()

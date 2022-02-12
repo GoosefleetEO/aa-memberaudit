@@ -12,6 +12,7 @@ from ...models import (
     CharacterContractItem,
     CharacterMail,
     CharacterMailLabel,
+    CharacterUpdateStatus,
     CharacterWalletJournalEntry,
     MailEntity,
 )
@@ -58,7 +59,18 @@ def create_character_mail_label(**kwargs):
     return CharacterMailLabel.objects.create(**params)
 
 
-def create_contract(**kwargs) -> models.Model:
+def create_character_update_status(**kwargs):
+    params = {
+        "section": Character.UpdateSection.ASSETS,
+        "is_success": True,
+        "started_at": now() - dt.timedelta(minutes=5),
+        "finished_at": now(),
+    }
+    params.update(kwargs)
+    return CharacterUpdateStatus.objects.create(**params)
+
+
+def create_character_contract(**kwargs) -> models.Model:
     date_issed = now() if "date_issued" not in kwargs else kwargs["date_issued"]
     params = {
         "contract_id": _generate_unique_id(CharacterContract, "contract_id"),
@@ -77,7 +89,7 @@ def create_contract(**kwargs) -> models.Model:
     return CharacterContract.objects.create(**params)
 
 
-def create_contract_item(**kwargs) -> models.Model:
+def create_character_contract_item(**kwargs) -> models.Model:
     params = {
         "record_id": _generate_unique_id(CharacterContractItem, "record_id"),
         "is_included": True,
