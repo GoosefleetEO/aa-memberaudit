@@ -2,7 +2,7 @@
 Top level models
 """
 
-from django.contrib.auth.models import Permission, User
+from django.contrib.auth.models import Group, Permission, User
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -16,6 +16,7 @@ from app_utils.logging import LoggerAddTag
 
 from .. import __title__
 from ..managers.general import (
+    ComplianceGroupManager,
     EveShipTypeManger,
     EveSkillTypeManger,
     LocationManager,
@@ -61,7 +62,7 @@ class General(models.Model):
 
     @classmethod
     def accessible_users(cls, user: User) -> models.QuerySet:
-        """users that the given user can access"""
+        """Users that the given user can access."""
         if user.has_perm("memberaudit.view_everything"):
             return cls.users_with_basic_access()
         elif (
@@ -76,6 +77,32 @@ class General(models.Model):
                 profile__main_character__corporation_id=user.profile.main_character.corporation_id
             )
         return User.objects.filter(pk=user.pk)
+
+    @classmethod
+    def compliant_users(cls) -> models.QuerySet:
+        """Users which are fully compliant."""
+        return cls.users_with_basic_access().exclude(
+            character_ownerships__memberaudit_character__isnull=True
+        )
+
+
+class ComplianceGroup(models.Model):
+    group = models.OneToOneField(Group, on_delete=models.CASCADE)
+
+    objects = ComplianceGroupManager()
+
+    def __str__(self) -> str:
+        return str(self.group)
+
+    def delete(self, *args, **kwargs):
+        self.group.user_set.clear()  # remove related group from any users
+        super().delete(*args, **kwargs)
+
+    def save(self, *args, **kwargs) -> None:
+        super().save(*args, **kwargs)
+        compliant_users = list(General.compliant_users())
+        if compliant_users:
+            self.group.user_set.add(*compliant_users)
 
 
 class Location(models.Model):

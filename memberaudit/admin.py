@@ -1,4 +1,6 @@
+from django import forms
 from django.contrib import admin
+from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.forms.models import BaseInlineFormSet
 from django.shortcuts import redirect, render
@@ -10,6 +12,7 @@ from .constants import EveCategoryId
 from .models import (
     Character,
     CharacterUpdateStatus,
+    ComplianceGroup,
     EveShipType,
     EveSkillType,
     Location,
@@ -17,6 +20,21 @@ from .models import (
     SkillSetGroup,
     SkillSetSkill,
 )
+
+
+class ComplianceGroupForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["group"].queryset = Group.objects.filter(
+            authgroup__internal=True, compliancegroup__isnull=True
+        )
+
+
+@admin.register(ComplianceGroup)
+class ComplianceGroupAdmin(admin.ModelAdmin):
+    form = ComplianceGroupForm
+    ordering = ("group__name",)
+    list_display = ("group",)
 
 
 class EveUniverseEntityModelAdmin(admin.ModelAdmin):

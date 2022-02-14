@@ -33,6 +33,7 @@ from .models import (
     CharacterContract,
     CharacterMail,
     CharacterUpdateStatus,
+    ComplianceGroup,
     Location,
     MailEntity,
 )
@@ -87,6 +88,7 @@ def run_regular_updates(self) -> None:
     _retry_if_esi_is_down(self)
     update_market_prices.apply_async(priority=DEFAULT_TASK_PRIORITY)
     update_all_characters.apply_async(priority=DEFAULT_TASK_PRIORITY)
+    update_compliancegroups.apply_async(priority=DEFAULT_TASK_PRIORITY)
 
 
 @shared_task(**TASK_DEFAULT_KWARGS)
@@ -1081,3 +1083,20 @@ def _export_data_inform_user(user_pk: int, topic: str = None):
         for topic in data_exporters.DataExporter.topics:
             message += f"- {topic}\n"
     notify(user=user, title=title, message=message, level="INFO")
+
+
+@shared_task(**TASK_DEFAULT_KWARGS)
+def update_compliancegroups():
+    """Update compliancegroups for all users."""
+    if ComplianceGroup.objects.exists():
+        for user in User.objects.all():
+            update_compliancegroups_for_user.apply_async(
+                kwargs={"user_pk": user.pk}, priority=DEFAULT_TASK_PRIORITY
+            )
+
+
+@shared_task(**TASK_DEFAULT_KWARGS)
+def update_compliancegroups_for_user(user_pk: int):
+    """Update compliancegroups for all users."""
+    user = User.objects.get(pk=user_pk)
+    ComplianceGroup.objects.update_for_user(user)

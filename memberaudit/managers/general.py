@@ -8,6 +8,7 @@ from django.utils.timezone import now
 from esi.models import Token
 from eveuniverse.models import EveEntity, EveSolarSystem, EveType
 
+from allianceauth.notifications import notify
 from allianceauth.services.hooks import get_extension_logger
 from app_utils.esi import fetch_esi_status
 from app_utils.logging import LoggerAddTag
@@ -21,6 +22,40 @@ from ..constants import EveCategoryId, EveTypeId
 from ..providers import esi
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
+
+
+class ComplianceGroupManager(models.Manager):
+    def update_user(self, user):
+        """Update compliance groups for user."""
+        from ..models import General
+
+        was_compliant = user.groups.filter(compliancegroup__isnull=False).exists()
+        is_compliant = General.compliant_users().filter(pk=user.pk).exists()
+        if is_compliant:
+            # TODO: Restrict to groups based on user's state
+            groups = list(self.values_list("group", flat=True))
+            user.groups.add(*groups)
+            if not was_compliant:
+                notify(
+                    user,
+                    title=f"{__title__}: Compliant",
+                    message="You are now fully compliant.",
+                    level="success",
+                )
+        else:
+            current_groups = list(self.values_list("group", flat=True))
+            user.groups.remove(*list(current_groups))
+            if was_compliant:
+                message = (
+                    "You are no longer compliant. "
+                    "Please add missing characters to Member Audit"
+                )
+                notify(
+                    user,
+                    title=f"{__title__}: Not compliant",
+                    message=message,
+                    level="warning",
+                )
 
 
 class EveShipTypeManger(models.Manager):
