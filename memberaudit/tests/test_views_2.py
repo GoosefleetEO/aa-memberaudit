@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 from django.contrib.auth.models import Group
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from eveuniverse.models import EveEntity, EveType
@@ -9,6 +10,7 @@ from allianceauth.authentication.models import State
 from allianceauth.eveonline.models import EveAllianceInfo, EveCorporationInfo
 from allianceauth.tests.auth_utils import AuthUtils
 from app_utils.testing import (
+    create_user_from_evecharacter,
     generate_invalid_pk,
     json_response_to_dict,
     json_response_to_python,
@@ -25,6 +27,7 @@ from ..models import (
     SkillSetSkill,
 )
 from ..views import (
+    add_character,
     character_mail,
     character_mail_headers_by_label_data,
     character_mail_headers_by_list_data,
@@ -196,6 +199,71 @@ class TestMailData(TestCase):
 
 
 @patch(MODULE_PATH + ".messages")
+@patch(MODULE_PATH + ".tasks")
+class TestAddCharacter(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.factory = RequestFactory()
+        load_entities()
+
+    def _add_character(self, user, token):
+        request = self.factory.get(reverse("structures:add_structure_owner"))
+        request.user = user
+        request.token = token
+        middleware = SessionMiddleware()
+        middleware.process_request(request)
+        orig_view = add_character.__wrapped__.__wrapped__.__wrapped__
+        return orig_view(request, token)
+
+    def test_should_add_character(self, mock_tasks, mock_messages):
+        # given
+        user, _ = create_user_from_evecharacter(
+            1001,
+            permissions=["memberaudit.basic_access"],
+            scopes=Character.get_esi_scopes(),
+        )
+        token = user.token_set.get(character_id=1001)
+        # when
+        response = self._add_character(user, token)
+        # then
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("memberaudit:launcher"))
+        self.assertTrue(mock_tasks.update_character.delay.called)
+        self.assertTrue(mock_tasks.update_compliancegroups_for_user.delay.called)
+        self.assertTrue(mock_messages.success.called)
+        self.assertTrue(
+            Character.objects.filter(
+                character_ownership__character__character_id=1001
+            ).exists()
+        )
+
+    def test_should_not_add_character(self, mock_tasks, mock_messages):
+        # given
+        user, _ = create_user_from_evecharacter(
+            1001,
+            permissions=["memberaudit.basic_access"],
+            scopes=Character.get_esi_scopes(),
+        )
+        user_2, _ = create_user_from_evecharacter(1002)
+        token = user_2.token_set.get(character_id=1002)
+        # when
+        response = self._add_character(user, token)
+        # then
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("memberaudit:launcher"))
+        self.assertFalse(mock_tasks.update_character.delay.called)
+        self.assertFalse(mock_tasks.update_compliancegroups_for_user.delay.called)
+        self.assertTrue(mock_messages.error.called)
+        self.assertFalse(
+            Character.objects.filter(
+                character_ownership__character__character_id=1002
+            ).exists()
+        )
+
+
+@patch(MODULE_PATH + ".messages")
+@patch(MODULE_PATH + ".tasks")
 class TestRemoveCharacter(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -203,44 +271,54 @@ class TestRemoveCharacter(TestCase):
         cls.factory = RequestFactory()
         load_entities()
 
-    def setUp(self) -> None:
-        self.character_1001 = create_memberaudit_character(1001)
-        self.user_1001 = self.character_1001.character_ownership.user
-
-        self.character_1002 = create_memberaudit_character(1002)
-        self.user_1002 = self.character_1002.character_ownership.user
-
-    def test_normal(self, mock_message_plus):
+    def _remove_character(self, user, character_pk):
         request = self.factory.get(
-            reverse("memberaudit:remove_character", args=[self.character_1001.pk])
+            reverse("memberaudit:remove_character", args=[character_pk])
         )
-        request.user = self.user_1001
-        response = remove_character(request, self.character_1001.pk)
+        request.user = user
+        return remove_character(request, character_pk)
+
+    def test_should_remove_character(self, mock_tasks, mock_messages):
+        # given
+        character = create_memberaudit_character(1001)
+        user = character.character_ownership.user
+        # when
+        response = self._remove_character(user, character.pk)
+        # then
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("memberaudit:launcher"))
-        self.assertFalse(Character.objects.filter(pk=self.character_1001.pk).exists())
-        self.assertTrue(mock_message_plus.success.called)
+        self.assertFalse(Character.objects.filter(pk=character.pk).exists())
+        self.assertTrue(mock_tasks.update_compliancegroups_for_user.delay.called)
+        self.assertTrue(mock_messages.success.called)
 
-    def test_no_permission(self, mock_message_plus):
-        request = self.factory.get(
-            reverse("memberaudit:remove_character", args=[self.character_1001.pk])
-        )
-        request.user = self.user_1002
-        response = remove_character(request, self.character_1001.pk)
+    def test_should_not_remove_character_from_another_user(
+        self, mock_tasks, mock_messages
+    ):
+        # given
+        character_1001 = create_memberaudit_character(1001)
+        user_1002, _ = create_user_from_evecharacter_with_access(1002)
+        # when
+        response = self._remove_character(user_1002, character_1001.pk)
+        # then
         self.assertEqual(response.status_code, 403)
-        self.assertTrue(Character.objects.filter(pk=self.character_1001.pk).exists())
-        self.assertFalse(mock_message_plus.success.called)
+        self.assertTrue(Character.objects.filter(pk=character_1001.pk).exists())
+        self.assertFalse(mock_tasks.update_compliancegroups_for_user.delay.called)
+        self.assertFalse(mock_messages.success.called)
 
-    def test_not_found(self, mock_message_plus):
+    def test_should_respond_with_not_found_for_invalid_characters(
+        self, mock_tasks, mock_messages
+    ):
+        # given
+        character = create_memberaudit_character(1001)
+        user = character.character_ownership.user
         invalid_character_pk = generate_invalid_pk(Character)
-        request = self.factory.get(
-            reverse("memberaudit:remove_character", args=[invalid_character_pk])
-        )
-        request.user = self.user_1001
-        response = remove_character(request, invalid_character_pk)
+        # when
+        response = self._remove_character(user, invalid_character_pk)
+        # then
         self.assertEqual(response.status_code, 404)
-        self.assertTrue(Character.objects.filter(pk=self.character_1001.pk).exists())
-        self.assertFalse(mock_message_plus.success.called)
+        self.assertTrue(Character.objects.filter(pk=character.pk).exists())
+        self.assertFalse(mock_tasks.update_compliancegroups_for_user.delay.called)
+        self.assertFalse(mock_messages.success.called)
 
 
 class TestShareCharacter(TestCase):
@@ -501,7 +579,7 @@ class TestCorporationComplianceReportTestData(TestCase):
         )
         cls.character_1110 = create_memberaudit_character(1110)
 
-    def _corporation_compliance_report_data(self, user):
+    def _corporation_compliance_report_data(self, user) -> dict:
         request = self.factory.get(
             reverse("memberaudit:corporation_compliance_report_data")
         )

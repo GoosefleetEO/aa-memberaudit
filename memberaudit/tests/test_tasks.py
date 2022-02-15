@@ -42,6 +42,7 @@ MANAGERS_PATH = "memberaudit.managers"
 TASKS_PATH = "memberaudit.tasks"
 
 
+@patch(TASKS_PATH + ".update_compliancegroups_for_all")
 @patch(TASKS_PATH + ".update_all_characters")
 @patch(TASKS_PATH + ".update_market_prices")
 class TestRegularUpdates(TestCase):
@@ -50,35 +51,44 @@ class TestRegularUpdates(TestCase):
         self,
         mock_update_market_prices,
         mock_update_all_characters,
+        mock_update_compliancegroups_for_all,
     ):
+        # when
         run_regular_updates()
-
+        # then
         self.assertTrue(mock_update_market_prices.apply_async.called)
         self.assertTrue(mock_update_all_characters.apply_async.called)
+        self.assertTrue(mock_update_compliancegroups_for_all.apply_async.called)
 
     @patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(False, 99, 60))
     def test_should_retry_if_esi_is_down(
         self,
         mock_update_market_prices,
         mock_update_all_characters,
+        mock_update_compliancegroups_for_all,
     ):
+        # when
         with self.assertRaises(CeleryRetry):
             run_regular_updates()
-
+        # then
         self.assertFalse(mock_update_market_prices.apply_async.called)
         self.assertFalse(mock_update_all_characters.apply_async.called)
+        self.assertFalse(mock_update_compliancegroups_for_all.apply_async.called)
 
     @patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 1, 60))
     def test_should_retry_if_esi_error_threshold_exceeded(
         self,
         mock_update_market_prices,
         mock_update_all_characters,
+        mock_update_compliancegroups_for_all,
     ):
+        # when
         with self.assertRaises(CeleryRetry):
             run_regular_updates()
-
+        # then
         self.assertFalse(mock_update_market_prices.apply_async.called)
         self.assertFalse(mock_update_all_characters.apply_async.called)
+        self.assertFalse(mock_update_compliancegroups_for_all.apply_async.called)
 
 
 @patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))

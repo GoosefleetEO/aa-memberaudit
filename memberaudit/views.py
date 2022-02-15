@@ -221,7 +221,6 @@ def add_character(request, token) -> HttpResponse:
             character, _ = Character.objects.update_or_create(
                 character_ownership=character_ownership
             )
-
         tasks.update_character.delay(character_pk=character.pk)
         messages.success(
             request,
@@ -231,7 +230,7 @@ def add_character(request, token) -> HttpResponse:
                 character.character_ownership.character,
             ),
         )
-
+        tasks.update_compliancegroups_for_user.delay(request.user.pk)
     return redirect("memberaudit:launcher")
 
 
@@ -244,9 +243,8 @@ def remove_character(request, character_pk: int) -> HttpResponse:
         ).get(pk=character_pk)
     except Character.DoesNotExist:
         return HttpResponseNotFound(f"Character with pk {character_pk} not found")
-
-    character_name = character.character_ownership.character.character_name
     if character.character_ownership.user == request.user:
+        character_name = character.character_ownership.character.character_name
         character.delete()
         messages.success(
             request,
@@ -254,11 +252,11 @@ def remove_character(request, character_pk: int) -> HttpResponse:
                 "Removed character <strong>{}</strong> as requested.", character_name
             ),
         )
+        tasks.update_compliancegroups_for_user.delay(request.user.pk)
     else:
         return HttpResponseForbidden(
             f"No permission to remove Character with pk {character_pk}"
         )
-
     return redirect("memberaudit:launcher")
 
 
@@ -279,7 +277,6 @@ def share_character(request, character_pk: int) -> HttpResponse:
         return HttpResponseForbidden(
             f"No permission to remove Character with pk {character_pk}"
         )
-
     return redirect("memberaudit:launcher")
 
 
@@ -300,7 +297,6 @@ def unshare_character(request, character_pk: int) -> HttpResponse:
         return HttpResponseForbidden(
             f"No permission to remove Character with pk {character_pk}"
         )
-
     return redirect("memberaudit:launcher")
 
 
@@ -1770,7 +1766,7 @@ def corporation_compliance_report_data(request) -> JsonResponse:
             unregistered_count=Count(
                 "userprofile__user__character_ownerships",
                 filter=Q(
-                    userprofile__user__character_ownerships__memberaudit_character=None
+                    userprofile__user__character_ownerships__memberaudit_character__isnull=True
                 ),
                 distinct=True,
             )
