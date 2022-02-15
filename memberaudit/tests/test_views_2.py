@@ -195,7 +195,7 @@ class TestMailData(TestCase):
         self.assertEqual(response.status_code, 404)
 
 
-@patch(MODULE_PATH + ".messages_plus")
+@patch(MODULE_PATH + ".messages")
 class TestRemoveCharacter(TestCase):
     @classmethod
     def setUpClass(cls) -> None:

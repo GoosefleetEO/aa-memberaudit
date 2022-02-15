@@ -980,7 +980,7 @@ class TestDataExport(LoadTestDataMixin, TestCase):
             with self.assertRaises(Http404):
                 download_export_file(request, "contract-item")
 
-    @patch(MODULE_PATH + ".messages_plus")
+    @patch(MODULE_PATH + ".messages")
     @patch(MODULE_PATH + ".tasks.export_data_for_topic")
     def test_should_start_export_task(
         self, mock_task_export_data_for_topic, mock_messages_plus
