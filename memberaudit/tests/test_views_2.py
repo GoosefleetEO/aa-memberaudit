@@ -208,7 +208,7 @@ class TestAddCharacter(TestCase):
         load_entities()
 
     def _add_character(self, user, token):
-        request = self.factory.get(reverse("structures:add_structure_owner"))
+        request = self.factory.get(reverse("memberaudit:add_character"))
         request.user = user
         request.token = token
         middleware = SessionMiddleware()
