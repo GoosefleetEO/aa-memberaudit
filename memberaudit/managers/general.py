@@ -3,6 +3,7 @@ from typing import Iterable, Tuple
 
 from bravado.exception import HTTPForbidden, HTTPUnauthorized
 
+from django.contrib.auth.models import Group, User
 from django.db import models
 from django.utils.timezone import now
 from esi.models import Token
@@ -19,21 +20,25 @@ from ..app_settings import (
     MEMBERAUDIT_LOCATION_STALE_HOURS,
 )
 from ..constants import EveCategoryId, EveTypeId
+from ..helpers import filter_groups_available_to_user
 from ..providers import esi
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
 
 class ComplianceGroupManager(models.Manager):
-    def update_user(self, user):
+    def groups(self) -> models.QuerySet:
+        """Groups which are compliance groups."""
+        return Group.objects.filter(compliancegroup__isnull=False)
+
+    def update_user(self, user: User):
         """Update compliance groups for user."""
         from ..models import General
 
         was_compliant = user.groups.filter(compliancegroup__isnull=False).exists()
         is_compliant = General.compliant_users().filter(pk=user.pk).exists()
         if is_compliant:
-            # TODO: Restrict to groups based on user's state
-            groups = list(self.values_list("group", flat=True))
+            groups = list(filter_groups_available_to_user(self.groups(), user))
             user.groups.add(*groups)
             if not was_compliant:
                 message = (

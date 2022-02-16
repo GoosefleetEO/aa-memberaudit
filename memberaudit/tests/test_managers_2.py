@@ -1,11 +1,12 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
 
+from allianceauth.eveonline.models import EveCorporationInfo
 from allianceauth.notifications.models import Notification
 from app_utils.testing import create_user_from_evecharacter
 
 from ..models import ComplianceGroup, General
-from .testdata.factories import create_authgroup, create_compliance_group
+from .testdata.factories import create_authgroup, create_compliance_group, create_state
 from .testdata.load_entities import load_entities
 from .testdata.load_eveuniverse import load_eveuniverse
 from .utils import add_auth_character_to_user, add_memberaudit_character_to_user
@@ -58,6 +59,37 @@ class TestComplianceGroup(TestCase):
         self.assertIn(compliance_group, user_compliant.groups.all())
         self.assertNotIn(compliance_group, user_non_compliant.groups.all())
 
+    def test_should_add_new_state_group_to_compliant_users_when_state_is_matching(
+        self,
+    ):
+        # given
+        member_corporation = EveCorporationInfo.objects.get(corporation_id=2001)
+        my_state = create_state(member_corporations=[member_corporation], priority=200)
+        compliance_group = create_authgroup(internal=True, states=[my_state])
+        user_compliant, _ = create_user_from_evecharacter(
+            1001, permissions=["memberaudit.basic_access"]
+        )
+        add_memberaudit_character_to_user(user_compliant, 1001)
+        # when
+        create_compliance_group(group=compliance_group)
+        # then
+        self.assertIn(compliance_group, user_compliant.groups.all())
+
+    def test_should_not_add_new_state_group_to_compliant_user_when_state_not_matching(
+        self,
+    ):
+        # given
+        my_state = create_state(priority=200)
+        compliance_group = create_authgroup(internal=True, states=[my_state])
+        user_compliant, _ = create_user_from_evecharacter(
+            1001, permissions=["memberaudit.basic_access"]
+        )
+        add_memberaudit_character_to_user(user_compliant, 1001)
+        # when
+        create_compliance_group(group=compliance_group)
+        # then
+        self.assertNotIn(compliance_group, user_compliant.groups.all())
+
     def test_should_remove_deleted_compliance_group_from_users(self):
         # given
         group = create_authgroup(internal=True)
@@ -89,6 +121,35 @@ class TestComplianceGroup(TestCase):
         self.assertTrue(
             user.notification_set.filter(level=Notification.Level.SUCCESS).exists()
         )
+
+    def test_should_add_state_group_to_compliant_user_when_state_matches(self):
+        # given
+        member_corporation = EveCorporationInfo.objects.get(corporation_id=2001)
+        my_state = create_state(member_corporations=[member_corporation], priority=200)
+        compliance_group = create_authgroup(internal=True, states=[my_state])
+        create_compliance_group(group=compliance_group)
+        user, _ = create_user_from_evecharacter(
+            1001, permissions=["memberaudit.basic_access"]
+        )
+        add_memberaudit_character_to_user(user, 1001)
+        # when
+        ComplianceGroup.objects.update_user(user)
+        # then
+        self.assertIn(compliance_group, user.groups.all())
+
+    def test_should_not_add_state_group_to_compliant_user_when_state_not_matches(self):
+        # given
+        my_state = create_state(priority=200)
+        compliance_group = create_authgroup(internal=True, states=[my_state])
+        create_compliance_group(group=compliance_group)
+        user, _ = create_user_from_evecharacter(
+            1001, permissions=["memberaudit.basic_access"]
+        )
+        add_memberaudit_character_to_user(user, 1001)
+        # when
+        ComplianceGroup.objects.update_user(user)
+        # then
+        self.assertNotIn(compliance_group, user.groups.all())
 
     def test_should_add_multiple_groups_to_compliant_user(self):
         # given

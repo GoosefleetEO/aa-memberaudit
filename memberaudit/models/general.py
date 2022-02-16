@@ -100,7 +100,12 @@ class ComplianceGroup(models.Model):
 
     def save(self, *args, **kwargs) -> None:
         super().save(*args, **kwargs)
-        compliant_users = list(General.compliant_users())
+        compliant_users_qs = General.compliant_users()
+        if self.group.authgroup.states.exists():
+            compliant_users_qs = compliant_users_qs.filter(
+                profile__state__in=list(self.group.authgroup.states.all())
+            )
+        compliant_users = list(compliant_users_qs)
         if compliant_users:
             self.group.user_set.add(*compliant_users)
 
