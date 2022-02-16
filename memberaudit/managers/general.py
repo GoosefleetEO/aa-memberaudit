@@ -36,10 +36,14 @@ class ComplianceGroupManager(models.Manager):
             groups = list(self.values_list("group", flat=True))
             user.groups.add(*groups)
             if not was_compliant:
+                message = (
+                    f"Thank you for registering all your characters to {__title__}. "
+                    "You now have gained access to additional services."
+                )
                 notify(
                     user,
-                    title=f"{__title__}: Compliant",
-                    message="You are now fully compliant.",
+                    title=f"{__title__}: All characters registered",
+                    message=message,
                     level="success",
                 )
         else:
@@ -47,12 +51,13 @@ class ComplianceGroupManager(models.Manager):
             user.groups.remove(*list(current_groups))
             if was_compliant:
                 message = (
-                    "You are no longer compliant. "
-                    "Please add missing characters to Member Audit"
+                    f"Some of your characters are not registered to {__title__} "
+                    "and you have therefore lost access to services. "
+                    "Please add missing characters to restore access."
                 )
                 notify(
                     user,
-                    title=f"{__title__}: Not compliant",
+                    title=f"{__title__}: Characters not registered",
                     message=message,
                     level="warning",
                 )

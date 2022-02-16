@@ -11,7 +11,7 @@ from eveuniverse.models import EveSolarSystem, EveType
 
 from app_utils.esi import EsiErrorLimitExceeded, EsiOffline, EsiStatus
 from app_utils.esi_testing import BravadoResponseStub
-from app_utils.testing import generate_invalid_pk
+from app_utils.testing import create_user_from_evecharacter, generate_invalid_pk
 
 from ..models import Character, CharacterAsset, CharacterUpdateStatus, Location
 from ..tasks import (
@@ -27,6 +27,7 @@ from ..tasks import (
     update_character_mails,
     update_character_wallet_journal,
     update_characters_skill_checks,
+    update_compliancegroups_for_user,
     update_mail_entity_esi,
     update_market_prices,
     update_structure_esi,
@@ -833,3 +834,23 @@ class TestExportData(TestCase):
         self.assertTrue(mock_export_topic_to_file.called)
         _, kwargs = mock_export_topic_to_file.call_args
         self.assertEqual(kwargs["topic"], "abc")
+
+
+class TestUpdateComplianceGroups(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        load_entities()
+
+    @patch(TASKS_PATH + ".ComplianceGroup.objects.update_user")
+    def test_should_update_for_user(self, mock_update_user):
+        # given
+        user, _ = create_user_from_evecharacter(
+            1001,
+            permissions=["memberaudit.basic_access"],
+            scopes=Character.get_esi_scopes(),
+        )
+        # when
+        update_compliancegroups_for_user(user.pk)
+        # then
+        self.assertTrue(mock_update_user.called)
