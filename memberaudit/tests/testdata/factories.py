@@ -4,7 +4,7 @@ from itertools import count
 from random import randint
 from typing import Iterable
 
-from django.db import models
+from django.contrib.auth.models import Group
 from django.utils.timezone import now
 
 from ...models import (
@@ -20,17 +20,21 @@ from ...models import (
 )
 
 
-def create_character(**kwargs):
-    return Character.objects.create(**kwargs)
+def create_character(character_ownership, **kwargs) -> Character:
+    params = {"character_ownership": character_ownership}
+    params.update(kwargs)
+    return Character.objects.create(**params)
 
 
 def create_character_mail(
+    character: Character,
     recipients: Iterable[MailEntity] = None,
     labels: Iterable[CharacterMailLabel] = None,
     **kwargs,
-):
+) -> CharacterMail:
     timestamp = now() if "timestamp" not in kwargs else kwargs["timestamp"]
     params = {
+        "character": character,
         "subject": "Test Mail",
         "body": "Test Body",
         "timestamp": timestamp,
@@ -42,7 +46,6 @@ def create_character_mail(
     params.update(kwargs)
     obj = CharacterMail.objects.create(**params)
     if not recipients:
-        character = kwargs["character"]
         character_id = character.character_ownership.character.character_id
         recipients = [create_mail_entity_from_eve_entity(id=character_id)]
     obj.recipients.add(*recipients)
@@ -51,9 +54,10 @@ def create_character_mail(
     return obj
 
 
-def create_character_mail_label(**kwargs):
+def create_character_mail_label(character: Character, **kwargs) -> CharacterMailLabel:
     label_id = next_number("mail_label_id")
     params = {
+        "character": character,
         "label_id": label_id,
         "name": f"Label #{label_id}",
     }
@@ -61,8 +65,11 @@ def create_character_mail_label(**kwargs):
     return CharacterMailLabel.objects.create(**params)
 
 
-def create_character_update_status(**kwargs):
+def create_character_update_status(
+    character: Character, **kwargs
+) -> CharacterUpdateStatus:
     params = {
+        "character": character,
         "section": Character.UpdateSection.ASSETS,
         "is_success": True,
         "started_at": now() - dt.timedelta(minutes=5),
@@ -72,9 +79,10 @@ def create_character_update_status(**kwargs):
     return CharacterUpdateStatus.objects.create(**params)
 
 
-def create_character_contract(**kwargs) -> models.Model:
+def create_character_contract(character: Character, **kwargs) -> CharacterContract:
     date_issed = now() if "date_issued" not in kwargs else kwargs["date_issued"]
     params = {
+        "character": character,
         "contract_id": next_number("contract_id"),
         "availability": CharacterContract.AVAILABILITY_PERSONAL,
         "contract_type": CharacterContract.TYPE_ITEM_EXCHANGE,
@@ -91,8 +99,11 @@ def create_character_contract(**kwargs) -> models.Model:
     return CharacterContract.objects.create(**params)
 
 
-def create_character_contract_item(**kwargs) -> models.Model:
+def create_character_contract_item(
+    contract: CharacterContract, **kwargs
+) -> CharacterContractItem:
     params = {
+        "contract": contract,
         "record_id": next_number("contract_item_record_id"),
         "is_included": True,
         "is_singleton": False,
@@ -103,16 +114,18 @@ def create_character_contract_item(**kwargs) -> models.Model:
     return CharacterContractItem.objects.create(**params)
 
 
-def create_compliance_group(**kwargs):
-    return ComplianceGroup.objects.create(**kwargs)
+def create_compliance_group(group: Group, **kwargs) -> ComplianceGroup:
+    params = {"group": group}
+    params.update(kwargs)
+    return ComplianceGroup.objects.create(**params)
 
 
-def create_mail_entity_from_eve_entity(id: int):
+def create_mail_entity_from_eve_entity(id: int) -> MailEntity:
     obj, _ = MailEntity.objects.update_or_create_from_eve_entity_id(id=id)
     return obj
 
 
-def create_mailing_list(**kwargs):
+def create_mailing_list(**kwargs) -> MailEntity:
     my_id = next_number("mailing_list_id")
     params = {
         "id": my_id,
@@ -123,8 +136,11 @@ def create_mailing_list(**kwargs):
     return MailEntity.objects.create(**params)
 
 
-def create_wallet_journal_entry(**kwargs) -> models.Model:
+def create_wallet_journal_entry(
+    character: Character, **kwargs
+) -> CharacterWalletJournalEntry:
     params = {
+        "character": character,
         "entry_id": next_number("wallet_journal_entry_id"),
         "amount": 1000000.0,
         "balance": 20000000.0,

@@ -23,6 +23,7 @@ An Alliance Auth app that provides full access to Eve characters and related rep
 - [Celery Configuration](#celery-configuration)
 - [Settings](#settings)
 - [Management Commands](#management-commands)
+- [User Manual](#user-manual)
 - [Authors](#authors)
 - [Change Log](CHANGELOG.md)
 
@@ -386,6 +387,32 @@ This command returns current statistics as JSON, i.e. current update statistics 
 ### memberaudit_update_characters
 
 Start the process of force updating all characters from ESI.
+
+## User Manual
+
+### Compliance Groups
+
+The compliance group feature enables you to link service access with having all characters added to Member Audit. Compliance groups are special Alliance Auth groups, which are automatically assigned to compliant users and revoked from non compliant users. A user is compliant when the following two criteria are both true:
+
+- User has access to Member Audit (i.e. has the access permission)
+- User has registered all his characters to Member Audit
+
+Once this feature is enabled a user will be informed through a notification once he gains are looses his compliance status. The feature is enabled as soon as at least one group is defined as compliance group.
+
+Service access can be linked to compliance by assigning the permissions to the compliance groups.
+
+You can define multiple compliance groups. This can be useful if you want to use this feature for multiple states, which different permissions settings for each state.
+
+To create a compliance group and enable this feature you need to do the following:
+
+1. Create a new internal group under Group Management / Groups and assign it the permissions you want to grant to compliant users.
+2. Define that new group as compliance group by adding it to Member Audit / Compliance Groups
+
+>**Note**:<br>Only internal groups can be enabled as compliance groups.
+
+If you want to disable the complance groups feature just remove any groups from Member Audit / Compliance Groups or you can also delete the groups themselves.
+
+>**Important**:<br>Once you have enabled a group as compliance group any user assignments will be handeled autoamtically by Member Audit and Alliance Auth.
 
 ## Authors
 

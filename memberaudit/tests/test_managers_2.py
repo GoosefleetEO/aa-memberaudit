@@ -12,7 +12,6 @@ from app_utils.testing import (
 from ..models import ComplianceGroup, General
 from .testdata.factories import create_compliance_group
 from .testdata.load_entities import load_entities
-from .testdata.load_eveuniverse import load_eveuniverse
 from .utils import add_auth_character_to_user, add_memberaudit_character_to_user
 
 MANAGER_PATH = "memberaudit.managers.general"
@@ -22,8 +21,16 @@ class TestComplianceGroup(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
-        load_eveuniverse()
         load_entities()
+
+    def test_should_ensure_new_compliance_groups_are_internal(self):
+        # given
+        group = create_authgroup(internal=False)
+        # when
+        create_compliance_group(group)
+        # then
+        group.refresh_from_db()
+        self.assertTrue(group.authgroup.internal)
 
     def test_should_return_compliant_users_only(self):
         # given

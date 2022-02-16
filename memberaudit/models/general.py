@@ -87,6 +87,11 @@ class General(models.Model):
 
 
 class ComplianceGroup(models.Model):
+    """A marker defining a group as compliance group.
+
+    Note that compliance groups are fully managed by the app.
+    """
+
     group = models.OneToOneField(Group, on_delete=models.CASCADE)
 
     objects = ComplianceGroupManager()
@@ -99,6 +104,9 @@ class ComplianceGroup(models.Model):
         super().delete(*args, **kwargs)
 
     def save(self, *args, **kwargs) -> None:
+        if not self.group.authgroup.internal:
+            self.group.authgroup.internal = True
+            self.group.authgroup.save()
         super().save(*args, **kwargs)
         compliant_users_qs = General.compliant_users()
         if self.group.authgroup.states.exists():
