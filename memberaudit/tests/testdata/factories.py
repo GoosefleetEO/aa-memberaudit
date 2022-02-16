@@ -4,19 +4,8 @@ from itertools import count
 from random import randint
 from typing import Iterable
 
-from django.contrib.auth.models import Group
 from django.db import models
 from django.utils.timezone import now
-
-from allianceauth.authentication.models import State
-from allianceauth.eveonline.models import (
-    EveAllianceInfo,
-    EveCharacter,
-    EveCorporationInfo,
-    EveFactionInfo,
-)
-from allianceauth.groupmanagement.models import AuthGroup
-from allianceauth.tests.auth_utils import AuthUtils
 
 from ...models import (
     Character,
@@ -29,50 +18,6 @@ from ...models import (
     ComplianceGroup,
     MailEntity,
 )
-
-# Alliance Auth related
-
-
-def create_authgroup(states: Iterable[State] = None, **kwargs):
-    if "name" not in kwargs:
-        kwargs["name"] = f"Test Group #{next_number('authgroup')}"
-    name = kwargs.pop("name")
-    group = Group.objects.create(name=name)
-    if states:
-        group.authgroup.states.add(*states)
-    if kwargs:
-        AuthGroup.objects.filter(group=group).update(**kwargs)
-        group.authgroup.refresh_from_db()
-    return group
-
-
-def create_state(
-    priority: int,
-    permissions: Iterable[str] = None,
-    member_characters: Iterable[EveCharacter] = None,
-    member_corporations: Iterable[EveCorporationInfo] = None,
-    member_alliances: Iterable[EveAllianceInfo] = None,
-    member_factions: Iterable[EveFactionInfo] = None,
-    **kwargs,
-):
-    params = {"priority": priority, "name": f"Test State #{next_number('state_name')}"}
-    params.update(kwargs)
-    obj = State.objects.create(**params)
-    if permissions:
-        perm_objs = [AuthUtils.get_permission_by_name(perm) for perm in permissions]
-        obj.permissions.add(*perm_objs)
-    if member_characters:
-        obj.member_characters.add(*member_characters)
-    if member_corporations:
-        obj.member_corporations.add(*member_corporations)
-    if member_alliances:
-        obj.member_alliances.add(*member_alliances)
-    if member_factions:
-        obj.member_factions.add(*member_factions)
-    return obj
-
-
-# Member Audit related
 
 
 def create_character(**kwargs):

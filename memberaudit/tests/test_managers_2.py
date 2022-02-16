@@ -3,10 +3,14 @@ from django.test import TestCase
 
 from allianceauth.eveonline.models import EveCorporationInfo
 from allianceauth.notifications.models import Notification
-from app_utils.testing import create_user_from_evecharacter
+from app_utils.testing import (
+    create_authgroup,
+    create_state,
+    create_user_from_evecharacter,
+)
 
 from ..models import ComplianceGroup, General
-from .testdata.factories import create_authgroup, create_compliance_group, create_state
+from .testdata.factories import create_compliance_group
 from .testdata.load_entities import load_entities
 from .testdata.load_eveuniverse import load_eveuniverse
 from .utils import add_auth_character_to_user, add_memberaudit_character_to_user

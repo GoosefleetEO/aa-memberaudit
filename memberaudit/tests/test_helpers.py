@@ -3,10 +3,13 @@ from django.db import models
 from django.test import TestCase
 
 from allianceauth.eveonline.models import EveCorporationInfo
-from app_utils.testing import create_user_from_evecharacter
+from app_utils.testing import (
+    create_authgroup,
+    create_state,
+    create_user_from_evecharacter,
+)
 
 from ..helpers import filter_groups_available_to_user
-from .testdata.factories import create_authgroup, create_state
 from .testdata.load_entities import load_entities
 
 

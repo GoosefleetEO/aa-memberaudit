@@ -41,6 +41,7 @@ class ComplianceGroupManager(models.Manager):
             groups = list(filter_groups_available_to_user(self.groups(), user))
             user.groups.add(*groups)
             if not was_compliant:
+                logger.info("%s: User is now compliant", user)
                 message = (
                     f"Thank you for registering all your characters to {__title__}. "
                     "You now have gained access to additional services."
@@ -55,6 +56,7 @@ class ComplianceGroupManager(models.Manager):
             current_groups = list(self.values_list("group", flat=True))
             user.groups.remove(*list(current_groups))
             if was_compliant:
+                logger.info("%s: User is no longer compliant", user)
                 message = (
                     f"Some of your characters are not registered to {__title__} "
                     "and you have therefore lost access to services. "
