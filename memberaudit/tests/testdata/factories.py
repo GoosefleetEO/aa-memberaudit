@@ -7,6 +7,9 @@ from typing import Iterable
 from django.contrib.auth.models import Group
 from django.utils.timezone import now
 
+from allianceauth.authentication.models import State
+from app_utils.testing import create_authgroup
+
 from ...models import (
     Character,
     CharacterContract,
@@ -112,6 +115,12 @@ def create_character_contract_item(
     }
     params.update(kwargs)
     return CharacterContractItem.objects.create(**params)
+
+
+def create_compliance_group(states: Iterable[State] = None, **kwargs) -> Group:
+    group = create_authgroup(states, internal=True, **kwargs)
+    create_compliance_group_designation(group)
+    return group
 
 
 def create_compliance_group_designation(

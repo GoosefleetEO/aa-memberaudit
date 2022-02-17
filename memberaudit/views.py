@@ -53,6 +53,7 @@ from .models import (
     CharacterContract,
     CharacterContractItem,
     CharacterMail,
+    ComplianceGroupDesignation,
     General,
     Location,
     SkillSet,
@@ -230,7 +231,8 @@ def add_character(request, token) -> HttpResponse:
                 character.character_ownership.character,
             ),
         )
-        tasks.update_compliancegroups_for_user.delay(request.user.pk)
+        if ComplianceGroupDesignation.objects.exists():
+            tasks.update_compliancegroups_for_user.delay(request.user.pk)
     return redirect("memberaudit:launcher")
 
 
@@ -252,7 +254,8 @@ def remove_character(request, character_pk: int) -> HttpResponse:
                 "Removed character <strong>{}</strong> as requested.", character_name
             ),
         )
-        tasks.update_compliancegroups_for_user.delay(request.user.pk)
+        if ComplianceGroupDesignation.objects.exists():
+            tasks.update_compliancegroups_for_user.delay(request.user.pk)
     else:
         return HttpResponseForbidden(
             f"No permission to remove Character with pk {character_pk}"

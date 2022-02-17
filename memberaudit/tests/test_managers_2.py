@@ -10,7 +10,10 @@ from app_utils.testing import (
 )
 
 from ..models import ComplianceGroupDesignation, General
-from .testdata.factories import create_compliance_group_designation
+from .testdata.factories import (
+    create_compliance_group,
+    create_compliance_group_designation,
+)
 from .testdata.load_entities import load_entities
 from .utils import add_auth_character_to_user, add_memberaudit_character_to_user
 
@@ -103,22 +106,20 @@ class TestComplianceGroupDesignation(TestCase):
 
     def test_should_remove_deleted_compliance_group_from_users(self):
         # given
-        group = create_authgroup(internal=True)
-        create_compliance_group_designation(group=group)
+        compliance_group = create_compliance_group()
         user_compliant, _ = create_user_from_evecharacter(
             1001, permissions=["memberaudit.basic_access"]
         )
         add_memberaudit_character_to_user(user_compliant, 1001)
-        user_compliant.groups.add(group)
+        user_compliant.groups.add(compliance_group)
         # when
-        group.compliancegroupdesignation.delete()
+        compliance_group.compliancegroupdesignation.delete()
         # then
-        self.assertNotIn(group, user_compliant.groups.all())
+        self.assertNotIn(compliance_group, user_compliant.groups.all())
 
     def test_should_add_group_to_compliant_user_and_notify(self):
         # given
-        compliance_group = create_authgroup(internal=True)
-        create_compliance_group_designation(group=compliance_group)
+        compliance_group = create_compliance_group()
         other_group = create_authgroup(internal=True)
         user, _ = create_user_from_evecharacter(
             1001, permissions=["memberaudit.basic_access"]
@@ -137,8 +138,7 @@ class TestComplianceGroupDesignation(TestCase):
         # given
         member_corporation = EveCorporationInfo.objects.get(corporation_id=2001)
         my_state = create_state(member_corporations=[member_corporation], priority=200)
-        compliance_group = create_authgroup(internal=True, states=[my_state])
-        create_compliance_group_designation(group=compliance_group)
+        compliance_group = create_compliance_group(states=[my_state])
         user, _ = create_user_from_evecharacter(
             1001, permissions=["memberaudit.basic_access"]
         )
@@ -151,8 +151,7 @@ class TestComplianceGroupDesignation(TestCase):
     def test_should_not_add_state_group_to_compliant_user_when_state_not_matches(self):
         # given
         my_state = create_state(priority=200)
-        compliance_group = create_authgroup(internal=True, states=[my_state])
-        create_compliance_group_designation(group=compliance_group)
+        compliance_group = create_compliance_group(states=[my_state])
         user, _ = create_user_from_evecharacter(
             1001, permissions=["memberaudit.basic_access"]
         )
@@ -164,10 +163,8 @@ class TestComplianceGroupDesignation(TestCase):
 
     def test_should_add_multiple_groups_to_compliant_user(self):
         # given
-        compliance_group_1 = create_authgroup(internal=True)
-        create_compliance_group_designation(group=compliance_group_1)
-        compliance_group_2 = create_authgroup(internal=True)
-        create_compliance_group_designation(group=compliance_group_2)
+        compliance_group_1 = create_compliance_group()
+        compliance_group_2 = create_compliance_group()
         user, _ = create_user_from_evecharacter(
             1001, permissions=["memberaudit.basic_access"]
         )
@@ -180,8 +177,7 @@ class TestComplianceGroupDesignation(TestCase):
 
     def test_should_remove_group_from_non_compliant_user_and_notify(self):
         # given
-        compliance_group = create_authgroup(internal=True)
-        create_compliance_group_designation(group=compliance_group)
+        compliance_group = create_compliance_group()
         other_group = create_authgroup(internal=True)
         user, _ = create_user_from_evecharacter(
             1001, permissions=["memberaudit.basic_access"]
@@ -198,10 +194,8 @@ class TestComplianceGroupDesignation(TestCase):
 
     def test_should_remove_multiple_groups_from_non_compliant_user(self):
         # given
-        compliance_group_1 = create_authgroup(internal=True)
-        create_compliance_group_designation(group=compliance_group_1)
-        compliance_group_2 = create_authgroup(internal=True)
-        create_compliance_group_designation(group=compliance_group_2)
+        compliance_group_1 = create_compliance_group()
+        compliance_group_2 = create_compliance_group()
         other_group = create_authgroup(internal=True)
         user, _ = create_user_from_evecharacter(
             1001, permissions=["memberaudit.basic_access"]
@@ -218,8 +212,7 @@ class TestComplianceGroupDesignation(TestCase):
         self,
     ):
         # given
-        compliance_group = create_authgroup(internal=True)
-        create_compliance_group_designation(group=compliance_group)
+        compliance_group = create_compliance_group()
         user, _ = create_user_from_evecharacter(
             1001, permissions=["memberaudit.basic_access"]
         )
@@ -233,8 +226,7 @@ class TestComplianceGroupDesignation(TestCase):
 
     def test_user_without_basic_permission_is_not_compliant(self):
         # given
-        compliance_group = create_authgroup(internal=True)
-        create_compliance_group_designation(group=compliance_group)
+        compliance_group = create_compliance_group()
         user, _ = create_user_from_evecharacter(1001)
         add_memberaudit_character_to_user(user, 1001)
         user.groups.add(compliance_group)
@@ -245,10 +237,8 @@ class TestComplianceGroupDesignation(TestCase):
 
     def test_should_add_missing_groups_if_user_remains_compliant(self):
         # given
-        compliance_group_1 = create_authgroup(internal=True)
-        create_compliance_group_designation(group=compliance_group_1)
-        compliance_group_2 = create_authgroup(internal=True)
-        create_compliance_group_designation(group=compliance_group_2)
+        compliance_group_1 = create_compliance_group()
+        compliance_group_2 = create_compliance_group()
         other_group = create_authgroup(internal=True)
         user, _ = create_user_from_evecharacter(
             1001, permissions=["memberaudit.basic_access"]
@@ -262,6 +252,3 @@ class TestComplianceGroupDesignation(TestCase):
         self.assertIn(compliance_group_2, user.groups.all())
         self.assertNotIn(other_group, user.groups.all())
         self.assertEqual(user.notification_set.count(), 0)
-
-    def test_should_remove_oudated_groups_if_user_remains_compliant(self):
-        ...

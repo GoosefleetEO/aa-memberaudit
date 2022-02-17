@@ -41,6 +41,7 @@ from ..views import (
 from .testdata.factories import (
     create_character_mail,
     create_character_mail_label,
+    create_compliance_group,
     create_mail_entity_from_eve_entity,
     create_mailing_list,
 )
@@ -206,6 +207,7 @@ class TestAddCharacter(TestCase):
         super().setUpClass()
         cls.factory = RequestFactory()
         load_entities()
+        create_compliance_group()
 
     def _add_character(self, user, token):
         request = self.factory.get(reverse("memberaudit:add_character"))
@@ -270,6 +272,7 @@ class TestRemoveCharacter(TestCase):
         super().setUpClass()
         cls.factory = RequestFactory()
         load_entities()
+        create_compliance_group()
 
     def _remove_character(self, user, character_pk):
         request = self.factory.get(
