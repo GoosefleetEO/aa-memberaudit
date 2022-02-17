@@ -27,8 +27,8 @@ class ComplianceGroupDesignationForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         try:
             self.fields["group"].queryset = Group.objects.filter(
-                authgroup__internal=True
-            )
+                authgroup__internal=True, compliancegroupdesignation__isnull=True
+            ).order_by("name")
         except KeyError:
             pass
 
