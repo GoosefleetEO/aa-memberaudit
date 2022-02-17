@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- Compliance Groups: You can now ensure that only fully compliant users have certain permissions, e.g. to make access to services dependent on compliance
+- Compliance Groups: You can now ensure that only fully compliant users have access to specific services. For details please see the respective section in the user manual in the README.
 
 ## [1.9.4] - 2022-03-02
 

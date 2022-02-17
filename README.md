@@ -392,29 +392,28 @@ Start the process of force updating all characters from ESI.
 
 ### Compliance Groups
 
-The compliance group feature enables you to prevent users from accessing services who have not yet added all their characters to Member Audit. This can be an effective incentive for users to add all their characters.
+The compliance group feature enables you to prevent users who are not fully compliant - i.e. who have not yet added all their characters to Member Audit - from getting access to a service. This can be an effective incentive for users to add all their characters.
 
-Compliance groups are designated Alliance Auth groups. Once enabled they are automatically assigned to compliant users and revoked from non compliant users.
+Compliance groups are designated Alliance Auth groups. Users are automatically assigned or removed from these groups depending on their current compliance status.
+
+To require compliance for accessing a service, just add the respective permissions to the compliance groups.
+
+You can define multiple compliance groups. This can be useful if you want to configure individual service access for each state, e.g. by having a compliance group for each state.
+
+The feature is enabled as soone as at least one compliance group exists. Once enabled, a user will be notified when he gains are looses his compliance status. To disable the feature you can either delete all compliance group designations or the compliance groups themselves.
+
+To create a compliance group please follow these steps:
+
+1. Create a new internal group under Group Management / Groups
+1. Add the permissions you want to grant to compliant users only
+1. Designate that group as compliance group by adding it under Member Audit / Compliance Group Designations
 
 A user is compliant when the following two criterias are both true:
 
 - User has access to Member Audit (i.e. has the access permission)
 - User has registered all his characters to Member Audit
 
-The feature is enabled when at least one group is designated as compliance group. Once enabled a user will be informed through a notification when he gains are looses his compliance status.
-
-Service access can be linked to compliance by assigning the permissions to the compliance groups.
-
-You can define multiple compliance groups. This can be useful if you want to use this feature for multiple states, which different permissions settings for each state.
-
-To create a compliance group and enable this feature you need to do the following:
-
-1. Create a new internal group under Group Management / Groups and assign it the permissions you want to grant to compliant users.
-2. Define that new group as compliance group by adding it to Member Audit / Compliance Groups
-
 >**Note**:<br>Only internal groups can be enabled as compliance groups.
-
-If you want to disable the complance groups feature just remove any groups from Member Audit / Compliance Groups or you can also delete the groups themselves.
 
 >**Important**:<br>Once you have enabled a group as compliance group any user assignments will be handeled autoamtically by Member Audit and Alliance Auth.
 
