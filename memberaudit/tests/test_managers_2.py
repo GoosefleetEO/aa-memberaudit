@@ -9,15 +9,15 @@ from app_utils.testing import (
     create_user_from_evecharacter,
 )
 
-from ..models import ComplianceGroup, General
-from .testdata.factories import create_compliance_group
+from ..models import ComplianceGroupDesignation, General
+from .testdata.factories import create_compliance_group_designation
 from .testdata.load_entities import load_entities
 from .utils import add_auth_character_to_user, add_memberaudit_character_to_user
 
 MANAGER_PATH = "memberaudit.managers.general"
 
 
-class TestComplianceGroup(TestCase):
+class TestComplianceGroupDesignation(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
@@ -27,7 +27,7 @@ class TestComplianceGroup(TestCase):
         # given
         group = create_authgroup(internal=False)
         # when
-        create_compliance_group(group)
+        create_compliance_group_designation(group)
         # then
         group.refresh_from_db()
         self.assertTrue(group.authgroup.internal)
@@ -65,7 +65,7 @@ class TestComplianceGroup(TestCase):
             1002, permissions=["memberaudit.basic_access"]
         )
         # when
-        create_compliance_group(group=compliance_group)
+        create_compliance_group_designation(group=compliance_group)
         # then
         self.assertIn(compliance_group, user_compliant.groups.all())
         self.assertNotIn(compliance_group, user_non_compliant.groups.all())
@@ -82,7 +82,7 @@ class TestComplianceGroup(TestCase):
         )
         add_memberaudit_character_to_user(user_compliant, 1001)
         # when
-        create_compliance_group(group=compliance_group)
+        create_compliance_group_designation(group=compliance_group)
         # then
         self.assertIn(compliance_group, user_compliant.groups.all())
 
@@ -97,35 +97,35 @@ class TestComplianceGroup(TestCase):
         )
         add_memberaudit_character_to_user(user_compliant, 1001)
         # when
-        create_compliance_group(group=compliance_group)
+        create_compliance_group_designation(group=compliance_group)
         # then
         self.assertNotIn(compliance_group, user_compliant.groups.all())
 
     def test_should_remove_deleted_compliance_group_from_users(self):
         # given
         group = create_authgroup(internal=True)
-        create_compliance_group(group=group)
+        create_compliance_group_designation(group=group)
         user_compliant, _ = create_user_from_evecharacter(
             1001, permissions=["memberaudit.basic_access"]
         )
         add_memberaudit_character_to_user(user_compliant, 1001)
         user_compliant.groups.add(group)
         # when
-        group.compliancegroup.delete()
+        group.compliancegroupdesignation.delete()
         # then
         self.assertNotIn(group, user_compliant.groups.all())
 
     def test_should_add_group_to_compliant_user_and_notify(self):
         # given
         compliance_group = create_authgroup(internal=True)
-        create_compliance_group(group=compliance_group)
+        create_compliance_group_designation(group=compliance_group)
         other_group = create_authgroup(internal=True)
         user, _ = create_user_from_evecharacter(
             1001, permissions=["memberaudit.basic_access"]
         )
         add_memberaudit_character_to_user(user, 1001)
         # when
-        ComplianceGroup.objects.update_user(user)
+        ComplianceGroupDesignation.objects.update_user(user)
         # then
         self.assertIn(compliance_group, user.groups.all())
         self.assertNotIn(other_group, user.groups.all())
@@ -138,13 +138,13 @@ class TestComplianceGroup(TestCase):
         member_corporation = EveCorporationInfo.objects.get(corporation_id=2001)
         my_state = create_state(member_corporations=[member_corporation], priority=200)
         compliance_group = create_authgroup(internal=True, states=[my_state])
-        create_compliance_group(group=compliance_group)
+        create_compliance_group_designation(group=compliance_group)
         user, _ = create_user_from_evecharacter(
             1001, permissions=["memberaudit.basic_access"]
         )
         add_memberaudit_character_to_user(user, 1001)
         # when
-        ComplianceGroup.objects.update_user(user)
+        ComplianceGroupDesignation.objects.update_user(user)
         # then
         self.assertIn(compliance_group, user.groups.all())
 
@@ -152,28 +152,28 @@ class TestComplianceGroup(TestCase):
         # given
         my_state = create_state(priority=200)
         compliance_group = create_authgroup(internal=True, states=[my_state])
-        create_compliance_group(group=compliance_group)
+        create_compliance_group_designation(group=compliance_group)
         user, _ = create_user_from_evecharacter(
             1001, permissions=["memberaudit.basic_access"]
         )
         add_memberaudit_character_to_user(user, 1001)
         # when
-        ComplianceGroup.objects.update_user(user)
+        ComplianceGroupDesignation.objects.update_user(user)
         # then
         self.assertNotIn(compliance_group, user.groups.all())
 
     def test_should_add_multiple_groups_to_compliant_user(self):
         # given
         compliance_group_1 = create_authgroup(internal=True)
-        create_compliance_group(group=compliance_group_1)
+        create_compliance_group_designation(group=compliance_group_1)
         compliance_group_2 = create_authgroup(internal=True)
-        create_compliance_group(group=compliance_group_2)
+        create_compliance_group_designation(group=compliance_group_2)
         user, _ = create_user_from_evecharacter(
             1001, permissions=["memberaudit.basic_access"]
         )
         add_memberaudit_character_to_user(user, 1001)
         # when
-        ComplianceGroup.objects.update_user(user)
+        ComplianceGroupDesignation.objects.update_user(user)
         # then
         self.assertIn(compliance_group_1, user.groups.all())
         self.assertIn(compliance_group_2, user.groups.all())
@@ -181,14 +181,14 @@ class TestComplianceGroup(TestCase):
     def test_should_remove_group_from_non_compliant_user_and_notify(self):
         # given
         compliance_group = create_authgroup(internal=True)
-        create_compliance_group(group=compliance_group)
+        create_compliance_group_designation(group=compliance_group)
         other_group = create_authgroup(internal=True)
         user, _ = create_user_from_evecharacter(
             1001, permissions=["memberaudit.basic_access"]
         )
         user.groups.add(compliance_group, other_group)
         # when
-        ComplianceGroup.objects.update_user(user)
+        ComplianceGroupDesignation.objects.update_user(user)
         # then
         self.assertNotIn(compliance_group, user.groups.all())
         self.assertIn(other_group, user.groups.all())
@@ -199,16 +199,16 @@ class TestComplianceGroup(TestCase):
     def test_should_remove_multiple_groups_from_non_compliant_user(self):
         # given
         compliance_group_1 = create_authgroup(internal=True)
-        create_compliance_group(group=compliance_group_1)
+        create_compliance_group_designation(group=compliance_group_1)
         compliance_group_2 = create_authgroup(internal=True)
-        create_compliance_group(group=compliance_group_2)
+        create_compliance_group_designation(group=compliance_group_2)
         other_group = create_authgroup(internal=True)
         user, _ = create_user_from_evecharacter(
             1001, permissions=["memberaudit.basic_access"]
         )
         user.groups.add(compliance_group_1, compliance_group_2, other_group)
         # when
-        ComplianceGroup.objects.update_user(user)
+        ComplianceGroupDesignation.objects.update_user(user)
         # then
         self.assertNotIn(compliance_group_1, user.groups.all())
         self.assertNotIn(compliance_group_2, user.groups.all())
@@ -219,7 +219,7 @@ class TestComplianceGroup(TestCase):
     ):
         # given
         compliance_group = create_authgroup(internal=True)
-        create_compliance_group(group=compliance_group)
+        create_compliance_group_designation(group=compliance_group)
         user, _ = create_user_from_evecharacter(
             1001, permissions=["memberaudit.basic_access"]
         )
@@ -227,28 +227,28 @@ class TestComplianceGroup(TestCase):
         add_auth_character_to_user(user, 1002)
         user.groups.add(compliance_group)
         # when
-        ComplianceGroup.objects.update_user(user)
+        ComplianceGroupDesignation.objects.update_user(user)
         # then
         self.assertNotIn(compliance_group, user.groups.all())
 
     def test_user_without_basic_permission_is_not_compliant(self):
         # given
         compliance_group = create_authgroup(internal=True)
-        create_compliance_group(group=compliance_group)
+        create_compliance_group_designation(group=compliance_group)
         user, _ = create_user_from_evecharacter(1001)
         add_memberaudit_character_to_user(user, 1001)
         user.groups.add(compliance_group)
         # when
-        ComplianceGroup.objects.update_user(user)
+        ComplianceGroupDesignation.objects.update_user(user)
         # then
         self.assertNotIn(compliance_group, user.groups.all())
 
     def test_should_add_missing_groups_if_user_remains_compliant(self):
         # given
         compliance_group_1 = create_authgroup(internal=True)
-        create_compliance_group(group=compliance_group_1)
+        create_compliance_group_designation(group=compliance_group_1)
         compliance_group_2 = create_authgroup(internal=True)
-        create_compliance_group(group=compliance_group_2)
+        create_compliance_group_designation(group=compliance_group_2)
         other_group = create_authgroup(internal=True)
         user, _ = create_user_from_evecharacter(
             1001, permissions=["memberaudit.basic_access"]
@@ -256,7 +256,7 @@ class TestComplianceGroup(TestCase):
         add_memberaudit_character_to_user(user, 1001)
         user.groups.add(compliance_group_1)
         # when
-        ComplianceGroup.objects.update_user(user)
+        ComplianceGroupDesignation.objects.update_user(user)
         # then
         self.assertIn(compliance_group_1, user.groups.all())
         self.assertIn(compliance_group_2, user.groups.all())

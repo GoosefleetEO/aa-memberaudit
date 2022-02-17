@@ -12,7 +12,7 @@ from .constants import EveCategoryId
 from .models import (
     Character,
     CharacterUpdateStatus,
-    ComplianceGroup,
+    ComplianceGroupDesignation,
     EveShipType,
     EveSkillType,
     Location,
@@ -22,7 +22,7 @@ from .models import (
 )
 
 
-class ComplianceGroupForm(forms.ModelForm):
+class ComplianceGroupDesignationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         try:
@@ -33,9 +33,9 @@ class ComplianceGroupForm(forms.ModelForm):
             pass
 
 
-@admin.register(ComplianceGroup)
-class ComplianceGroupAdmin(admin.ModelAdmin):
-    form = ComplianceGroupForm
+@admin.register(ComplianceGroupDesignation)
+class ComplianceGroupDesignationAdmin(admin.ModelAdmin):
+    form = ComplianceGroupDesignationForm
     ordering = ("group__name",)
     list_display = ("_group_name", "_states")
     list_display_links = None

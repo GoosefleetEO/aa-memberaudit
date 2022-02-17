@@ -836,13 +836,13 @@ class TestExportData(TestCase):
         self.assertEqual(kwargs["topic"], "abc")
 
 
-class TestUpdateComplianceGroups(TestCase):
+class TestUpdateComplianceGroupDesignations(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
         load_entities()
 
-    @patch(TASKS_PATH + ".ComplianceGroup.objects.update_user")
+    @patch(TASKS_PATH + ".ComplianceGroupDesignation.objects.update_user")
     def test_should_update_for_user(self, mock_update_user):
         # given
         user, _ = create_user_from_evecharacter(

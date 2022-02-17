@@ -1,6 +1,6 @@
 from .character import Character, CharacterUpdateStatus  # noqa: F401
 from .general import (  # noqa: F401
-    ComplianceGroup,
+    ComplianceGroupDesignation,
     EveShipType,
     EveSkillType,
     General,

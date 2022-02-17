@@ -16,7 +16,7 @@ from app_utils.logging import LoggerAddTag
 
 from .. import __title__
 from ..managers.general import (
-    ComplianceGroupManager,
+    ComplianceGroupDesignationManager,
     EveShipTypeManger,
     EveSkillTypeManger,
     LocationManager,
@@ -86,15 +86,15 @@ class General(models.Model):
         )
 
 
-class ComplianceGroup(models.Model):
-    """A marker defining a group as compliance group.
+class ComplianceGroupDesignation(models.Model):
+    """A designation defining a group as compliance group.
 
     Note that compliance groups are fully managed by the app.
     """
 
     group = models.OneToOneField(Group, on_delete=models.CASCADE)
 
-    objects = ComplianceGroupManager()
+    objects = ComplianceGroupDesignationManager()
 
     def __str__(self) -> str:
         return str(self.group)

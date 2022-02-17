@@ -26,16 +26,18 @@ from ..providers import esi
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
 
-class ComplianceGroupManager(models.Manager):
+class ComplianceGroupDesignationManager(models.Manager):
     def groups(self) -> models.QuerySet:
         """Groups which are compliance groups."""
-        return Group.objects.filter(compliancegroup__isnull=False)
+        return Group.objects.filter(compliancegroupdesignation__isnull=False)
 
     def update_user(self, user: User):
         """Update compliance groups for user."""
         from ..models import General
 
-        was_compliant = user.groups.filter(compliancegroup__isnull=False).exists()
+        was_compliant = user.groups.filter(
+            compliancegroupdesignation__isnull=False
+        ).exists()
         is_compliant = General.compliant_users().filter(pk=user.pk).exists()
         if is_compliant:
             groups = list(filter_groups_available_to_user(self.groups(), user))

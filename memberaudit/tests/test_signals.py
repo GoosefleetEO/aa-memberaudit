@@ -2,7 +2,7 @@ from django.test import TestCase
 
 from app_utils.testing import create_authgroup
 
-from .testdata.factories import create_compliance_group
+from .testdata.factories import create_compliance_group_designation
 from .testdata.load_entities import load_entities
 
 
@@ -15,7 +15,7 @@ class TestSignals(TestCase):
     def test_should_prevent_making_compliance_group_non_internal(self):
         # given
         group = create_authgroup()
-        create_compliance_group(group)
+        create_compliance_group_designation(group)
         # when
         group.authgroup.internal = False
         group.authgroup.save()

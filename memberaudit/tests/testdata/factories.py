@@ -15,7 +15,7 @@ from ...models import (
     CharacterMailLabel,
     CharacterUpdateStatus,
     CharacterWalletJournalEntry,
-    ComplianceGroup,
+    ComplianceGroupDesignation,
     MailEntity,
 )
 
@@ -114,10 +114,12 @@ def create_character_contract_item(
     return CharacterContractItem.objects.create(**params)
 
 
-def create_compliance_group(group: Group, **kwargs) -> ComplianceGroup:
+def create_compliance_group_designation(
+    group: Group, **kwargs
+) -> ComplianceGroupDesignation:
     params = {"group": group}
     params.update(kwargs)
-    return ComplianceGroup.objects.create(**params)
+    return ComplianceGroupDesignation.objects.create(**params)
 
 
 def create_mail_entity_from_eve_entity(id: int) -> MailEntity:

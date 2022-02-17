@@ -33,7 +33,7 @@ from .models import (
     CharacterContract,
     CharacterMail,
     CharacterUpdateStatus,
-    ComplianceGroup,
+    ComplianceGroupDesignation,
     Location,
     MailEntity,
 )
@@ -1088,7 +1088,7 @@ def _export_data_inform_user(user_pk: int, topic: str = None):
 @shared_task(**TASK_DEFAULT_KWARGS)
 def update_compliancegroups_for_all():
     """Update compliancegroups for all users."""
-    if ComplianceGroup.objects.exists():
+    if ComplianceGroupDesignation.objects.exists():
         for user in User.objects.all():
             update_compliancegroups_for_user.apply_async(
                 kwargs={"user_pk": user.pk}, priority=DEFAULT_TASK_PRIORITY
@@ -1099,4 +1099,4 @@ def update_compliancegroups_for_all():
 def update_compliancegroups_for_user(user_pk: int):
     """Update compliancegroups for user."""
     user = User.objects.get(pk=user_pk)
-    ComplianceGroup.objects.update_user(user)
+    ComplianceGroupDesignation.objects.update_user(user)

@@ -9,7 +9,7 @@ from allianceauth.groupmanagement.models import AuthGroup
 def ensure_compliance_groups_stay_internal(instance, **kwargs):
     """Prevent changing a compliance group to non-internal."""
     try:
-        instance.group.compliancegroup
+        instance.group.compliancegroupdesignation
     except ObjectDoesNotExist:
         pass
     else:
