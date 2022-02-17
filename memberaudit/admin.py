@@ -25,16 +25,36 @@ from .models import (
 class ComplianceGroupForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["group"].queryset = Group.objects.filter(
-            authgroup__internal=True, compliancegroup__isnull=True
-        )
+        try:
+            self.fields["group"].queryset = Group.objects.filter(
+                authgroup__internal=True
+            )
+        except KeyError:
+            pass
 
 
 @admin.register(ComplianceGroup)
 class ComplianceGroupAdmin(admin.ModelAdmin):
     form = ComplianceGroupForm
     ordering = ("group__name",)
-    list_display = ("group",)
+    list_display = ("_group_name", "_states")
+    list_display_links = None
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related("group").prefetch_related("group__authgroup__states")
+
+    @admin.display(ordering="group__name")
+    def _group_name(self, obj) -> str:
+        return obj.group.name
+
+    @admin.display(description="Restricted to states")
+    def _states(self, obj):
+        states = [state.name for state in obj.group.authgroup.states.all()]
+        return sorted(states) if states else "-"
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 class EveUniverseEntityModelAdmin(admin.ModelAdmin):

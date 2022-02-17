@@ -392,12 +392,16 @@ Start the process of force updating all characters from ESI.
 
 ### Compliance Groups
 
-The compliance group feature enables you to link service access with having all characters added to Member Audit. Compliance groups are special Alliance Auth groups, which are automatically assigned to compliant users and revoked from non compliant users. A user is compliant when the following two criteria are both true:
+The compliance group feature enables you to prevent users from accessing services who have not yet added all their characters to Member Audit. This can be an effective incentive for users to add all their characters.
+
+Compliance groups are designated Alliance Auth groups. Once enabled they are automatically assigned to compliant users and revoked from non compliant users.
+
+A user is compliant when the following two criterias are both true:
 
 - User has access to Member Audit (i.e. has the access permission)
 - User has registered all his characters to Member Audit
 
-Once this feature is enabled a user will be informed through a notification once he gains are looses his compliance status. The feature is enabled as soon as at least one group is defined as compliance group.
+The feature is enabled when at least one group is designated as compliance group. Once enabled a user will be informed through a notification when he gains are looses his compliance status.
 
 Service access can be linked to compliance by assigning the permissions to the compliance groups.
 
