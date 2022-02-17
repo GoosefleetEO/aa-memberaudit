@@ -42,7 +42,7 @@ class ComplianceGroupDesignationManager(models.Manager):
         if is_compliant:
             groups = list(filter_groups_available_to_user(self.groups(), user))
             user.groups.add(*groups)
-            if not was_compliant:
+            if groups and not was_compliant:
                 logger.info("%s: User is now compliant", user)
                 message = (
                     f"Thank you for registering all your characters to {__title__}. "

@@ -160,6 +160,21 @@ class TestComplianceGroupDesignation(TestCase):
         ComplianceGroupDesignation.objects.update_user(user)
         # then
         self.assertNotIn(compliance_group, user.groups.all())
+        self.assertFalse(user.notification_set.exists())
+
+    # def test_should_not_notify_if_compliant_but_no_groups_added(self):
+    #     # given
+    #     member_corporation = EveCorporationInfo.objects.get(corporation_id=2001)
+    #     my_state = create_state(member_corporations=[member_corporation], priority=200)
+    #     compliance_group = create_compliance_group(states=[my_state])
+    #     user, _ = create_user_from_evecharacter(
+    #         1001, permissions=["memberaudit.basic_access"]
+    #     )
+    #     add_memberaudit_character_to_user(user, 1001)
+    #     # when
+    #     ComplianceGroupDesignation.objects.update_user(user)
+    #     # then
+    #     self.assertIn(compliance_group, user.groups.all())
 
     def test_should_add_multiple_groups_to_compliant_user(self):
         # given
