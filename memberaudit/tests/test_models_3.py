@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from eveuniverse.models import EveSolarSystem
 
 from allianceauth.eveonline.models import EveCorporationInfo
@@ -349,6 +349,7 @@ class TestMailEntity(NoSocketsTestCase):
         self.assertEqual(obj.external_url(), "")
 
 
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class TestGeneralOther(NoSocketsTestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -526,7 +527,8 @@ class TestLocation(NoSocketsTestCase):
         self.assertEqual("", obj_2.solar_system_url)
 
 
-class TestComplianceGroupDesignation(TestCase):
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+class TestComplianceGroupDesignation(NoSocketsTestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()

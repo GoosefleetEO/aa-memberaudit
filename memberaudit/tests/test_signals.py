@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from app_utils.testing import create_authgroup
 
@@ -6,6 +6,7 @@ from .testdata.factories import create_compliance_group_designation
 from .testdata.load_entities import load_entities
 
 
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class TestSignals(TestCase):
     @classmethod
     def setUpClass(cls) -> None:

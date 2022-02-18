@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from django.contrib.auth.models import Group
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from eveuniverse.models import EveEntity, EveType
 
@@ -201,6 +201,7 @@ class TestMailData(TestCase):
 
 @patch(MODULE_PATH + ".messages")
 @patch(MODULE_PATH + ".tasks")
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class TestAddCharacter(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -266,6 +267,7 @@ class TestAddCharacter(TestCase):
 
 @patch(MODULE_PATH + ".messages")
 @patch(MODULE_PATH + ".tasks")
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class TestRemoveCharacter(TestCase):
     @classmethod
     def setUpClass(cls) -> None:

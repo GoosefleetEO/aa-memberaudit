@@ -1,8 +1,9 @@
-from django.test import TestCase
+from django.test import override_settings
 
 from allianceauth.eveonline.models import EveCorporationInfo
 from allianceauth.notifications.models import Notification
 from app_utils.testing import (
+    NoSocketsTestCase,
     create_authgroup,
     create_state,
     create_user_from_evecharacter,
@@ -16,7 +17,8 @@ from .utils import add_auth_character_to_user, add_memberaudit_character_to_user
 MANAGER_PATH = "memberaudit.managers.general"
 
 
-class TestComplianceGroupDesignation(TestCase):
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+class TestComplianceGroupDesignation(NoSocketsTestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()

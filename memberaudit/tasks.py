@@ -5,7 +5,7 @@ from typing import Optional
 from bravado.exception import HTTPBadGateway, HTTPGatewayTimeout, HTTPServiceUnavailable
 from celery import chain, shared_task
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
 from django.db import transaction
 from django.utils.timezone import now
 from esi.models import Token
@@ -17,7 +17,7 @@ from allianceauth.services.tasks import QueueOnce
 from app_utils.esi import EsiErrorLimitExceeded, EsiOffline, fetch_esi_status
 from app_utils.logging import LoggerAddTag
 
-from . import __title__
+from . import __title__, helpers
 from .app_settings import (
     MEMBERAUDIT_BULK_METHODS_BATCH_SIZE,
     MEMBERAUDIT_LOG_UPDATE_STATS,
@@ -34,6 +34,7 @@ from .models import (
     CharacterMail,
     CharacterUpdateStatus,
     ComplianceGroupDesignation,
+    General,
     Location,
     MailEntity,
 )
@@ -1103,5 +1104,14 @@ def update_compliancegroups_for_user(user_pk: int):
 
 
 @shared_task(**TASK_DEFAULT_KWARGS)
-def add_compliant_users_to_group(user_pk: int):
-    ...
+def add_compliant_users_to_group(group_pk: int):
+    """Add compliant users to given group."""
+    group = Group.objects.get(pk=group_pk)
+    General.add_compliant_users_to_group(group)
+
+
+@shared_task(**TASK_DEFAULT_KWARGS)
+def clear_users_from_group(group_pk: int):
+    """Clear all users from given group."""
+    group = Group.objects.get(pk=group_pk)
+    helpers.clear_users_from_group(group)

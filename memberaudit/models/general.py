@@ -15,7 +15,6 @@ from app_utils.django import users_with_permission
 from app_utils.logging import LoggerAddTag
 
 from .. import __title__
-from ..helpers import clear_users_from_group
 from ..managers.general import (
     ComplianceGroupDesignationManager,
     EveShipTypeManger,
@@ -87,9 +86,9 @@ class General(models.Model):
         )
 
     @classmethod
-    def add_compliant_users_to_group(cls, group):
-        """Add this compliance group to compliant users (if any)"""
-        compliant_users_qs = cls.compliant_users()
+    def add_compliant_users_to_group(cls, group: Group):
+        """Add group to all compliant users, which are not yet a member."""
+        compliant_users_qs = cls.compliant_users().exclude(groups=group)
         if group.authgroup.states.exists():
             compliant_users_qs = compliant_users_qs.filter(
                 profile__state__in=list(group.authgroup.states.all())
@@ -113,19 +112,31 @@ class ComplianceGroupDesignation(models.Model):
         return str(self.group)
 
     def delete(self, *args, **kwargs):
-        clear_users_from_group(self.group)
+        self._clear_users_from_designated_group()
         super().delete(*args, **kwargs)
+
+    def _clear_users_from_designated_group(self):
+        """Clear all users from designated group."""
+        from ..tasks import clear_users_from_group
+
+        clear_users_from_group.delay(self.group.pk)
 
     def save(self, *args, **kwargs) -> None:
         self._ensure_internal_group()
         super().save(*args, **kwargs)
-        General.add_compliant_users_to_group(self.group)
+        self._add_compliant_users()
 
     def _ensure_internal_group(self):
         """Ensure the related group is an internal group."""
         if not self.group.authgroup.internal:
             self.group.authgroup.internal = True
             self.group.authgroup.save()
+
+    def _add_compliant_users(self):
+        """Add all compliant users to the designated group."""
+        from ..tasks import add_compliant_users_to_group
+
+        add_compliant_users_to_group.delay(self.group.pk)
 
 
 class Location(models.Model):
