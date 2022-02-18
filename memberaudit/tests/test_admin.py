@@ -1,15 +1,23 @@
 from unittest.mock import patch
 
 from django.contrib.admin.sites import AdminSite
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
-from ..admin import CharacterAdmin, SkillSetAdmin, SkillSetShipTypeFilter
-from ..models import Character, EveShipType, SkillSet
-from .testdata.factories import create_character_update_status
+from app_utils.testing import create_user_from_evecharacter
+
+from ..admin import (
+    CharacterAdmin,
+    ComplianceGroupDesignationAdmin,
+    SkillSetAdmin,
+    SkillSetShipTypeFilter,
+)
+from ..models import Character, ComplianceGroupDesignation, EveShipType, SkillSet
+from .testdata.factories import create_character_update_status, create_compliance_group
 from .testdata.load_entities import load_entities
 from .testdata.load_eveuniverse import load_eveuniverse
 from .utils import (
+    add_memberaudit_character_to_user,
     create_memberaudit_character,
     create_user_from_evecharacter_with_access,
 )
@@ -24,6 +32,34 @@ class MockRequest(object):
 
     def get_full_path(self):
         return "/dummy-full-path"
+
+
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+class TestComplianceGroupDesignationAdmin(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.modeladmin = ComplianceGroupDesignationAdmin(
+            model=ComplianceGroupDesignation, admin_site=AdminSite()
+        )
+        load_entities()
+
+    def test_should_remove_deleted_compliance_group_from_users(self):
+        # given
+        compliance_group = create_compliance_group()
+        obj = compliance_group.compliancegroupdesignation
+        user_compliant, _ = create_user_from_evecharacter(
+            1001, permissions=["memberaudit.basic_access"]
+        )
+        add_memberaudit_character_to_user(user_compliant, 1001)
+        user_compliant.groups.add(compliance_group)
+        request = MockRequest(user=user_compliant)
+        queryset = ComplianceGroupDesignation.objects.filter(pk=obj.pk)
+        # when
+        self.modeladmin.delete_queryset(request, queryset)
+        # then
+        self.assertFalse(ComplianceGroupDesignation.objects.filter(pk=obj.pk).exists())
+        self.assertNotIn(compliance_group, user_compliant.groups.all())
 
 
 class TestCharacterAdmin(TestCase):

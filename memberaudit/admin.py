@@ -44,6 +44,11 @@ class ComplianceGroupDesignationAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         return qs.select_related("group").prefetch_related("group__authgroup__states")
 
+    def delete_queryset(self, request, queryset):
+        """Overwriting default method to ensure delete() is called for every object."""
+        for obj in queryset:
+            obj.delete()
+
     @admin.display(ordering="group__name")
     def _group_name(self, obj) -> str:
         return obj.group.name
