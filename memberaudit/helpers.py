@@ -79,3 +79,14 @@ def filter_groups_available_to_user(
     return groups_qs.filter(authgroup__states=None) | groups_qs.filter(
         authgroup__states=user.profile.state
     )
+
+
+def clear_users_from_group(group):
+    """Remove all users from given group.
+
+    Workaround for using the clear method,
+    which can create problems due to Auth issue #1268
+    """
+    # TODO: Refactor once Auth issue is fixed
+    for user in group.user_set.all():
+        user.groups.remove(group)

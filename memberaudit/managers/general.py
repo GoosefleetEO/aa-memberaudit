@@ -40,9 +40,14 @@ class ComplianceGroupDesignationManager(models.Manager):
         ).exists()
         is_compliant = General.compliant_users().filter(pk=user.pk).exists()
         if is_compliant:
-            groups = list(filter_groups_available_to_user(self.groups(), user))
-            user.groups.add(*groups)
-            if groups and not was_compliant:
+            # adding groups one by one due to Auth issue #1268
+            # TODO: Refactor once issue is fixed
+            groups_qs = filter_groups_available_to_user(self.groups(), user).exclude(
+                user=user
+            )
+            for group in groups_qs:
+                user.groups.add(group)
+            if groups_qs.exists() and not was_compliant:
                 logger.info("%s: User is now compliant", user)
                 message = (
                     f"Thank you for registering all your characters to {__title__}. "
@@ -55,8 +60,13 @@ class ComplianceGroupDesignationManager(models.Manager):
                     level="success",
                 )
         else:
-            current_groups = list(self.values_list("group", flat=True))
-            user.groups.remove(*list(current_groups))
+            # removing groups one by one due to Auth issue #1268
+            # TODO: Refactor once issue is fixed
+            current_groups_qs = self.filter(group__user=user).values_list(
+                "group", flat=True
+            )
+            for group in current_groups_qs:
+                user.groups.remove(group)
             if was_compliant:
                 logger.info("%s: User is no longer compliant", user)
                 message = (

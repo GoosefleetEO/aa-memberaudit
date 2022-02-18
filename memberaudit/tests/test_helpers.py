@@ -9,7 +9,7 @@ from app_utils.testing import (
     create_user_from_evecharacter,
 )
 
-from ..helpers import filter_groups_available_to_user
+from ..helpers import clear_users_from_group, filter_groups_available_to_user
 from .testdata.load_entities import load_entities
 
 
@@ -57,4 +57,22 @@ class TestHelpers(TestCase):
             *querysets_pks(
                 Group.objects.filter(pk__in=[self.normal_group.pk]), result_qs
             )
+        )
+
+    def test_should_clear_users_from_group(self):
+        # given
+        group_1 = create_authgroup()
+        group_2 = create_authgroup()
+        user_1001, _ = create_user_from_evecharacter(1001)
+        user_1001.groups.add(group_1, group_2)
+        user_1002, _ = create_user_from_evecharacter(1002)
+        user_1002.groups.add(group_1, group_2)
+        # when
+        clear_users_from_group(group_1)
+        # then
+        self.assertSetEqual(
+            {group_2.pk}, set(user_1001.groups.values_list("pk", flat=True))
+        )
+        self.assertSetEqual(
+            {group_2.pk}, set(user_1002.groups.values_list("pk", flat=True))
         )

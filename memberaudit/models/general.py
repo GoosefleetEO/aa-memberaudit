@@ -15,6 +15,7 @@ from app_utils.django import users_with_permission
 from app_utils.logging import LoggerAddTag
 
 from .. import __title__
+from ..helpers import clear_users_from_group
 from ..managers.general import (
     ComplianceGroupDesignationManager,
     EveShipTypeManger,
@@ -85,6 +86,18 @@ class General(models.Model):
             character_ownerships__memberaudit_character__isnull=True
         )
 
+    @classmethod
+    def add_compliant_users_to_group(cls, group):
+        """Add this compliance group to compliant users (if any)"""
+        compliant_users_qs = cls.compliant_users()
+        if group.authgroup.states.exists():
+            compliant_users_qs = compliant_users_qs.filter(
+                profile__state__in=list(group.authgroup.states.all())
+            )
+        # need to add users one by one due to Auth issue #1268
+        for user in compliant_users_qs:
+            user.groups.add(group)
+
 
 class ComplianceGroupDesignation(models.Model):
     """A designation defining a group as compliance group.
@@ -100,22 +113,19 @@ class ComplianceGroupDesignation(models.Model):
         return str(self.group)
 
     def delete(self, *args, **kwargs):
-        self.group.user_set.clear()  # remove related group from any users
+        clear_users_from_group(self.group)
         super().delete(*args, **kwargs)
 
     def save(self, *args, **kwargs) -> None:
+        self._ensure_internal_group()
+        super().save(*args, **kwargs)
+        General.add_compliant_users_to_group(self.group)
+
+    def _ensure_internal_group(self):
+        """Ensure the related group is an internal group."""
         if not self.group.authgroup.internal:
             self.group.authgroup.internal = True
             self.group.authgroup.save()
-        super().save(*args, **kwargs)
-        compliant_users_qs = General.compliant_users()
-        if self.group.authgroup.states.exists():
-            compliant_users_qs = compliant_users_qs.filter(
-                profile__state__in=list(self.group.authgroup.states.all())
-            )
-        compliant_users = list(compliant_users_qs)
-        if compliant_users:
-            self.group.user_set.add(*compliant_users)
 
 
 class Location(models.Model):

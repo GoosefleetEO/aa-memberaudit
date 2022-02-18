@@ -1100,3 +1100,8 @@ def update_compliancegroups_for_user(user_pk: int):
     """Update compliancegroups for user."""
     user = User.objects.get(pk=user_pk)
     ComplianceGroupDesignation.objects.update_user(user)
+
+
+@shared_task(**TASK_DEFAULT_KWARGS)
+def add_compliant_users_to_group(user_pk: int):
+    ...
