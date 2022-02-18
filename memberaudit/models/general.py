@@ -111,32 +111,15 @@ class ComplianceGroupDesignation(models.Model):
     def __str__(self) -> str:
         return str(self.group)
 
-    def delete(self, *args, **kwargs):
-        self._clear_users_from_designated_group()
-        super().delete(*args, **kwargs)
-
-    def _clear_users_from_designated_group(self):
-        """Clear all users from designated group."""
-        from ..tasks import clear_users_from_group
-
-        clear_users_from_group.delay(self.group.pk)
-
     def save(self, *args, **kwargs) -> None:
         self._ensure_internal_group()
         super().save(*args, **kwargs)
-        self._add_compliant_users()
 
     def _ensure_internal_group(self):
         """Ensure the related group is an internal group."""
         if not self.group.authgroup.internal:
             self.group.authgroup.internal = True
             self.group.authgroup.save()
-
-    def _add_compliant_users(self):
-        """Add all compliant users to the designated group."""
-        from ..tasks import add_compliant_users_to_group
-
-        add_compliant_users_to_group.delay(self.group.pk)
 
 
 class Location(models.Model):

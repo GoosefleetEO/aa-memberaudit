@@ -20,9 +20,14 @@ from .models import (
     SkillSetGroup,
     SkillSetSkill,
 )
+from .tasks import add_compliant_users_to_group, clear_users_from_group
 
 
 class ComplianceGroupDesignationForm(forms.ModelForm):
+    class Meta:
+        model = ComplianceGroupDesignation
+        fields = ("group",)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         try:
@@ -44,9 +49,13 @@ class ComplianceGroupDesignationAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         return qs.select_related("group").prefetch_related("group__authgroup__states")
 
-    def delete_queryset(self, request, queryset):
-        """Overwriting default method to ensure delete() is called for every object."""
+    def save_model(self, request, obj, *args, **kwargs) -> None:
+        super().save_model(request, obj, *args, **kwargs)
+        add_compliant_users_to_group.delay(obj.group.pk)
+
+    def delete_queryset(self, request, queryset) -> None:
         for obj in queryset:
+            clear_users_from_group.delay(obj.group.pk)
             obj.delete()
 
     @admin.display(ordering="group__name")

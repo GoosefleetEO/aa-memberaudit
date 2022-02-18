@@ -3,25 +3,20 @@ from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from eveuniverse.models import EveSolarSystem
 
-from allianceauth.eveonline.models import EveCorporationInfo
 from allianceauth.tests.auth_utils import AuthUtils
 from app_utils.testing import (
     NoSocketsTestCase,
     create_authgroup,
-    create_state,
     create_user_from_evecharacter,
     queryset_pks,
 )
 
 from ..models import General, Location, MailEntity
 from ..models.character import data_retention_cutoff
-from .testdata.factories import (
-    create_compliance_group,
-    create_compliance_group_designation,
-)
+from .testdata.factories import create_compliance_group_designation
 from .testdata.load_entities import load_entities
 from .testdata.load_eveuniverse import load_eveuniverse
 from .testdata.load_locations import load_locations
@@ -349,7 +344,6 @@ class TestMailEntity(NoSocketsTestCase):
         self.assertEqual(obj.external_url(), "")
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class TestGeneralOther(NoSocketsTestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -380,7 +374,7 @@ class TestGeneralOther(NoSocketsTestCase):
 
     def test_should_add_group_to_compliant_users(self):
         # given
-        compliance_group = create_authgroup(internal=True)
+        group = create_authgroup(internal=True)
         user_compliant, _ = create_user_from_evecharacter(
             1001, permissions=["memberaudit.basic_access"]
         )
@@ -388,13 +382,11 @@ class TestGeneralOther(NoSocketsTestCase):
         user_non_compliant, _ = create_user_from_evecharacter(
             1002, permissions=["memberaudit.basic_access"]
         )
-        create_compliance_group_designation(group=compliance_group)
-        compliance_group.user_set.clear()
         # when
-        General.add_compliant_users_to_group(compliance_group)
+        General.add_compliant_users_to_group(group)
         # then
-        self.assertIn(compliance_group, user_compliant.groups.all())
-        self.assertNotIn(compliance_group, user_non_compliant.groups.all())
+        self.assertIn(group, user_compliant.groups.all())
+        self.assertNotIn(group, user_non_compliant.groups.all())
 
 
 class TestGeneralUserHasAccess(NoSocketsTestCase):
@@ -527,7 +519,6 @@ class TestLocation(NoSocketsTestCase):
         self.assertEqual("", obj_2.solar_system_url)
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class TestComplianceGroupDesignation(NoSocketsTestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -542,63 +533,3 @@ class TestComplianceGroupDesignation(NoSocketsTestCase):
         # then
         group.refresh_from_db()
         self.assertTrue(group.authgroup.internal)
-
-    def test_should_add_new_group_to_compliant_users(self):
-        # given
-        compliance_group = create_authgroup(internal=True)
-        user_compliant, _ = create_user_from_evecharacter(
-            1001, permissions=["memberaudit.basic_access"]
-        )
-        add_memberaudit_character_to_user(user_compliant, 1001)
-        user_non_compliant, _ = create_user_from_evecharacter(
-            1002, permissions=["memberaudit.basic_access"]
-        )
-        # when
-        create_compliance_group_designation(group=compliance_group)
-        # then
-        self.assertIn(compliance_group, user_compliant.groups.all())
-        self.assertNotIn(compliance_group, user_non_compliant.groups.all())
-
-    def test_should_add_new_state_group_to_compliant_users_when_state_is_matching(
-        self,
-    ):
-        # given
-        member_corporation = EveCorporationInfo.objects.get(corporation_id=2001)
-        my_state = create_state(member_corporations=[member_corporation], priority=200)
-        compliance_group = create_authgroup(internal=True, states=[my_state])
-        user_compliant, _ = create_user_from_evecharacter(
-            1001, permissions=["memberaudit.basic_access"]
-        )
-        add_memberaudit_character_to_user(user_compliant, 1001)
-        # when
-        create_compliance_group_designation(group=compliance_group)
-        # then
-        self.assertIn(compliance_group, user_compliant.groups.all())
-
-    def test_should_not_add_new_state_group_to_compliant_user_when_state_not_matching(
-        self,
-    ):
-        # given
-        my_state = create_state(priority=200)
-        compliance_group = create_authgroup(internal=True, states=[my_state])
-        user_compliant, _ = create_user_from_evecharacter(
-            1001, permissions=["memberaudit.basic_access"]
-        )
-        add_memberaudit_character_to_user(user_compliant, 1001)
-        # when
-        create_compliance_group_designation(group=compliance_group)
-        # then
-        self.assertNotIn(compliance_group, user_compliant.groups.all())
-
-    def test_should_remove_deleted_compliance_group_from_users(self):
-        # given
-        compliance_group = create_compliance_group()
-        user_compliant, _ = create_user_from_evecharacter(
-            1001, permissions=["memberaudit.basic_access"]
-        )
-        add_memberaudit_character_to_user(user_compliant, 1001)
-        user_compliant.groups.add(compliance_group)
-        # when
-        compliance_group.compliancegroupdesignation.delete()
-        # then
-        self.assertNotIn(compliance_group, user_compliant.groups.all())
