@@ -1,4 +1,6 @@
+from django import forms
 from django.contrib import admin
+from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.forms.models import BaseInlineFormSet
 from django.shortcuts import redirect, render
@@ -10,6 +12,7 @@ from .constants import EveCategoryId
 from .models import (
     Character,
     CharacterUpdateStatus,
+    ComplianceGroupDesignation,
     EveShipType,
     EveSkillType,
     Location,
@@ -17,6 +20,55 @@ from .models import (
     SkillSetGroup,
     SkillSetSkill,
 )
+from .tasks import add_compliant_users_to_group, clear_users_from_group
+
+
+class ComplianceGroupDesignationForm(forms.ModelForm):
+    class Meta:
+        model = ComplianceGroupDesignation
+        fields = ("group",)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        try:
+            self.fields["group"].queryset = Group.objects.filter(
+                authgroup__internal=True, compliancegroupdesignation__isnull=True
+            ).order_by("name")
+        except KeyError:
+            pass
+
+
+@admin.register(ComplianceGroupDesignation)
+class ComplianceGroupDesignationAdmin(admin.ModelAdmin):
+    form = ComplianceGroupDesignationForm
+    ordering = ("group__name",)
+    list_display = ("_group_name", "_states")
+    list_display_links = None
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related("group").prefetch_related("group__authgroup__states")
+
+    def save_model(self, request, obj, *args, **kwargs) -> None:
+        super().save_model(request, obj, *args, **kwargs)
+        add_compliant_users_to_group.delay(obj.group.pk)
+
+    def delete_queryset(self, request, queryset) -> None:
+        for obj in queryset:
+            clear_users_from_group.delay(obj.group.pk)
+            obj.delete()
+
+    @admin.display(ordering="group__name")
+    def _group_name(self, obj) -> str:
+        return obj.group.name
+
+    @admin.display(description="Restricted to states")
+    def _states(self, obj):
+        states = [state.name for state in obj.group.authgroup.states.all()]
+        return sorted(states) if states else "-"
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 class EveUniverseEntityModelAdmin(admin.ModelAdmin):

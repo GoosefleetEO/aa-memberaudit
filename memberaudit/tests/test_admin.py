@@ -1,15 +1,29 @@
 from unittest.mock import patch
 
 from django.contrib.admin.sites import AdminSite
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
-from ..admin import CharacterAdmin, SkillSetAdmin, SkillSetShipTypeFilter
-from ..models import Character, EveShipType, SkillSet
-from .testdata.factories import create_character_update_status
+from allianceauth.eveonline.models import EveCorporationInfo
+from app_utils.testing import (
+    create_authgroup,
+    create_state,
+    create_user_from_evecharacter,
+)
+
+from ..admin import (
+    CharacterAdmin,
+    ComplianceGroupDesignationAdmin,
+    ComplianceGroupDesignationForm,
+    SkillSetAdmin,
+    SkillSetShipTypeFilter,
+)
+from ..models import Character, ComplianceGroupDesignation, EveShipType, SkillSet
+from .testdata.factories import create_character_update_status, create_compliance_group
 from .testdata.load_entities import load_entities
 from .testdata.load_eveuniverse import load_eveuniverse
 from .utils import (
+    add_memberaudit_character_to_user,
     create_memberaudit_character,
     create_user_from_evecharacter_with_access,
 )
@@ -24,6 +38,90 @@ class MockRequest(object):
 
     def get_full_path(self):
         return "/dummy-full-path"
+
+
+@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+class TestComplianceGroupDesignationAdmin(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.modeladmin = ComplianceGroupDesignationAdmin(
+            model=ComplianceGroupDesignation, admin_site=AdminSite()
+        )
+        load_entities()
+
+    def test_should_remove_deleted_compliance_group_from_users(self):
+        # given
+        compliance_group = create_compliance_group()
+        obj = compliance_group.compliancegroupdesignation
+        user_compliant, _ = create_user_from_evecharacter(
+            1001, permissions=["memberaudit.basic_access"]
+        )
+        add_memberaudit_character_to_user(user_compliant, 1001)
+        user_compliant.groups.add(compliance_group)
+        request = MockRequest(user=user_compliant)
+        queryset = ComplianceGroupDesignation.objects.filter(pk=obj.pk)
+        # when
+        self.modeladmin.delete_queryset(request, queryset)
+        # then
+        self.assertFalse(ComplianceGroupDesignation.objects.filter(pk=obj.pk).exists())
+        self.assertNotIn(compliance_group, user_compliant.groups.all())
+
+    def test_should_add_group_to_compliant_users_when_created(self):
+        # given
+        compliance_group = create_authgroup(internal=True)
+        user_compliant, _ = create_user_from_evecharacter(
+            1001, permissions=["memberaudit.basic_access"]
+        )
+        add_memberaudit_character_to_user(user_compliant, 1001)
+        user_non_compliant, _ = create_user_from_evecharacter(
+            1002, permissions=["memberaudit.basic_access"]
+        )
+        request = MockRequest(user=user_compliant)
+        obj = ComplianceGroupDesignation(group=compliance_group)
+        form = ComplianceGroupDesignationForm()
+        # when
+        self.modeladmin.save_model(request, obj, form, False)
+        # then
+        self.assertTrue(ComplianceGroupDesignation.objects.filter(pk=obj.pk).exists())
+        self.assertIn(compliance_group, user_compliant.groups.all())
+        self.assertNotIn(compliance_group, user_non_compliant.groups.all())
+
+    def test_should_add_state_group_to_compliant_users_when_state_is_matching(self):
+        # given
+        member_corporation = EveCorporationInfo.objects.get(corporation_id=2001)
+        my_state = create_state(member_corporations=[member_corporation], priority=200)
+        compliance_group = create_authgroup(internal=True, states=[my_state])
+        user_compliant, _ = create_user_from_evecharacter(
+            1001, permissions=["memberaudit.basic_access"]
+        )
+        add_memberaudit_character_to_user(user_compliant, 1001)
+        request = MockRequest(user=user_compliant)
+        obj = ComplianceGroupDesignation(group=compliance_group)
+        form = ComplianceGroupDesignationForm()
+        # when
+        self.modeladmin.save_model(request, obj, form, False)
+        # then
+        self.assertTrue(ComplianceGroupDesignation.objects.filter(pk=obj.pk).exists())
+        self.assertIn(compliance_group, user_compliant.groups.all())
+
+    def test_should_not_add_new_state_group_to_compliant_user_when_state_not_matching(
+        self,
+    ):
+        # given
+        my_state = create_state(priority=200)
+        compliance_group = create_authgroup(internal=True, states=[my_state])
+        user_compliant, _ = create_user_from_evecharacter(
+            1001, permissions=["memberaudit.basic_access"]
+        )
+        add_memberaudit_character_to_user(user_compliant, 1001)
+        request = MockRequest(user=user_compliant)
+        obj = ComplianceGroupDesignation(group=compliance_group)
+        form = ComplianceGroupDesignationForm()
+        # when
+        self.modeladmin.save_model(request, obj, form, False)
+        # then
+        self.assertNotIn(compliance_group, user_compliant.groups.all())
 
 
 class TestCharacterAdmin(TestCase):

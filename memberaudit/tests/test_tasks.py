@@ -11,7 +11,7 @@ from eveuniverse.models import EveSolarSystem, EveType
 
 from app_utils.esi import EsiErrorLimitExceeded, EsiOffline, EsiStatus
 from app_utils.esi_testing import BravadoResponseStub
-from app_utils.testing import generate_invalid_pk
+from app_utils.testing import create_user_from_evecharacter, generate_invalid_pk
 
 from ..models import Character, CharacterAsset, CharacterUpdateStatus, Location
 from ..tasks import (
@@ -27,6 +27,7 @@ from ..tasks import (
     update_character_mails,
     update_character_wallet_journal,
     update_characters_skill_checks,
+    update_compliancegroups_for_user,
     update_mail_entity_esi,
     update_market_prices,
     update_structure_esi,
@@ -42,6 +43,7 @@ MANAGERS_PATH = "memberaudit.managers"
 TASKS_PATH = "memberaudit.tasks"
 
 
+@patch(TASKS_PATH + ".update_compliancegroups_for_all")
 @patch(TASKS_PATH + ".update_all_characters")
 @patch(TASKS_PATH + ".update_market_prices")
 class TestRegularUpdates(TestCase):
@@ -50,35 +52,44 @@ class TestRegularUpdates(TestCase):
         self,
         mock_update_market_prices,
         mock_update_all_characters,
+        mock_update_compliancegroups_for_all,
     ):
+        # when
         run_regular_updates()
-
+        # then
         self.assertTrue(mock_update_market_prices.apply_async.called)
         self.assertTrue(mock_update_all_characters.apply_async.called)
+        self.assertTrue(mock_update_compliancegroups_for_all.apply_async.called)
 
     @patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(False, 99, 60))
     def test_should_retry_if_esi_is_down(
         self,
         mock_update_market_prices,
         mock_update_all_characters,
+        mock_update_compliancegroups_for_all,
     ):
+        # when
         with self.assertRaises(CeleryRetry):
             run_regular_updates()
-
+        # then
         self.assertFalse(mock_update_market_prices.apply_async.called)
         self.assertFalse(mock_update_all_characters.apply_async.called)
+        self.assertFalse(mock_update_compliancegroups_for_all.apply_async.called)
 
     @patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 1, 60))
     def test_should_retry_if_esi_error_threshold_exceeded(
         self,
         mock_update_market_prices,
         mock_update_all_characters,
+        mock_update_compliancegroups_for_all,
     ):
+        # when
         with self.assertRaises(CeleryRetry):
             run_regular_updates()
-
+        # then
         self.assertFalse(mock_update_market_prices.apply_async.called)
         self.assertFalse(mock_update_all_characters.apply_async.called)
+        self.assertFalse(mock_update_compliancegroups_for_all.apply_async.called)
 
 
 @patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
@@ -823,3 +834,23 @@ class TestExportData(TestCase):
         self.assertTrue(mock_export_topic_to_file.called)
         _, kwargs = mock_export_topic_to_file.call_args
         self.assertEqual(kwargs["topic"], "abc")
+
+
+class TestUpdateComplianceGroupDesignations(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        load_entities()
+
+    @patch(TASKS_PATH + ".ComplianceGroupDesignation.objects.update_user")
+    def test_should_update_for_user(self, mock_update_user):
+        # given
+        user, _ = create_user_from_evecharacter(
+            1001,
+            permissions=["memberaudit.basic_access"],
+            scopes=Character.get_esi_scopes(),
+        )
+        # when
+        update_compliancegroups_for_user(user.pk)
+        # then
+        self.assertTrue(mock_update_user.called)

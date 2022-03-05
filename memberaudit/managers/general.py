@@ -3,11 +3,13 @@ from typing import Iterable, Tuple
 
 from bravado.exception import HTTPForbidden, HTTPUnauthorized
 
+from django.contrib.auth.models import Group, User
 from django.db import models
 from django.utils.timezone import now
 from esi.models import Token
 from eveuniverse.models import EveEntity, EveSolarSystem, EveType
 
+from allianceauth.notifications import notify
 from allianceauth.services.hooks import get_extension_logger
 from app_utils.esi import fetch_esi_status
 from app_utils.logging import LoggerAddTag
@@ -18,9 +20,66 @@ from ..app_settings import (
     MEMBERAUDIT_LOCATION_STALE_HOURS,
 )
 from ..constants import EveCategoryId, EveTypeId
+from ..helpers import filter_groups_available_to_user
 from ..providers import esi
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
+
+
+class ComplianceGroupDesignationManager(models.Manager):
+    def groups(self) -> models.QuerySet:
+        """Groups which are compliance groups."""
+        return Group.objects.filter(compliancegroupdesignation__isnull=False)
+
+    def update_user(self, user: User):
+        """Update compliance groups for user."""
+        from ..models import General
+
+        was_compliant = user.groups.filter(
+            compliancegroupdesignation__isnull=False
+        ).exists()
+        is_compliant = General.compliant_users().filter(pk=user.pk).exists()
+        if is_compliant:
+            # adding groups one by one due to Auth issue #1268
+            # TODO: Refactor once issue is fixed
+            groups_qs = filter_groups_available_to_user(self.groups(), user).exclude(
+                user=user
+            )
+            for group in groups_qs:
+                user.groups.add(group)
+            if groups_qs.exists() and not was_compliant:
+                logger.info("%s: User is now compliant", user)
+                message = (
+                    f"Thank you for registering all your characters to {__title__}. "
+                    "You now have gained access to additional services."
+                )
+                notify(
+                    user,
+                    title=f"{__title__}: All characters registered",
+                    message=message,
+                    level="success",
+                )
+        else:
+            # removing groups one by one due to Auth issue #1268
+            # TODO: Refactor once issue is fixed
+            current_groups_qs = self.filter(group__user=user).values_list(
+                "group", flat=True
+            )
+            for group in current_groups_qs:
+                user.groups.remove(group)
+            if was_compliant:
+                logger.info("%s: User is no longer compliant", user)
+                message = (
+                    f"Some of your characters are not registered to {__title__} "
+                    "and you have therefore lost access to services. "
+                    "Please add missing characters to restore access."
+                )
+                notify(
+                    user,
+                    title=f"{__title__}: Characters not registered",
+                    message=message,
+                    level="warning",
+                )
 
 
 class EveShipTypeManger(models.Manager):

@@ -1,5 +1,6 @@
 from typing import Optional
 
+from django.contrib.auth.models import User
 from django.db import models
 from django.utils.html import format_html
 from eveuniverse.core import dotlan
@@ -69,3 +70,23 @@ def eve_solar_system_to_html(solar_system: EveSolarSystem, show_region=True) -> 
         round(solar_system.security_status, 1),
         region_html,
     )
+
+
+def filter_groups_available_to_user(
+    groups_qs: models.QuerySet, user: User
+) -> models.QuerySet:
+    """Filter out groups not available to user, e.g. due to state restrictions."""
+    return groups_qs.filter(authgroup__states=None) | groups_qs.filter(
+        authgroup__states=user.profile.state
+    )
+
+
+def clear_users_from_group(group):
+    """Remove all users from given group.
+
+    Workaround for using the clear method,
+    which can create problems due to Auth issue #1268
+    """
+    # TODO: Refactor once Auth issue is fixed
+    for user in group.user_set.all():
+        user.groups.remove(group)

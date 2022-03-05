@@ -2,7 +2,7 @@
 Top level models
 """
 
-from django.contrib.auth.models import Permission, User
+from django.contrib.auth.models import Group, Permission, User
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -16,6 +16,7 @@ from app_utils.logging import LoggerAddTag
 
 from .. import __title__
 from ..managers.general import (
+    ComplianceGroupDesignationManager,
     EveShipTypeManger,
     EveSkillTypeManger,
     LocationManager,
@@ -61,7 +62,7 @@ class General(models.Model):
 
     @classmethod
     def accessible_users(cls, user: User) -> models.QuerySet:
-        """users that the given user can access"""
+        """Users that the given user can access."""
         if user.has_perm("memberaudit.view_everything"):
             return cls.users_with_basic_access()
         elif (
@@ -76,6 +77,49 @@ class General(models.Model):
                 profile__main_character__corporation_id=user.profile.main_character.corporation_id
             )
         return User.objects.filter(pk=user.pk)
+
+    @classmethod
+    def compliant_users(cls) -> models.QuerySet:
+        """Users which are fully compliant."""
+        return cls.users_with_basic_access().exclude(
+            character_ownerships__memberaudit_character__isnull=True
+        )
+
+    @classmethod
+    def add_compliant_users_to_group(cls, group: Group):
+        """Add group to all compliant users, which are not yet a member."""
+        compliant_users_qs = cls.compliant_users().exclude(groups=group)
+        if group.authgroup.states.exists():
+            compliant_users_qs = compliant_users_qs.filter(
+                profile__state__in=list(group.authgroup.states.all())
+            )
+        # need to add users one by one due to Auth issue #1268
+        for user in compliant_users_qs:
+            user.groups.add(group)
+
+
+class ComplianceGroupDesignation(models.Model):
+    """A designation defining a group as compliance group.
+
+    Note that compliance groups are fully managed by the app.
+    """
+
+    group = models.OneToOneField(Group, on_delete=models.CASCADE)
+
+    objects = ComplianceGroupDesignationManager()
+
+    def __str__(self) -> str:
+        return str(self.group)
+
+    def save(self, *args, **kwargs) -> None:
+        self._ensure_internal_group()
+        super().save(*args, **kwargs)
+
+    def _ensure_internal_group(self):
+        """Ensure the related group is an internal group."""
+        if not self.group.authgroup.internal:
+            self.group.authgroup.internal = True
+            self.group.authgroup.save()
 
 
 class Location(models.Model):

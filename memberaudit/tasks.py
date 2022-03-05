@@ -5,7 +5,7 @@ from typing import Optional
 from bravado.exception import HTTPBadGateway, HTTPGatewayTimeout, HTTPServiceUnavailable
 from celery import chain, shared_task
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
 from django.db import transaction
 from django.utils.timezone import now
 from esi.models import Token
@@ -17,7 +17,7 @@ from allianceauth.services.tasks import QueueOnce
 from app_utils.esi import EsiErrorLimitExceeded, EsiOffline, fetch_esi_status
 from app_utils.logging import LoggerAddTag
 
-from . import __title__
+from . import __title__, helpers
 from .app_settings import (
     MEMBERAUDIT_BULK_METHODS_BATCH_SIZE,
     MEMBERAUDIT_LOG_UPDATE_STATS,
@@ -33,6 +33,8 @@ from .models import (
     CharacterContract,
     CharacterMail,
     CharacterUpdateStatus,
+    ComplianceGroupDesignation,
+    General,
     Location,
     MailEntity,
 )
@@ -87,6 +89,7 @@ def run_regular_updates(self) -> None:
     _retry_if_esi_is_down(self)
     update_market_prices.apply_async(priority=DEFAULT_TASK_PRIORITY)
     update_all_characters.apply_async(priority=DEFAULT_TASK_PRIORITY)
+    update_compliancegroups_for_all.apply_async(priority=DEFAULT_TASK_PRIORITY)
 
 
 @shared_task(**TASK_DEFAULT_KWARGS)
@@ -1081,3 +1084,34 @@ def _export_data_inform_user(user_pk: int, topic: str = None):
         for topic in data_exporters.DataExporter.topics:
             message += f"- {topic}\n"
     notify(user=user, title=title, message=message, level="INFO")
+
+
+@shared_task(**TASK_DEFAULT_KWARGS)
+def update_compliancegroups_for_all():
+    """Update compliancegroups for all users."""
+    if ComplianceGroupDesignation.objects.exists():
+        for user in User.objects.all():
+            update_compliancegroups_for_user.apply_async(
+                kwargs={"user_pk": user.pk}, priority=DEFAULT_TASK_PRIORITY
+            )
+
+
+@shared_task(**TASK_DEFAULT_KWARGS)
+def update_compliancegroups_for_user(user_pk: int):
+    """Update compliancegroups for user."""
+    user = User.objects.get(pk=user_pk)
+    ComplianceGroupDesignation.objects.update_user(user)
+
+
+@shared_task(**TASK_DEFAULT_KWARGS)
+def add_compliant_users_to_group(group_pk: int):
+    """Add compliant users to given group."""
+    group = Group.objects.get(pk=group_pk)
+    General.add_compliant_users_to_group(group)
+
+
+@shared_task(**TASK_DEFAULT_KWARGS)
+def clear_users_from_group(group_pk: int):
+    """Clear all users from given group."""
+    group = Group.objects.get(pk=group_pk)
+    helpers.clear_users_from_group(group)

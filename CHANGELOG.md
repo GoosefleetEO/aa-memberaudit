@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.10.0] - tbd
+
+### Added
+
+- Compliance Groups: You can now ensure that only fully compliant users have access to specific services. For details please see the respective section in the user manual in the README.
+
 ## [1.9.4] - 2022-03-02
 
 ### Changed

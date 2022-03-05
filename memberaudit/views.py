@@ -3,6 +3,7 @@ from typing import Optional, Tuple
 
 import humanize
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
@@ -30,7 +31,6 @@ from allianceauth.authentication.models import CharacterOwnership, get_guest_sta
 from allianceauth.eveonline.models import EveCharacter
 from allianceauth.services.hooks import get_extension_logger
 from app_utils.logging import LoggerAddTag
-from app_utils.messages import messages_plus
 from app_utils.views import (
     bootstrap_icon_plus_name_html,
     bootstrap_label_html,
@@ -53,6 +53,7 @@ from .models import (
     CharacterContract,
     CharacterContractItem,
     CharacterMail,
+    ComplianceGroupDesignation,
     General,
     Location,
     SkillSet,
@@ -182,7 +183,7 @@ def launcher(request) -> HttpResponse:
 
     """
     if has_auth_characters:
-        messages_plus.warning(
+        messages.warning(
             request,
             format_html(
                 "Please register all your characters. "
@@ -208,7 +209,7 @@ def add_character(request, token) -> HttpResponse:
             "character"
         ).get(user=request.user, character=token_char)
     except CharacterOwnership.DoesNotExist:
-        messages_plus.error(
+        messages.error(
             request,
             format_html(
                 "You can register your main or alt characters."
@@ -221,9 +222,8 @@ def add_character(request, token) -> HttpResponse:
             character, _ = Character.objects.update_or_create(
                 character_ownership=character_ownership
             )
-
         tasks.update_character.delay(character_pk=character.pk)
-        messages_plus.success(
+        messages.success(
             request,
             format_html(
                 "<strong>{}</strong> has been registered. "
@@ -231,7 +231,8 @@ def add_character(request, token) -> HttpResponse:
                 character.character_ownership.character,
             ),
         )
-
+        if ComplianceGroupDesignation.objects.exists():
+            tasks.update_compliancegroups_for_user.delay(request.user.pk)
     return redirect("memberaudit:launcher")
 
 
@@ -244,21 +245,21 @@ def remove_character(request, character_pk: int) -> HttpResponse:
         ).get(pk=character_pk)
     except Character.DoesNotExist:
         return HttpResponseNotFound(f"Character with pk {character_pk} not found")
-
-    character_name = character.character_ownership.character.character_name
     if character.character_ownership.user == request.user:
+        character_name = character.character_ownership.character.character_name
         character.delete()
-        messages_plus.success(
+        messages.success(
             request,
             format_html(
                 "Removed character <strong>{}</strong> as requested.", character_name
             ),
         )
+        if ComplianceGroupDesignation.objects.exists():
+            tasks.update_compliancegroups_for_user.delay(request.user.pk)
     else:
         return HttpResponseForbidden(
             f"No permission to remove Character with pk {character_pk}"
         )
-
     return redirect("memberaudit:launcher")
 
 
@@ -279,7 +280,6 @@ def share_character(request, character_pk: int) -> HttpResponse:
         return HttpResponseForbidden(
             f"No permission to remove Character with pk {character_pk}"
         )
-
     return redirect("memberaudit:launcher")
 
 
@@ -300,7 +300,6 @@ def unshare_character(request, character_pk: int) -> HttpResponse:
         return HttpResponseForbidden(
             f"No permission to remove Character with pk {character_pk}"
         )
-
     return redirect("memberaudit:launcher")
 
 
@@ -1770,7 +1769,7 @@ def corporation_compliance_report_data(request) -> JsonResponse:
             unregistered_count=Count(
                 "userprofile__user__character_ownerships",
                 filter=Q(
-                    userprofile__user__character_ownerships__memberaudit_character=None
+                    userprofile__user__character_ownerships__memberaudit_character__isnull=True
                 ),
                 distinct=True,
             )
@@ -1973,7 +1972,7 @@ def download_export_file(request, topic: str) -> FileResponse:
 def data_export_run_update(request, topic: str):
     tasks.export_data_for_topic.delay(topic=topic, user_pk=request.user.pk)
     format_html
-    messages_plus.info(
+    messages.info(
         request,
         format_html(
             "Data export for topic <strong>{}</strong> has been started. "

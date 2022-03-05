@@ -1,10 +1,14 @@
 """Factories for creating test objects with defaults."""
 import datetime as dt
+from itertools import count
 from random import randint
 from typing import Iterable
 
-from django.db import models
+from django.contrib.auth.models import Group
 from django.utils.timezone import now
+
+from allianceauth.authentication.models import State
+from app_utils.testing import create_authgroup
 
 from ...models import (
     Character,
@@ -14,33 +18,37 @@ from ...models import (
     CharacterMailLabel,
     CharacterUpdateStatus,
     CharacterWalletJournalEntry,
+    ComplianceGroupDesignation,
     MailEntity,
 )
 
 
-def create_character(**kwargs):
-    return Character.objects.create(**kwargs)
+def create_character(character_ownership, **kwargs) -> Character:
+    params = {"character_ownership": character_ownership}
+    params.update(kwargs)
+    return Character.objects.create(**params)
 
 
 def create_character_mail(
+    character: Character,
     recipients: Iterable[MailEntity] = None,
     labels: Iterable[CharacterMailLabel] = None,
     **kwargs,
-):
+) -> CharacterMail:
     timestamp = now() if "timestamp" not in kwargs else kwargs["timestamp"]
     params = {
+        "character": character,
         "subject": "Test Mail",
         "body": "Test Body",
         "timestamp": timestamp,
     }
     if "mail_id" not in kwargs:
-        params["mail_id"] = _generate_unique_id(CharacterMail, "mail_id")
+        params["mail_id"] = next_number("mail_id")
     if "sender" not in kwargs and "sender_id" not in kwargs:
         params["sender"] = create_mail_entity_from_eve_entity(id=1002)
     params.update(kwargs)
     obj = CharacterMail.objects.create(**params)
     if not recipients:
-        character = kwargs["character"]
         character_id = character.character_ownership.character.character_id
         recipients = [create_mail_entity_from_eve_entity(id=character_id)]
     obj.recipients.add(*recipients)
@@ -49,9 +57,10 @@ def create_character_mail(
     return obj
 
 
-def create_character_mail_label(**kwargs):
-    label_id = _generate_unique_id(CharacterMailLabel, "label_id")
+def create_character_mail_label(character: Character, **kwargs) -> CharacterMailLabel:
+    label_id = next_number("mail_label_id")
     params = {
+        "character": character,
         "label_id": label_id,
         "name": f"Label #{label_id}",
     }
@@ -59,8 +68,11 @@ def create_character_mail_label(**kwargs):
     return CharacterMailLabel.objects.create(**params)
 
 
-def create_character_update_status(**kwargs):
+def create_character_update_status(
+    character: Character, **kwargs
+) -> CharacterUpdateStatus:
     params = {
+        "character": character,
         "section": Character.UpdateSection.ASSETS,
         "is_success": True,
         "started_at": now() - dt.timedelta(minutes=5),
@@ -70,10 +82,11 @@ def create_character_update_status(**kwargs):
     return CharacterUpdateStatus.objects.create(**params)
 
 
-def create_character_contract(**kwargs) -> models.Model:
+def create_character_contract(character: Character, **kwargs) -> CharacterContract:
     date_issed = now() if "date_issued" not in kwargs else kwargs["date_issued"]
     params = {
-        "contract_id": _generate_unique_id(CharacterContract, "contract_id"),
+        "character": character,
+        "contract_id": next_number("contract_id"),
         "availability": CharacterContract.AVAILABILITY_PERSONAL,
         "contract_type": CharacterContract.TYPE_ITEM_EXCHANGE,
         "assignee_id": 1002,
@@ -89,9 +102,12 @@ def create_character_contract(**kwargs) -> models.Model:
     return CharacterContract.objects.create(**params)
 
 
-def create_character_contract_item(**kwargs) -> models.Model:
+def create_character_contract_item(
+    contract: CharacterContract, **kwargs
+) -> CharacterContractItem:
     params = {
-        "record_id": _generate_unique_id(CharacterContractItem, "record_id"),
+        "contract": contract,
+        "record_id": next_number("contract_item_record_id"),
         "is_included": True,
         "is_singleton": False,
         "quantity": 1,
@@ -101,13 +117,27 @@ def create_character_contract_item(**kwargs) -> models.Model:
     return CharacterContractItem.objects.create(**params)
 
 
-def create_mail_entity_from_eve_entity(id: int):
+def create_compliance_group(states: Iterable[State] = None, **kwargs) -> Group:
+    group = create_authgroup(states, internal=True, **kwargs)
+    create_compliance_group_designation(group)
+    return group
+
+
+def create_compliance_group_designation(
+    group: Group, **kwargs
+) -> ComplianceGroupDesignation:
+    params = {"group": group}
+    params.update(kwargs)
+    return ComplianceGroupDesignation.objects.create(**params)
+
+
+def create_mail_entity_from_eve_entity(id: int) -> MailEntity:
     obj, _ = MailEntity.objects.update_or_create_from_eve_entity_id(id=id)
     return obj
 
 
-def create_mailing_list(**kwargs):
-    my_id = _generate_unique_id(MailEntity, "id")
+def create_mailing_list(**kwargs) -> MailEntity:
+    my_id = next_number("mailing_list_id")
     params = {
         "id": my_id,
         "name": f"Mailing List #{my_id}",
@@ -117,9 +147,12 @@ def create_mailing_list(**kwargs):
     return MailEntity.objects.create(**params)
 
 
-def create_wallet_journal_entry(**kwargs) -> models.Model:
+def create_wallet_journal_entry(
+    character: Character, **kwargs
+) -> CharacterWalletJournalEntry:
     params = {
-        "entry_id": _generate_unique_id(CharacterWalletJournalEntry, "entry_id"),
+        "character": character,
+        "entry_id": next_number("wallet_journal_entry_id"),
         "amount": 1000000.0,
         "balance": 20000000.0,
         "ref_type": "player_donation",
@@ -132,6 +165,19 @@ def create_wallet_journal_entry(**kwargs) -> models.Model:
     }
     params.update(kwargs)
     return CharacterWalletJournalEntry.objects.create(**params)
+
+
+def next_number(key=None) -> int:
+    if key is None:
+        key = "_general"
+    try:
+        return next_number._counter[key].__next__()
+    except AttributeError:
+        next_number._counter = dict()
+    except KeyError:
+        pass
+    next_number._counter[key] = count(start=1)
+    return next_number._counter[key].__next__()
 
 
 def _generate_unique_id(Model: object, field_name: str):
