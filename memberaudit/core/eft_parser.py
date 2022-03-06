@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from typing import List
+from typing import Iterable, List
 
+from django.db import models
 from eveuniverse.models import EveEntity, EveType
 
 from ..constants import EveCategoryId
@@ -10,86 +11,101 @@ from ..constants import EveCategoryId
 class Module:
     """A ship module used in a fitting."""
 
-    name: str
-    charge: str
+    module_type: EveType
     position: int
+    charge_type: EveType = None
 
 
 @dataclass
 class Item:
     """An item used in a fitting."""
 
-    name: str
+    eve_type: EveType
     quantity: int
+
+
+@dataclass
+class Skill:
+    """A skill in Eve Online."""
+
+    eve_type: EveType
+    level: int
 
 
 @dataclass
 class Fitting:
     """A fitting for a ship in Eve Online."""
 
-    ship_type: str
     name: str
-    modules: list
-    cargo: list
-    drone_bay: list
-    fighter_bay: list
+    ship_type: EveType
+    high_slots: List[Module]
+    medium_slots: List[Module]
+    low_slots: List[Module]
+    rigs: List[Module]
+    cargo: List[Item]
+    drone_bay: List[Item]
+    fighter_bay: List[Item]
     fitting_notes: str
 
     def __str__(self) -> str:
         return f"{self.name}"
 
-    def main_types(self) -> List[EveType]:
-        """List of types used in the fitting. Does not include cargo."""
-        type_names = {module.name for module in self.modules} | {self.ship_type}
-        types = [_fetch_eve_type(type_name) for type_name in type_names]
-        return types
+    @property
+    def modules(self) -> List[EveType]:
+        """All fitted modules."""
+        return self.high_slots + self.medium_slots + self.low_slots + self.rigs
+
+    def main_types(self) -> models.QuerySet:
+        """Main types used in the fitting. Does not include cargo."""
+        type_ids = {module.eve_type.id for module in self.modules} | {self.ship_type.id}
+        return EveType.objects.filter(id__in=type_ids)
+
+    def required_skills(self) -> List[Skill]:
+        """Skills required to fly this fitting."""
+        ...
 
     @classmethod
-    def create_from_eft(cls, eft_text: str) -> dict:
-        """Parse fitting in EFT format"""
+    def create_from_eft(cls, eft_text: str) -> "Fitting":
+        """Create new fitting from fitting in EFT format."""
         eft_lines = eft_text.strip().splitlines()
         parsed_fitting_notes = cls._removeOfflinedModulesMention(eft_lines)
         sections = [
             section
-            for section in cls._import_section_iter(parsed_fitting_notes["eft_lines"])
+            for section in _Section.create_from_lines(parsed_fitting_notes["eft_lines"])
         ]
-        modules = []
+        slots = []
         cargo = []
         drone_bay = []
         fighter_bay = []
         ship_type = ""
         fit_name = ""
         for section in sections:
-            counter = 0
             if section.is_drone_bay():
-                for line in section.lines:
-                    quantity = line.split()[-1]
-                    item_name = line.split(quantity)[0].strip()
-                    drone_bay.append(
-                        Item(name=item_name, quantity=int(quantity.strip("x")))
-                    )
+                drone_bay = section.parse_bay()
             elif section.is_fighter_bay():
-                for line in section.lines:
-                    quantity = line.split()[-1]
-                    item_name = line.split(quantity)[0].strip()
-                    fighter_bay.append(
-                        Item(name=item_name, quantity=int(quantity.strip("x")))
-                    )
+                fighter_bay = section.parse_bay()
             else:
+                counter = 0
+                modules = []
                 for line in section.lines:
                     if line.startswith("["):
                         if "," in line:
-                            ship_type, fit_name = line[1:-1].split(",")
+                            ship_type_name, fit_name = line[1:-1].split(",")
+                            ship_type = _fetch_eve_type(ship_type_name)
                             continue
 
                         if "empty" in line.strip("[]").lower():
                             continue
                     else:
                         if "," in line:
-                            module, charge = line.split(",")
+                            module_name, charge_name = line.split(",")
+                            module_type = _fetch_eve_type(module_name)
+                            charge_type = _fetch_eve_type(charge_name.strip())
                             modules.append(
                                 Module(
-                                    name=module, charge=charge.strip(), position=counter
+                                    module_type=module_type,
+                                    position=counter,
+                                    charge_type=charge_type,
                                 )
                             )
                         else:
@@ -98,42 +114,35 @@ class Fitting:
                             ]  # Quantity will always be the last element, if it is there.
                             if "x" in quantity and quantity[1:].isdigit():
                                 item_name = line.split(quantity)[0].strip()
+                                eve_type = _fetch_eve_type(item_name)
                                 cargo.append(
                                     Item(
-                                        name=item_name,
+                                        eve_type=eve_type,
                                         quantity=int(quantity.strip("x")),
                                     )
                                 )
                             else:
+                                module_name = line.strip()
+                                eve_type = _fetch_eve_type(module_name)
                                 modules.append(
-                                    Module(
-                                        name=line.strip(), charge="", position=counter
-                                    )
+                                    Module(module_type=eve_type, position=counter)
                                 )
                     counter += 1
-        result = {
-            "ship_type": ship_type,
-            "name": fit_name,
-            "modules": modules,
-            "cargo": cargo,
-            "drone_bay": drone_bay,
-            "fighter_bay": fighter_bay,
-            "fitting_notes": parsed_fitting_notes["fitting_notes"],
-        }
-        return cls(**result)
+                slots.append(modules)
+        return cls(
+            name=fit_name.strip(),
+            ship_type=ship_type,
+            high_slots=_list_index_or_default(slots, 3, []),
+            medium_slots=_list_index_or_default(slots, 2, []),
+            low_slots=_list_index_or_default(slots, 1, []),
+            rigs=_list_index_or_default(slots, 4, []),
+            cargo=cargo,
+            drone_bay=drone_bay,
+            fighter_bay=fighter_bay,
+            fitting_notes=parsed_fitting_notes["fitting_notes"],
+        )
 
-    def _import_section_iter(lines):
-        section = _Section()
-        for line in lines:
-            if not line:
-                if section.lines:
-                    yield section
-                    section = _Section()
-            else:
-                section.lines.append(line)
-        if section.lines:
-            yield section
-
+    @staticmethod
     def _removeOfflinedModulesMention(lines):
         """Remove /OFFLINE mentions from PYFA when an offlined module is exported
         and add fitting notes when a module is offlined.
@@ -201,6 +210,28 @@ class _Section:
             for _type in types
         )
 
+    def parse_bay(self) -> List[Item]:
+        items = []
+        for line in self.lines:
+            quantity = line.split()[-1]
+            item_name = line.split(quantity)[0].strip()
+            eve_type = _fetch_eve_type(item_name)
+            items.append(Item(eve_type=eve_type, quantity=int(quantity.strip("x"))))
+        return items
+
+    @classmethod
+    def create_from_lines(cls, lines: list) -> Iterable:
+        section = cls()
+        for line in lines:
+            if not line:
+                if section.lines:
+                    yield section
+                    section = cls()
+            else:
+                section.lines.append(line)
+        if section.lines:
+            yield section
+
 
 def _fetch_eve_type(name: str) -> EveType:
     """Fetch eve_type for given name.
@@ -220,3 +251,11 @@ def _fetch_eve_type(name: str) -> EveType:
                 id=entity.id
             )
         raise ValueError("Type with name {name} does not exist.")
+
+
+def _list_index_or_default(lst: list, index: int, default):
+    """Return index from a list or default."""
+    try:
+        return lst[index]
+    except KeyError:
+        return default

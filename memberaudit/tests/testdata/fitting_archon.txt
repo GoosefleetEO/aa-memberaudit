@@ -1,0 +1,37 @@
+[Archon, Archon - Big is beautiful]
+
+25000mm Steel Plates II
+25000mm Steel Plates II
+Imperial Navy Multispectrum Energized Membrane
+Imperial Navy Multispectrum Energized Membrane
+Drone Damage Amplifier II
+Drone Damage Amplifier II
+Drone Damage Amplifier II
+
+Capital Capacitor Booster I
+Federation Navy Omnidirectional Tracking Link
+Federation Navy Omnidirectional Tracking Link
+Drone Navigation Computer I
+
+Fighter Support Unit I
+Fighter Support Unit I
+Fighter Support Unit I
+Cynosural Field Generator I
+Networked Sensor Array
+
+Capital Explosive Armor Reinforcer I
+Capital Kinetic Armor Reinforcer I
+Capital Trimark Armor Pump I
+
+
+Firbolg I x9
+Firbolg I x9
+Firbolg I x9
+
+
+Cap Booster 3200 x5
+ECCM Script x1
+Targeting Range Script x1
+Optimal Range Script x2
+Tracking Speed Script x2
+Liquid Ozone x300
