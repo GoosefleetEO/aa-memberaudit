@@ -35,9 +35,21 @@ class CreateEveUniverseTestData(TestCase):
             ModelSpec(
                 "EveType",
                 ids=[
-                    19540,
-                    19551,
-                    19553,
+                    519,  # Gyrostabilizer II
+                    2048,  # Damage Control II
+                    1999,  # Tracking Enhancer II
+                    1952,  # Sensor Booster II
+                    3244,  # Warp Disruptor II
+                    5973,  # 5MN Y-T8 Compact Microwarpdrive
+                    2977,  # 280mm Howitzer Artillery II
+                    21924,  # Republic Fleet Phased Plasma S
+                    31328,  # Small Targeting System Subcontroller II
+                    31740,  # Small Thermal Shield Reinforcer I
+                    31752,  # Small Kinetic Shield Reinforcer I
+                    34562,  # Svipul
+                    19540,  # High-grade Snake Alpha
+                    19551,  # High-grade Snake Beta
+                    19553,  # High-grade Snake Gamma
                 ],
                 enabled_sections=[EveUniverseEntityModel.LOAD_DOGMAS],
             ),

@@ -46,6 +46,16 @@
             "published": true
         },
         {
+            "id": 7,
+            "name": "Module",
+            "published": true
+        },
+        {
+            "id": 8,
+            "name": "Charge",
+            "published": true
+        },
+        {
             "id": 16,
             "name": "Skill",
             "published": true
@@ -98,6 +108,18 @@
     "EveDogmaAttribute": [
         {
             "default_value": 0.0,
+            "description": "current structure damage dealt to module",
+            "display_name": "Item Damage",
+            "eve_unit_id": 113,
+            "high_is_good": null,
+            "icon_id": 1386,
+            "id": 3,
+            "name": "damage",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
             "description": "Integer that describes the types mass",
             "display_name": "Mass",
             "eve_unit_id": 2,
@@ -107,6 +129,150 @@
             "name": "mass",
             "published": true,
             "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "The amount of charge used from the capacitor for a module activation.",
+            "display_name": "Activation Cost",
+            "eve_unit_id": 114,
+            "high_is_good": null,
+            "icon_id": 1400,
+            "id": 6,
+            "name": "capacitorNeed",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "The maximum hitpoints of an object.",
+            "display_name": "Structure Hitpoints",
+            "eve_unit_id": 113,
+            "high_is_good": true,
+            "icon_id": 67,
+            "id": 9,
+            "name": "hp",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "power output of power core",
+            "display_name": "Powergrid Output",
+            "eve_unit_id": 107,
+            "high_is_good": true,
+            "icon_id": 1400,
+            "id": 11,
+            "name": "powerOutput",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "The number of low power slots on the ship.",
+            "display_name": "Low Slots",
+            "eve_unit_id": 122,
+            "high_is_good": true,
+            "icon_id": 295,
+            "id": 12,
+            "name": "lowSlots",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "tbd",
+            "display_name": "Medium Slots",
+            "eve_unit_id": 122,
+            "high_is_good": true,
+            "icon_id": 294,
+            "id": 13,
+            "name": "medSlots",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "tbd",
+            "display_name": "High Slots",
+            "eve_unit_id": 122,
+            "high_is_good": true,
+            "icon_id": 293,
+            "id": 14,
+            "name": "hiSlots",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Current load of power core",
+            "display_name": "Power Load",
+            "eve_unit_id": 107,
+            "high_is_good": true,
+            "icon_id": 1400,
+            "id": 15,
+            "name": "powerLoad",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "charge of module",
+            "display_name": "",
+            "eve_unit_id": 114,
+            "high_is_good": true,
+            "icon_id": 1668,
+            "id": 18,
+            "name": "charge",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "tbd",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 19,
+            "name": "powerToSpeed",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "Factor by which topspeed increases.",
+            "display_name": "Maximum Velocity Bonus",
+            "eve_unit_id": 124,
+            "high_is_good": true,
+            "icon_id": 1389,
+            "id": 20,
+            "name": "speedFactor",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "tbd instance param",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 21,
+            "name": "warpFactor",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "current power need",
+            "display_name": "Powergrid Usage",
+            "eve_unit_id": 107,
+            "high_is_good": null,
+            "icon_id": 70,
+            "id": 30,
+            "name": "power",
+            "published": true,
+            "stackable": true
         },
         {
             "default_value": 0.0,
@@ -131,6 +297,438 @@
             "name": "capacity",
             "published": true,
             "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "The number of slots this module requires.  Only used for launchers, bays and turrets.",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 47,
+            "name": "slots",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "CPU output of ship",
+            "display_name": "CPU Output",
+            "eve_unit_id": 106,
+            "high_is_good": true,
+            "icon_id": 1405,
+            "id": 48,
+            "name": "cpuOutput",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "CPU load of ship",
+            "display_name": "CPU Load",
+            "eve_unit_id": 106,
+            "high_is_good": true,
+            "icon_id": 1405,
+            "id": 49,
+            "name": "cpuLoad",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "CPU need of module",
+            "display_name": "CPU usage",
+            "eve_unit_id": 106,
+            "high_is_good": null,
+            "icon_id": 1405,
+            "id": 50,
+            "name": "cpu",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Time in milliseconds between possible activations",
+            "display_name": "Rate of fire",
+            "eve_unit_id": 101,
+            "high_is_good": null,
+            "icon_id": 1397,
+            "id": 51,
+            "name": "speed",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "Distance below which range does not affect the to-hit equation.",
+            "display_name": "Optimal Range",
+            "eve_unit_id": 1,
+            "high_is_good": true,
+            "icon_id": 1391,
+            "id": 54,
+            "name": "maxRange",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "Amount of time taken to fully recharge the capacitor.",
+            "display_name": "Capacitor Recharge time",
+            "eve_unit_id": 101,
+            "high_is_good": null,
+            "icon_id": 1392,
+            "id": 55,
+            "name": "rechargeRate",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "Number of charges consumed per activation",
+            "display_name": "Charges Per Cycle",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 1397,
+            "id": 56,
+            "name": "chargeRate",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Something to do with accuracy.",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 1399,
+            "id": 63,
+            "name": "accuracyBonus",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "Damage multiplier.",
+            "display_name": "Damage Modifier",
+            "eve_unit_id": 104,
+            "high_is_good": true,
+            "icon_id": 1432,
+            "id": 64,
+            "name": "damageMultiplier",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "The agility of the object.",
+            "display_name": "Inertia Modifier",
+            "eve_unit_id": 104,
+            "high_is_good": null,
+            "icon_id": 1401,
+            "id": 70,
+            "name": "agility",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "Length of activation time.",
+            "display_name": "Activation time / duration",
+            "eve_unit_id": 101,
+            "high_is_good": null,
+            "icon_id": 1392,
+            "id": 73,
+            "name": "duration",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Maximum range at which the scanner can lock a target.",
+            "display_name": "Maximum Targeting Range",
+            "eve_unit_id": 1,
+            "high_is_good": true,
+            "icon_id": 1391,
+            "id": 76,
+            "name": "maxTargetRange",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "scanning speed in milliseconds",
+            "display_name": "",
+            "eve_unit_id": 101,
+            "high_is_good": null,
+            "icon_id": 74,
+            "id": 79,
+            "name": "scanSpeed",
+            "published": null,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "The number of remaining unused launcher slots.",
+            "display_name": "Launcher Hardpoints",
+            "eve_unit_id": 141,
+            "high_is_good": true,
+            "icon_id": 168,
+            "id": 101,
+            "name": "launcherSlotsLeft",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Remaining number of unused turret slots on the ship.",
+            "display_name": "Turret Hardpoints",
+            "eve_unit_id": 141,
+            "high_is_good": true,
+            "icon_id": 387,
+            "id": 102,
+            "name": "turretSlotsLeft",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Warp ability of a ship.  If greater than zero than the ship cannot warp.",
+            "display_name": "Warp Scramble Status",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 104,
+            "name": "warpScrambleStatus",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Amount to modify ships warp scramble status by.",
+            "display_name": "Warp Scramble Strength",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 111,
+            "id": 105,
+            "name": "warpScrambleStrength",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "damage multiplier vs. kinetic damagers.",
+            "display_name": "Structure Kinetic Damage Resistance",
+            "eve_unit_id": 108,
+            "high_is_good": null,
+            "icon_id": 1393,
+            "id": 109,
+            "name": "kineticDamageResonance",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 1.0,
+            "description": "damage multiplier vs. thermal.",
+            "display_name": "Structure Thermal Damage Resistance",
+            "eve_unit_id": 108,
+            "high_is_good": null,
+            "icon_id": 1394,
+            "id": 110,
+            "name": "thermalDamageResonance",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 1.0,
+            "description": "damage multiplier vs. explosive damagers.",
+            "display_name": "Structure Explosive Damage Resistance",
+            "eve_unit_id": 108,
+            "high_is_good": null,
+            "icon_id": 1395,
+            "id": 111,
+            "name": "explosiveDamageResonance",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 1.0,
+            "description": "Electro magnetic damage multiplier for shield and armor. Represented as \"% Resistance\" in the UI.",
+            "display_name": "Structure EM Damage Resistance",
+            "eve_unit_id": 108,
+            "high_is_good": null,
+            "icon_id": 1396,
+            "id": 113,
+            "name": "emDamageResonance",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "EM damage done.",
+            "display_name": "EM damage",
+            "eve_unit_id": 113,
+            "high_is_good": true,
+            "icon_id": 1388,
+            "id": 114,
+            "name": "emDamage",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Explosive damage done.",
+            "display_name": "Explosive damage",
+            "eve_unit_id": 113,
+            "high_is_good": true,
+            "icon_id": 1387,
+            "id": 116,
+            "name": "explosiveDamage",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Kinetic damage done.",
+            "display_name": "Kinetic damage",
+            "eve_unit_id": 113,
+            "high_is_good": true,
+            "icon_id": 1385,
+            "id": 117,
+            "name": "kineticDamage",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Thermal damage done.",
+            "display_name": "Thermal damage",
+            "eve_unit_id": 113,
+            "high_is_good": true,
+            "icon_id": 1386,
+            "id": 118,
+            "name": "thermalDamage",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "Multiplier of range the relevant weapon.",
+            "display_name": "Range bonus",
+            "eve_unit_id": 109,
+            "high_is_good": true,
+            "icon_id": 1391,
+            "id": 120,
+            "name": "weaponRangeMultiplier",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "The main color of a ship type.",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 124,
+            "name": "mainColor",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "The size of the charges that can fit in the turret/whatever.",
+            "display_name": "Charge size",
+            "eve_unit_id": 117,
+            "high_is_good": true,
+            "icon_id": 1666,
+            "id": 128,
+            "name": "chargeSize",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Specifies the maximum numbers of passengers that the ship can have",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 413,
+            "id": 129,
+            "name": "maxPassengers",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "This number is deducted from the %chance of the seeping to armor, to slow seep of damage through shield.",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 136,
+            "name": "uniformity",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "One of the groups of launcher this charge can be loaded into.",
+            "display_name": "Used with (Launcher Group)",
+            "eve_unit_id": 115,
+            "high_is_good": true,
+            "icon_id": 1397,
+            "id": 137,
+            "name": "launcherGroup",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "",
+            "display_name": "Capacitor Capacity Bonus",
+            "eve_unit_id": 109,
+            "high_is_good": true,
+            "icon_id": 1400,
+            "id": 147,
+            "name": "capacitorCapacityMultiplier",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "The power cost to warp per one kg per AU (floats do not have the resolution for meters).",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 153,
+            "name": "warpCapacitorNeed",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "distance from maximum range at which accuracy has fallen by half",
+            "display_name": "Accuracy falloff ",
+            "eve_unit_id": 1,
+            "high_is_good": true,
+            "icon_id": 1399,
+            "id": 158,
+            "name": "falloff",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "Weapon accuracy",
+            "display_name": "Turret Tracking",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 1398,
+            "id": 160,
+            "name": "trackingSpeed",
+            "published": true,
+            "stackable": null
         },
         {
             "default_value": 0.0,
@@ -290,6 +888,270 @@
         },
         {
             "default_value": 0.0,
+            "description": "The type ID of the skill that is required.",
+            "display_name": "Secondary Skill required",
+            "eve_unit_id": 116,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 183,
+            "name": "requiredSkill2",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "The type ID of the skill that is required.",
+            "display_name": "Tertiary Skill required",
+            "eve_unit_id": 116,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 184,
+            "name": "requiredSkill3",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Maximum number of locked targets that the character or their ships electronics can handle at any given time.  Both have individual limits which apply separately.",
+            "display_name": "Maximum Locked Targets",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 109,
+            "id": 192,
+            "name": "maxLockedTargets",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "Typically scales the firing speed of a weapon.  Reducing speed means faster, strangely..",
+            "display_name": "rate of fire bonus",
+            "eve_unit_id": 111,
+            "high_is_good": null,
+            "icon_id": 1389,
+            "id": 204,
+            "name": "speedMultiplier",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Radar strength.",
+            "display_name": "RADAR Sensor Strength",
+            "eve_unit_id": 120,
+            "high_is_good": true,
+            "icon_id": 2031,
+            "id": 208,
+            "name": "scanRadarStrength",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "Ladar strength.",
+            "display_name": "Ladar Sensor Strength",
+            "eve_unit_id": 120,
+            "high_is_good": true,
+            "icon_id": 2030,
+            "id": 209,
+            "name": "scanLadarStrength",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "Magnetometric strength.",
+            "display_name": "Magnetometric Sensor Strength",
+            "eve_unit_id": 120,
+            "high_is_good": true,
+            "icon_id": 2029,
+            "id": 210,
+            "name": "scanMagnetometricStrength",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "Gravimetric strength.",
+            "display_name": "Gravimetric Sensor Strength",
+            "eve_unit_id": 120,
+            "high_is_good": true,
+            "icon_id": 2028,
+            "id": 211,
+            "name": "scanGravimetricStrength",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "The graphicID of the propulsion system.",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 217,
+            "name": "propulsionGraphicID",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "Scale the tracking speed of a weapon.",
+            "display_name": "Tracking Speed Multiplier",
+            "eve_unit_id": 104,
+            "high_is_good": true,
+            "icon_id": 1398,
+            "id": 244,
+            "name": "trackingSpeedMultiplier",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Graphic ID of the boosters for drone type ships.",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 246,
+            "name": "gfxBoosterID",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Amount of maximum shield HP on the item.",
+            "display_name": "Shield Capacity",
+            "eve_unit_id": 113,
+            "high_is_good": true,
+            "icon_id": 1384,
+            "id": 263,
+            "name": "shieldCapacity",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "DO NOT MESS WITH. Helper attribute for entities, stands in for the shield charge.\r\nThe amount of starting shield capacity of the NPC.",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 0,
+            "id": 264,
+            "name": "shieldCharge",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "The number of hit points on the entities armor.",
+            "display_name": "Armor Hitpoints",
+            "eve_unit_id": 113,
+            "high_is_good": true,
+            "icon_id": 1383,
+            "id": 265,
+            "name": "armorHP",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "Multiplies EM damage taken by Armor. ",
+            "display_name": "Armor EM Damage Resistance",
+            "eve_unit_id": 108,
+            "high_is_good": null,
+            "icon_id": 1396,
+            "id": 267,
+            "name": "armorEmDamageResonance",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 1.0,
+            "description": "Multiplies EXPLOSIVE damage taken by Armor. ",
+            "display_name": "Armor Explosive Damage Resistance",
+            "eve_unit_id": 108,
+            "high_is_good": null,
+            "icon_id": 1395,
+            "id": 268,
+            "name": "armorExplosiveDamageResonance",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 1.0,
+            "description": "Multiplies KINETIC damage taken by Armor. ",
+            "display_name": "Armor Kinetic Damage Resistance",
+            "eve_unit_id": 108,
+            "high_is_good": null,
+            "icon_id": 1393,
+            "id": 269,
+            "name": "armorKineticDamageResonance",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 1.0,
+            "description": "Multiplies THERMAL damage taken by Armor. ",
+            "display_name": "Armor Thermal Damage Resistance",
+            "eve_unit_id": 108,
+            "high_is_good": null,
+            "icon_id": 1394,
+            "id": 270,
+            "name": "armorThermalDamageResonance",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 1.0,
+            "description": "Multiplies EM damage taken by shield",
+            "display_name": "Shield EM Damage Resistance",
+            "eve_unit_id": 108,
+            "high_is_good": null,
+            "icon_id": 1396,
+            "id": 271,
+            "name": "shieldEmDamageResonance",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 1.0,
+            "description": "Multiplies EXPLOSIVE damage taken by Armor. ",
+            "display_name": "Shield Explosive Damage Resistance",
+            "eve_unit_id": 108,
+            "high_is_good": null,
+            "icon_id": 1395,
+            "id": 272,
+            "name": "shieldExplosiveDamageResonance",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 1.0,
+            "description": "Multiplies KINETIC damage taken by Armor. ",
+            "display_name": "Shield Kinetic Damage Resistance",
+            "eve_unit_id": 108,
+            "high_is_good": null,
+            "icon_id": 1393,
+            "id": 273,
+            "name": "shieldKineticDamageResonance",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 1.0,
+            "description": "Multiplies THERMAL damage taken by Shield. ",
+            "display_name": "Shield Thermal Damage Resistance",
+            "eve_unit_id": 108,
+            "high_is_good": null,
+            "icon_id": 1394,
+            "id": 274,
+            "name": "shieldThermalDamageResonance",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
             "description": "Required skill level for skill 1",
             "display_name": "",
             "eve_unit_id": null,
@@ -298,6 +1160,54 @@
             "id": 277,
             "name": "requiredSkill1Level",
             "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Required skill level for skill 2",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 278,
+            "name": "requiredSkill2Level",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Required skill level for skill 3",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 279,
+            "name": "requiredSkill3Level",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "This defines the total capacity of drones allowed in the drone bay of the ship",
+            "display_name": "Drone Capacity",
+            "eve_unit_id": 9,
+            "high_is_good": true,
+            "icon_id": 1084,
+            "id": 283,
+            "name": "droneCapacity",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Bonus to Max Targeting Range",
+            "display_name": "Maximum Targeting Range Bonus",
+            "eve_unit_id": 105,
+            "high_is_good": true,
+            "icon_id": 1391,
+            "id": 309,
+            "name": "maxTargetRangeBonus",
+            "published": true,
             "stackable": true
         },
         {
@@ -314,6 +1224,54 @@
         },
         {
             "default_value": 0.0,
+            "description": "",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 0,
+            "id": 324,
+            "name": "barrageDmgMutator",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 0,
+            "id": 325,
+            "name": "barrageFalloffMutator",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 0,
+            "id": 326,
+            "name": "barrageDmgMultiplier",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 75.0,
+            "description": "",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 0,
+            "id": 328,
+            "name": "barrageFalloff",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
             "description": "Whether an item is an implant or not",
             "display_name": "Implant Slot",
             "eve_unit_id": 136,
@@ -322,6 +1280,42 @@
             "id": 331,
             "name": "implantness",
             "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Autogenerated skill attribute, falloffBonus",
+            "display_name": "Falloff Bonus",
+            "eve_unit_id": 105,
+            "high_is_good": true,
+            "icon_id": 1399,
+            "id": 349,
+            "name": "falloffBonus",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Autogenerated skill attribute, maxRangeBonus",
+            "display_name": "Optimal Range Bonus",
+            "eve_unit_id": 105,
+            "high_is_good": true,
+            "icon_id": 1391,
+            "id": 351,
+            "name": "maxRangeBonus",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 500.0,
+            "description": "The distance at which the entity orbits, follows.. and more.",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 0,
+            "id": 416,
+            "name": "entityFlyRange",
+            "published": null,
             "stackable": true
         },
         {
@@ -362,6 +1356,198 @@
         },
         {
             "default_value": 0.0,
+            "description": "Amount of time taken to fully recharge the shield.",
+            "display_name": "Shield recharge time",
+            "eve_unit_id": 101,
+            "high_is_good": null,
+            "icon_id": 1392,
+            "id": 479,
+            "name": "shieldRechargeRate",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Capacitor capacity",
+            "display_name": "Capacitor Capacity",
+            "eve_unit_id": 114,
+            "high_is_good": true,
+            "icon_id": 1668,
+            "id": 482,
+            "name": "capacitorCapacity",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "DO NOT MESS WITH This number is deducted from the %chance of the seeping to armor, to slow seep of damage through shield.",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 484,
+            "name": "shieldUniformity",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "DO NOT MESS WITH",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 0,
+            "id": 524,
+            "name": "armorUniformity",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "DO NOT MESS WITH",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 0,
+            "id": 525,
+            "name": "structureUniformity",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 100.0,
+            "description": "Signature Radius is used for turret tracking and scanning.",
+            "display_name": "Signature Radius",
+            "eve_unit_id": 1,
+            "high_is_good": null,
+            "icon_id": 1390,
+            "id": 552,
+            "name": "signatureRadius",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "Autogenerated skill attribute, signatureRadiusBonus",
+            "display_name": "Signature Radius Modifier",
+            "eve_unit_id": 124,
+            "high_is_good": null,
+            "icon_id": 1390,
+            "id": 554,
+            "name": "signatureRadiusBonus",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "The resolution that the vessel can target other objects at.",
+            "display_name": "Scan Resolution",
+            "eve_unit_id": 102,
+            "high_is_good": true,
+            "icon_id": 74,
+            "id": 564,
+            "name": "scanResolution",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "Bonus for scan resolution",
+            "display_name": "Scan Resolution Bonus",
+            "eve_unit_id": 105,
+            "high_is_good": true,
+            "icon_id": 74,
+            "id": 566,
+            "name": "scanResolutionBonus",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "Used to divide with mass to give a factor for speed boost modules",
+            "display_name": "Thrust",
+            "eve_unit_id": 125,
+            "high_is_good": true,
+            "icon_id": 96,
+            "id": 567,
+            "name": "speedBoostFactor",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 3.0,
+            "description": "",
+            "display_name": "Warp Speed Multiplier",
+            "eve_unit_id": 104,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 600,
+            "name": "warpSpeedMultiplier",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "One of the groups of charge this launcher can be loaded with.",
+            "display_name": "Used with (Charge Group)",
+            "eve_unit_id": 115,
+            "high_is_good": true,
+            "icon_id": 1397,
+            "id": 604,
+            "name": "chargeGroup1",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "One of the groups of charge this launcher can be loaded with.",
+            "display_name": "Used with (Charge Group)",
+            "eve_unit_id": 115,
+            "high_is_good": true,
+            "icon_id": 1397,
+            "id": 605,
+            "name": "chargeGroup2",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Just for the UI to display base damage on shield.",
+            "display_name": "Base Shield Damage",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 69,
+            "id": 612,
+            "name": "baseShieldDamage",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Just for the UI to display base damage on armor.",
+            "display_name": "Base Armor Damage",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 68,
+            "id": 613,
+            "name": "baseArmorDamage",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 1000.0,
+            "description": "Prefered target signature. The base signature radius at which the turret's tracking speed is rated. ",
+            "display_name": "Signature Resolution",
+            "eve_unit_id": 1,
+            "high_is_good": true,
+            "icon_id": 0,
+            "id": 620,
+            "name": "optimalSigRadius",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
             "description": "Authoring has been moved to FSD\r\nThe ranking of the module within its tech level",
             "display_name": "Meta Level",
             "eve_unit_id": 140,
@@ -370,6 +1556,114 @@
             "id": 633,
             "name": "metaLevelOld",
             "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "Deprecated.",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 0,
+            "id": 661,
+            "name": "maxDirectionalVelocity",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "Deprecated.",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 0,
+            "id": 662,
+            "name": "minTargetVelDmgMultiplier",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Amount of time that has to be waited after the deactivation of this module until it can be reactivated.",
+            "display_name": "Reactivation Delay",
+            "eve_unit_id": 101,
+            "high_is_good": null,
+            "icon_id": 1392,
+            "id": 669,
+            "name": "moduleReactivationDelay",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Maximum modules of same group that can be activated at same time, 0 = no limit, 1 = 1",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 0,
+            "id": 763,
+            "name": "maxGroupActive",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Tracking Speed Bonus",
+            "display_name": "Tracking Speed Bonus",
+            "eve_unit_id": 105,
+            "high_is_good": true,
+            "icon_id": 1398,
+            "id": 767,
+            "name": "trackingSpeedBonus",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "For charges, hidden attribute used by sentry guns to modify target pick range.",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 0,
+            "id": 779,
+            "name": "entityFlyRangeMultiplier",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Fixed Role Bonus on a ship.",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 0,
+            "id": 793,
+            "name": "shipBonusRole7",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Attribute for adding mass to a ship via an afterburner or MWD.",
+            "display_name": "Mass Addition",
+            "eve_unit_id": 2,
+            "high_is_good": null,
+            "icon_id": 76,
+            "id": 796,
+            "name": "massAddition",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Modules with this attribute set to 1 can not be used in deadspace. Modules with this attribute set to 2 can not be used in deadspace even where \"disableModuleBlocking\" is selected",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 0,
+            "id": 801,
+            "name": "deadspaceUnsafe",
+            "published": null,
             "stackable": true
         },
         {
@@ -395,9 +1689,883 @@
             "name": "implantSetSerpentis2",
             "published": true,
             "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "",
+            "display_name": "Structure EM Damage Resistance",
+            "eve_unit_id": 108,
+            "high_is_good": null,
+            "icon_id": 1396,
+            "id": 974,
+            "name": "hullEmDamageResonance",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "",
+            "display_name": "Structure Explosive Damage Resistance",
+            "eve_unit_id": 108,
+            "high_is_good": null,
+            "icon_id": 1395,
+            "id": 975,
+            "name": "hullExplosiveDamageResonance",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "",
+            "display_name": "Structure Kinetic Damage Resistance",
+            "eve_unit_id": 108,
+            "high_is_good": null,
+            "icon_id": 1393,
+            "id": 976,
+            "name": "hullKineticDamageResonance",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "",
+            "display_name": "Structure Thermal Damage Resistance",
+            "eve_unit_id": 108,
+            "high_is_good": null,
+            "icon_id": 1394,
+            "id": 977,
+            "name": "hullThermalDamageResonance",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "EM Damage Resistance Bonus",
+            "eve_unit_id": 124,
+            "high_is_good": null,
+            "icon_id": 1396,
+            "id": 984,
+            "name": "emDamageResistanceBonus",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "Explosive Damage Resistance Bonus",
+            "eve_unit_id": 124,
+            "high_is_good": null,
+            "icon_id": 1395,
+            "id": 985,
+            "name": "explosiveDamageResistanceBonus",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "Kinetic Damage Resistance Bonus",
+            "eve_unit_id": 105,
+            "high_is_good": null,
+            "icon_id": 1393,
+            "id": 986,
+            "name": "kineticDamageResistanceBonus",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "Thermal Damage Resistance Bonus",
+            "eve_unit_id": 124,
+            "high_is_good": null,
+            "icon_id": 1394,
+            "id": 987,
+            "name": "thermalDamageResistanceBonus",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "Gravimetric Strength",
+            "eve_unit_id": 105,
+            "high_is_good": true,
+            "icon_id": 2028,
+            "id": 1027,
+            "name": "scanGravimetricStrengthPercent",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "Ladar Strength",
+            "eve_unit_id": 105,
+            "high_is_good": true,
+            "icon_id": 2030,
+            "id": 1028,
+            "name": "scanLadarStrengthPercent",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "Magnetometric Strength",
+            "eve_unit_id": 105,
+            "high_is_good": true,
+            "icon_id": 2029,
+            "id": 1029,
+            "name": "scanMagnetometricStrengthPercent",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "Radar Strength",
+            "eve_unit_id": 105,
+            "high_is_good": true,
+            "icon_id": 2031,
+            "id": 1030,
+            "name": "scanRadarStrengthPercent",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Attribute on ships used for ship upgrades",
+            "display_name": "Calibration",
+            "eve_unit_id": 120,
+            "high_is_good": true,
+            "icon_id": 2887,
+            "id": 1132,
+            "name": "upgradeCapacity",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "The number of rig slots on the ship.",
+            "display_name": "Rig Slots",
+            "eve_unit_id": 122,
+            "high_is_good": true,
+            "icon_id": 3266,
+            "id": 1137,
+            "name": "rigSlots",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 10.0,
+            "description": "used on rigs",
+            "display_name": "Drawback",
+            "eve_unit_id": 105,
+            "high_is_good": true,
+            "icon_id": 0,
+            "id": 1138,
+            "name": "drawback",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "How much of the upgrade capacity is used when this is fitted to a ship.",
+            "display_name": "Calibration cost",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 1153,
+            "name": "upgradeCost",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "How many rigs can by fitted to this ship.",
+            "display_name": "Rig Slots",
+            "eve_unit_id": 122,
+            "high_is_good": true,
+            "icon_id": 3266,
+            "id": 1154,
+            "name": "upgradeSlotsLeft",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 1178,
+            "name": "heatCapacityHi",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 1179,
+            "name": "heatDissipationRateHi",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 1180,
+            "name": "heatAbsorbtionRateModifier",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 1196,
+            "name": "heatDissipationRateMed",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 1198,
+            "name": "heatDissipationRateLow",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 1199,
+            "name": "heatCapacityMed",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 1200,
+            "name": "heatCapacityLow",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "Overload rate of fire bonus",
+            "eve_unit_id": 105,
+            "high_is_good": true,
+            "icon_id": 1386,
+            "id": 1205,
+            "name": "overloadRofBonus",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "Heat Damage",
+            "eve_unit_id": 113,
+            "high_is_good": null,
+            "icon_id": 1386,
+            "id": 1211,
+            "name": "heatDamage",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "Required Thermodynamics Level",
+            "eve_unit_id": 140,
+            "high_is_good": true,
+            "icon_id": 0,
+            "id": 1212,
+            "name": "requiredThermoDynamicsSkill",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "Overload optimal range bonus",
+            "eve_unit_id": 105,
+            "high_is_good": true,
+            "icon_id": 1386,
+            "id": 1222,
+            "name": "overloadRangeBonus",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "Overload Speed Bonus",
+            "eve_unit_id": 105,
+            "high_is_good": true,
+            "icon_id": 1386,
+            "id": 1223,
+            "name": "overloadSpeedFactorBonus",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 1224,
+            "name": "heatGenerationMultiplier",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "",
+            "display_name": "Heat Attenuation",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 1259,
+            "name": "heatAttenuationHi",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 1261,
+            "name": "heatAttenuationMed",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 1262,
+            "name": "heatAttenuationLow",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "Drone Bandwidth",
+            "eve_unit_id": 128,
+            "high_is_good": true,
+            "icon_id": 2987,
+            "id": 1271,
+            "name": "droneBandwidth",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Just for the UI to display the ship warp speed.",
+            "display_name": "Ship Warp Speed",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 3759,
+            "id": 1281,
+            "name": "baseWarpSpeed",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "Max Modules Of This Group Allowed",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": 0,
+            "id": 1544,
+            "name": "maxGroupFitted",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "Rig Size",
+            "eve_unit_id": 117,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 1547,
+            "name": "rigSize",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 1555,
+            "name": "fwLpKill",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Authoring has been moved to FSD.\r\nmeta group of type\r\n\r\n3: Story-line (Cosmos)\r\n4: Faction\r\n5: Officer (rare asteroid NPCs)\r\n6: Deadspace\r\n\r\n",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 1692,
+            "name": "metaGroupID",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "The value of this attribute is a graphicsID which controls the color scheme of this type. It is used to apply said color scheme to items of other types whose gfx representation is tied in with the attribute holder. Example: Turrets on ships.",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": null,
+            "icon_id": null,
+            "id": 1768,
+            "name": "typeColorScheme",
+            "published": null,
+            "stackable": null
+        },
+        {
+            "default_value": 10000.0,
+            "description": "reload time (ms)",
+            "display_name": "Reload Time",
+            "eve_unit_id": 101,
+            "high_is_good": null,
+            "icon_id": 1397,
+            "id": 1795,
+            "name": "reloadTime",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "Overload Effectiveness Bonus",
+            "eve_unit_id": 105,
+            "high_is_good": true,
+            "icon_id": 1386,
+            "id": 1936,
+            "name": "overloadSensorModuleStrengthBonus",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "Time in milliseconds that it takes to switch stances.",
+            "display_name": "Cooldown between mode switching",
+            "eve_unit_id": 101,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 1985,
+            "name": "stanceSwitchTime",
+            "published": true,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 1989,
+            "name": "roleBonusT3ProbeCPU",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 2004,
+            "name": "shipBonusTacticalDestroyerMinmatar1",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 2005,
+            "name": "shipBonusTacticalDestroyerMinmatar2",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 0.0,
+            "description": "",
+            "display_name": "",
+            "eve_unit_id": null,
+            "high_is_good": true,
+            "icon_id": null,
+            "id": 2006,
+            "name": "shipBonusTacticalDestroyerMinmatar3",
+            "published": null,
+            "stackable": true
+        },
+        {
+            "default_value": 1.0,
+            "description": "Resistance against Energy Neutralizing and Nosferatu",
+            "display_name": "Capacitor Warfare Resistance",
+            "eve_unit_id": 108,
+            "high_is_good": null,
+            "icon_id": 1400,
+            "id": 2045,
+            "name": "energyWarfareResistance",
+            "published": true,
+            "stackable": null
+        },
+        {
+            "default_value": 1.0,
+            "description": "Resistance against Remote Weapon Disruptors.",
+            "display_name": "Weapon Disruption Resistance",
+            "eve_unit_id": 108,
+            "high_is_good": null,
+            "icon_id": 1398,
+            "id": 2113,
+            "name": "weaponDisruptionResistance",
+            "published": true,
+            "stackable": true
         }
     ],
     "EveDogmaEffect": [
+        {
+            "description": "Requires a low power slot",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "Low power",
+            "duration_attribute_id": null,
+            "effect_category": 0,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": 295,
+            "id": 11,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "loPower",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": true,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "Requires a high power slot",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "High power",
+            "duration_attribute_id": null,
+            "effect_category": 0,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": 293,
+            "id": 12,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "hiPower",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": true,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "Requires a medium power slot",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "Medium power",
+            "duration_attribute_id": null,
+            "effect_category": 0,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": 294,
+            "id": 13,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "medPower",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": true,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 1,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": null,
+            "id": 16,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "online",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": 6,
+            "display_name": "",
+            "duration_attribute_id": 51,
+            "effect_category": 2,
+            "electronic_chance": null,
+            "falloff_attribute_id": 158,
+            "icon_id": null,
+            "id": 34,
+            "is_assistance": null,
+            "is_offensive": true,
+            "is_warp_safe": null,
+            "name": "projectileFired",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": 54,
+            "range_chance": null,
+            "tracking_speed_attribute_id": 160
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": 6,
+            "display_name": "",
+            "duration_attribute_id": 73,
+            "effect_category": 2,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": null,
+            "id": 39,
+            "is_assistance": null,
+            "is_offensive": true,
+            "is_warp_safe": null,
+            "name": "warpDisrupt",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": 54,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "Requries a turret hardpoint",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "Turret",
+            "duration_attribute_id": null,
+            "effect_category": 0,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": 1432,
+            "id": 42,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "turretFitted",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": true,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 4,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": null,
+            "id": 58,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "capacitorCapacityMultiply",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 4,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": null,
+            "id": 89,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "projectileWeaponSpeedMultiply",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 4,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": null,
+            "id": 92,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "projectileWeaponDamageMultiply",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 0,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": 0,
+            "id": 253,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "shadowBarrageDmgMultiplierWithDamageMultiplierPostPercentBarrageDmgMutator",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 0,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": 0,
+            "id": 254,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "shadowBarrageFalloffWithFalloffPostPercentBarrageFalloffMutator",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "Barrage Attack, Attack with barrageDmgMultiplier as a damage multiplier",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": 6,
+            "display_name": "Barrage Attack",
+            "duration_attribute_id": 51,
+            "effect_category": 2,
+            "electronic_chance": null,
+            "falloff_attribute_id": 328,
+            "icon_id": null,
+            "id": 263,
+            "is_assistance": null,
+            "is_offensive": true,
+            "is_warp_safe": null,
+            "name": "barrage",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": true,
+            "range_attribute_id": 54,
+            "range_chance": null,
+            "tracking_speed_attribute_id": 160
+        },
         {
             "description": "",
             "disallow_auto_repeat": null,
@@ -539,6 +2707,94 @@
             "effect_category": 0,
             "electronic_chance": null,
             "falloff_attribute_id": null,
+            "icon_id": null,
+            "id": 596,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "ammoInfluenceRange",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 0,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": 0,
+            "id": 600,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "ammoTrackingMultiplier",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 0,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": 0,
+            "id": 699,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "signatureAnalysisScanResolutionBonusPostPercentScanResolutionShip",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 0,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": 0,
+            "id": 1173,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "ammoInfluenceEntityFlyRange",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 0,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
             "icon_id": 0,
             "id": 1244,
             "is_assistance": null,
@@ -595,14 +2851,702 @@
             "range_attribute_id": null,
             "range_chance": null,
             "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 0,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": 0,
+            "id": 2215,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "shipBonusPirateFrigateProjDamage",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 4,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": null,
+            "id": 2302,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "damageControl",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "Must be installed into an open rig slot",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "Rig Slot",
+            "duration_attribute_id": null,
+            "effect_category": 0,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": 3266,
+            "id": 2663,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "rigSlot",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": true,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": 6,
+            "display_name": "",
+            "duration_attribute_id": 73,
+            "effect_category": 1,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": null,
+            "id": 2670,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": true,
+            "name": "sensorBoosterActivePercentage",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 0,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": 0,
+            "id": 2716,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "drawbackSigRad",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 0,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": 0,
+            "id": 2718,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "drawbackShieldCapacity",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 0,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": null,
+            "id": 2795,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "modifyShieldResonancePostPercentPassive",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 5,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": 0,
+            "id": 3001,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": true,
+            "name": "overloadRofBonus",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 5,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": 0,
+            "id": 3174,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": true,
+            "name": "overloadSelfRangeBonus",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 5,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": 0,
+            "id": 3175,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": true,
+            "name": "overloadSelfSpeedBonus",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 4,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": 0,
+            "id": 3655,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "gunneryMaxRangeBonusOnline",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 4,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": 0,
+            "id": 3656,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "gunneryTrackingSpeedBonusOnline",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 4,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": 0,
+            "id": 4527,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "gunneryFalloffBonusOnline",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 5,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": null,
+            "id": 5757,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": true,
+            "name": "overloadSelfSensorModuleBonus",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "Automatically generated effect",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 0,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": null,
+            "id": 6009,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "probeLauncherCPUPercentRoleBonusT3",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "Automatically generated effect",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 0,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": null,
+            "id": 6036,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "shipHeatDamageMinmatarTacticalDestroyer3",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "Automatically generated effect",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 0,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": null,
+            "id": 6037,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "shipSPTDamageMinmatarTacticalDestroyer1",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "Automatically generated effect",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": null,
+            "display_name": "",
+            "duration_attribute_id": null,
+            "effect_category": 0,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": null,
+            "id": 6038,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "shipSPTOptimalMinmatarTacticalDestroyer2",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
+        },
+        {
+            "description": "",
+            "disallow_auto_repeat": null,
+            "discharge_attribute_id": 6,
+            "display_name": "",
+            "duration_attribute_id": 73,
+            "effect_category": 1,
+            "electronic_chance": null,
+            "falloff_attribute_id": null,
+            "icon_id": null,
+            "id": 6730,
+            "is_assistance": null,
+            "is_offensive": null,
+            "is_warp_safe": null,
+            "name": "moduleBonusMicrowarpdrive",
+            "post_expression": null,
+            "pre_expression": null,
+            "published": null,
+            "range_attribute_id": null,
+            "range_chance": null,
+            "tracking_speed_attribute_id": null
         }
     ],
     "EveDogmaEffectModifier": [
         {
+            "domain": "shipID",
+            "eve_dogma_effect_id": 89,
+            "func": "LocationGroupModifier",
+            "id": 147,
+            "modified_attribute_id": 51,
+            "modifying_attribute_id": 204,
+            "modifying_effect_id": null,
+            "operator": 4
+        },
+        {
+            "domain": "shipID",
+            "eve_dogma_effect_id": 92,
+            "func": "LocationGroupModifier",
+            "id": 148,
+            "modified_attribute_id": 64,
+            "modifying_attribute_id": 64,
+            "modifying_effect_id": null,
+            "operator": 4
+        },
+        {
+            "domain": "shipID",
+            "eve_dogma_effect_id": 2302,
+            "func": "ItemModifier",
+            "id": 149,
+            "modified_attribute_id": 274,
+            "modifying_attribute_id": 274,
+            "modifying_effect_id": null,
+            "operator": 0
+        },
+        {
+            "domain": "shipID",
+            "eve_dogma_effect_id": 3655,
+            "func": "LocationRequiredSkillModifier",
+            "id": 150,
+            "modified_attribute_id": 54,
+            "modifying_attribute_id": 351,
+            "modifying_effect_id": null,
+            "operator": 6
+        },
+        {
+            "domain": "shipID",
+            "eve_dogma_effect_id": 3656,
+            "func": "LocationRequiredSkillModifier",
+            "id": 151,
+            "modified_attribute_id": 160,
+            "modifying_attribute_id": 767,
+            "modifying_effect_id": null,
+            "operator": 6
+        },
+        {
+            "domain": "shipID",
+            "eve_dogma_effect_id": 4527,
+            "func": "LocationRequiredSkillModifier",
+            "id": 152,
+            "modified_attribute_id": 158,
+            "modifying_attribute_id": 349,
+            "modifying_effect_id": null,
+            "operator": 6
+        },
+        {
+            "domain": "shipID",
+            "eve_dogma_effect_id": 2670,
+            "func": "ItemModifier",
+            "id": 153,
+            "modified_attribute_id": 209,
+            "modifying_attribute_id": 1028,
+            "modifying_effect_id": null,
+            "operator": 6
+        },
+        {
+            "domain": "itemID",
+            "eve_dogma_effect_id": 5757,
+            "func": "ItemModifier",
+            "id": 154,
+            "modified_attribute_id": 1030,
+            "modifying_attribute_id": 1936,
+            "modifying_effect_id": null,
+            "operator": 6
+        },
+        {
+            "domain": "targetID",
+            "eve_dogma_effect_id": 39,
+            "func": "ItemModifier",
+            "id": 155,
+            "modified_attribute_id": 104,
+            "modifying_attribute_id": 105,
+            "modifying_effect_id": null,
+            "operator": 2
+        },
+        {
+            "domain": "itemID",
+            "eve_dogma_effect_id": 3174,
+            "func": "ItemModifier",
+            "id": 156,
+            "modified_attribute_id": 54,
+            "modifying_attribute_id": 1222,
+            "modifying_effect_id": null,
+            "operator": 6
+        },
+        {
+            "domain": "shipID",
+            "eve_dogma_effect_id": 58,
+            "func": "ItemModifier",
+            "id": 157,
+            "modified_attribute_id": 482,
+            "modifying_attribute_id": 147,
+            "modifying_effect_id": null,
+            "operator": 4
+        },
+        {
+            "domain": "itemID",
+            "eve_dogma_effect_id": 3175,
+            "func": "ItemModifier",
+            "id": 158,
+            "modified_attribute_id": 20,
+            "modifying_attribute_id": 1223,
+            "modifying_effect_id": null,
+            "operator": 6
+        },
+        {
+            "domain": "itemID",
+            "eve_dogma_effect_id": 253,
+            "func": "ItemModifier",
+            "id": 159,
+            "modified_attribute_id": 326,
+            "modifying_attribute_id": 324,
+            "modifying_effect_id": null,
+            "operator": 6
+        },
+        {
+            "domain": "itemID",
+            "eve_dogma_effect_id": 254,
+            "func": "ItemModifier",
+            "id": 160,
+            "modified_attribute_id": 328,
+            "modifying_attribute_id": 325,
+            "modifying_effect_id": null,
+            "operator": 6
+        },
+        {
+            "domain": "itemID",
+            "eve_dogma_effect_id": 3001,
+            "func": "ItemModifier",
+            "id": 161,
+            "modified_attribute_id": 51,
+            "modifying_attribute_id": 1205,
+            "modifying_effect_id": null,
+            "operator": 6
+        },
+        {
+            "domain": "otherID",
+            "eve_dogma_effect_id": 596,
+            "func": "ItemModifier",
+            "id": 162,
+            "modified_attribute_id": 54,
+            "modifying_attribute_id": 120,
+            "modifying_effect_id": null,
+            "operator": 0
+        },
+        {
+            "domain": "otherID",
+            "eve_dogma_effect_id": 600,
+            "func": "ItemModifier",
+            "id": 163,
+            "modified_attribute_id": 160,
+            "modifying_attribute_id": 244,
+            "modifying_effect_id": null,
+            "operator": 4
+        },
+        {
+            "domain": "otherID",
+            "eve_dogma_effect_id": 1173,
+            "func": "ItemModifier",
+            "id": 164,
+            "modified_attribute_id": 416,
+            "modifying_attribute_id": 779,
+            "modifying_effect_id": null,
+            "operator": 0
+        },
+        {
+            "domain": "shipID",
+            "eve_dogma_effect_id": 699,
+            "func": "ItemModifier",
+            "id": 165,
+            "modified_attribute_id": 564,
+            "modifying_attribute_id": 566,
+            "modifying_effect_id": null,
+            "operator": 6
+        },
+        {
+            "domain": "shipID",
+            "eve_dogma_effect_id": 2718,
+            "func": "ItemModifier",
+            "id": 166,
+            "modified_attribute_id": 263,
+            "modifying_attribute_id": 1138,
+            "modifying_effect_id": null,
+            "operator": 6
+        },
+        {
+            "domain": "shipID",
+            "eve_dogma_effect_id": 2716,
+            "func": "ItemModifier",
+            "id": 167,
+            "modified_attribute_id": 552,
+            "modifying_attribute_id": 1138,
+            "modifying_effect_id": null,
+            "operator": 6
+        },
+        {
+            "domain": "shipID",
+            "eve_dogma_effect_id": 2795,
+            "func": "ItemModifier",
+            "id": 168,
+            "modified_attribute_id": 274,
+            "modifying_attribute_id": 987,
+            "modifying_effect_id": null,
+            "operator": 6
+        },
+        {
+            "domain": "shipID",
+            "eve_dogma_effect_id": 2215,
+            "func": "LocationRequiredSkillModifier",
+            "id": 169,
+            "modified_attribute_id": 64,
+            "modifying_attribute_id": 793,
+            "modifying_effect_id": null,
+            "operator": 6
+        },
+        {
+            "domain": "shipID",
+            "eve_dogma_effect_id": 6009,
+            "func": "LocationRequiredSkillModifier",
+            "id": 170,
+            "modified_attribute_id": 50,
+            "modifying_attribute_id": 1989,
+            "modifying_effect_id": null,
+            "operator": 6
+        },
+        {
+            "domain": "shipID",
+            "eve_dogma_effect_id": 6036,
+            "func": "LocationModifier",
+            "id": 171,
+            "modified_attribute_id": 1211,
+            "modifying_attribute_id": 2006,
+            "modifying_effect_id": null,
+            "operator": 6
+        },
+        {
+            "domain": "shipID",
+            "eve_dogma_effect_id": 6037,
+            "func": "LocationRequiredSkillModifier",
+            "id": 172,
+            "modified_attribute_id": 64,
+            "modifying_attribute_id": 2004,
+            "modifying_effect_id": null,
+            "operator": 6
+        },
+        {
+            "domain": "shipID",
+            "eve_dogma_effect_id": 6038,
+            "func": "LocationRequiredSkillModifier",
+            "id": 173,
+            "modified_attribute_id": 54,
+            "modifying_attribute_id": 2005,
+            "modifying_effect_id": null,
+            "operator": 6
+        },
+        {
             "domain": "charID",
             "eve_dogma_effect_id": 302,
             "func": "ItemModifier",
-            "id": 86,
+            "id": 174,
             "modified_attribute_id": 164,
             "modifying_attribute_id": 175,
             "modifying_effect_id": null,
@@ -612,7 +3556,7 @@
             "domain": "charID",
             "eve_dogma_effect_id": 304,
             "func": "ItemModifier",
-            "id": 87,
+            "id": 175,
             "modified_attribute_id": 166,
             "modifying_attribute_id": 177,
             "modifying_effect_id": null,
@@ -622,7 +3566,7 @@
             "domain": "charID",
             "eve_dogma_effect_id": 306,
             "func": "ItemModifier",
-            "id": 88,
+            "id": 176,
             "modified_attribute_id": 165,
             "modifying_attribute_id": 176,
             "modifying_effect_id": null,
@@ -632,7 +3576,7 @@
             "domain": "charID",
             "eve_dogma_effect_id": 308,
             "func": "ItemModifier",
-            "id": 89,
+            "id": 177,
             "modified_attribute_id": 168,
             "modifying_attribute_id": 179,
             "modifying_effect_id": null,
@@ -642,7 +3586,7 @@
             "domain": "charID",
             "eve_dogma_effect_id": 310,
             "func": "ItemModifier",
-            "id": 90,
+            "id": 178,
             "modified_attribute_id": 167,
             "modifying_attribute_id": 178,
             "modifying_effect_id": null,
@@ -652,7 +3596,7 @@
             "domain": "shipID",
             "eve_dogma_effect_id": 394,
             "func": "ItemModifier",
-            "id": 91,
+            "id": 179,
             "modified_attribute_id": 37,
             "modifying_attribute_id": 315,
             "modifying_effect_id": null,
@@ -662,7 +3606,7 @@
             "domain": "charID",
             "eve_dogma_effect_id": 1244,
             "func": "ItemModifier",
-            "id": 92,
+            "id": 180,
             "modified_attribute_id": 445,
             "modifying_attribute_id": 447,
             "modifying_effect_id": null,
@@ -672,7 +3616,7 @@
             "domain": "charID",
             "eve_dogma_effect_id": 1261,
             "func": "LocationGroupModifier",
-            "id": 93,
+            "id": 181,
             "modified_attribute_id": 315,
             "modifying_attribute_id": 802,
             "modifying_effect_id": null,
@@ -682,7 +3626,7 @@
             "domain": "charID",
             "eve_dogma_effect_id": 1262,
             "func": "LocationGroupModifier",
-            "id": 94,
+            "id": 182,
             "modified_attribute_id": 803,
             "modifying_attribute_id": 447,
             "modifying_effect_id": null,
@@ -747,6 +3691,54 @@
             "published": false
         },
         {
+            "eve_category_id": 7,
+            "id": 46,
+            "name": "Propulsion Module",
+            "published": true
+        },
+        {
+            "eve_category_id": 7,
+            "id": 52,
+            "name": "Warp Scrambler",
+            "published": true
+        },
+        {
+            "eve_category_id": 7,
+            "id": 55,
+            "name": "Projectile Weapon",
+            "published": true
+        },
+        {
+            "eve_category_id": 7,
+            "id": 59,
+            "name": "Gyrostabilizer",
+            "published": true
+        },
+        {
+            "eve_category_id": 7,
+            "id": 60,
+            "name": "Damage Control",
+            "published": true
+        },
+        {
+            "eve_category_id": 8,
+            "id": 83,
+            "name": "Projectile Ammo",
+            "published": true
+        },
+        {
+            "eve_category_id": 7,
+            "id": 211,
+            "name": "Tracking Enhancer",
+            "published": true
+        },
+        {
+            "eve_category_id": 7,
+            "id": 212,
+            "name": "Sensor Booster",
+            "published": true
+        },
+        {
             "eve_category_id": 6,
             "id": 237,
             "name": "Corvette",
@@ -768,6 +3760,24 @@
             "eve_category_id": 6,
             "id": 513,
             "name": "Freighter",
+            "published": true
+        },
+        {
+            "eve_category_id": 7,
+            "id": 774,
+            "name": "Rig Shield",
+            "published": true
+        },
+        {
+            "eve_category_id": 7,
+            "id": 1234,
+            "name": "Rig Targeting",
+            "published": true
+        },
+        {
+            "eve_category_id": 6,
+            "id": 1305,
+            "name": "Tactical Destroyer",
             "published": true
         },
         {
@@ -920,6 +3930,22 @@
             "volume": 27500.0
         },
         {
+            "capacity": 0.0,
+            "enabled_sections": 1,
+            "eve_graphic_id": null,
+            "eve_group_id": 59,
+            "eve_market_group_id": null,
+            "icon_id": 1046,
+            "id": 519,
+            "mass": 0.0,
+            "name": "Gyrostabilizer II",
+            "packaged_volume": 5.0,
+            "portion_size": 1,
+            "published": true,
+            "radius": 1.0,
+            "volume": 5.0
+        },
+        {
             "capacity": 125.0,
             "enabled_sections": 0,
             "eve_graphic_id": null,
@@ -966,6 +3992,102 @@
             "published": false,
             "radius": 1.0,
             "volume": 1.0
+        },
+        {
+            "capacity": 1.0,
+            "enabled_sections": 1,
+            "eve_graphic_id": null,
+            "eve_group_id": 212,
+            "eve_market_group_id": null,
+            "icon_id": 74,
+            "id": 1952,
+            "mass": 0.0,
+            "name": "Sensor Booster II",
+            "packaged_volume": 5.0,
+            "portion_size": 1,
+            "published": true,
+            "radius": 1.0,
+            "volume": 5.0
+        },
+        {
+            "capacity": 0.0,
+            "enabled_sections": 1,
+            "eve_graphic_id": null,
+            "eve_group_id": 211,
+            "eve_market_group_id": null,
+            "icon_id": 1640,
+            "id": 1999,
+            "mass": 30.0,
+            "name": "Tracking Enhancer II",
+            "packaged_volume": 5.0,
+            "portion_size": 1,
+            "published": true,
+            "radius": 1.0,
+            "volume": 5.0
+        },
+        {
+            "capacity": 0.0,
+            "enabled_sections": 1,
+            "eve_graphic_id": null,
+            "eve_group_id": 60,
+            "eve_market_group_id": null,
+            "icon_id": 77,
+            "id": 2048,
+            "mass": 5000.0,
+            "name": "Damage Control II",
+            "packaged_volume": 5.0,
+            "portion_size": 1,
+            "published": true,
+            "radius": 1.0,
+            "volume": 5.0
+        },
+        {
+            "capacity": 0.05,
+            "enabled_sections": 1,
+            "eve_graphic_id": null,
+            "eve_group_id": 55,
+            "eve_market_group_id": null,
+            "icon_id": 389,
+            "id": 2977,
+            "mass": 500.0,
+            "name": "280mm Howitzer Artillery II",
+            "packaged_volume": 5.0,
+            "portion_size": 1,
+            "published": true,
+            "radius": 20.0,
+            "volume": 5.0
+        },
+        {
+            "capacity": 0.0,
+            "enabled_sections": 1,
+            "eve_graphic_id": null,
+            "eve_group_id": 52,
+            "eve_market_group_id": null,
+            "icon_id": 111,
+            "id": 3244,
+            "mass": 0.0,
+            "name": "Warp Disruptor II",
+            "packaged_volume": 5.0,
+            "portion_size": 1,
+            "published": true,
+            "radius": 1.0,
+            "volume": 5.0
+        },
+        {
+            "capacity": 0.0,
+            "enabled_sections": 1,
+            "eve_graphic_id": null,
+            "eve_group_id": 46,
+            "eve_market_group_id": null,
+            "icon_id": 10149,
+            "id": 5973,
+            "mass": 0.0,
+            "name": "5MN Y-T8 Compact Microwarpdrive",
+            "packaged_volume": 10.0,
+            "portion_size": 1,
+            "published": true,
+            "radius": 1.0,
+            "volume": 10.0
         },
         {
             "capacity": 0.0,
@@ -1049,6 +4171,22 @@
         },
         {
             "capacity": 0.0,
+            "enabled_sections": 1,
+            "eve_graphic_id": null,
+            "eve_group_id": 83,
+            "eve_market_group_id": null,
+            "icon_id": 1289,
+            "id": 21924,
+            "mass": 0.01,
+            "name": "Republic Fleet Phased Plasma S",
+            "packaged_volume": 0.0025,
+            "portion_size": 100,
+            "published": true,
+            "radius": 1.0,
+            "volume": 0.0025
+        },
+        {
+            "capacity": 0.0,
             "enabled_sections": 0,
             "eve_graphic_id": null,
             "eve_group_id": 257,
@@ -1113,6 +4251,70 @@
         },
         {
             "capacity": 0.0,
+            "enabled_sections": 1,
+            "eve_graphic_id": null,
+            "eve_group_id": 1234,
+            "eve_market_group_id": null,
+            "icon_id": 3198,
+            "id": 31328,
+            "mass": 200.0,
+            "name": "Small Targeting System Subcontroller II",
+            "packaged_volume": 5.0,
+            "portion_size": 1,
+            "published": true,
+            "radius": 100.0,
+            "volume": 5.0
+        },
+        {
+            "capacity": 0.0,
+            "enabled_sections": 1,
+            "eve_graphic_id": null,
+            "eve_group_id": 774,
+            "eve_market_group_id": null,
+            "icon_id": 3193,
+            "id": 31740,
+            "mass": 200.0,
+            "name": "Small Kinetic Shield Reinforcer I",
+            "packaged_volume": 5.0,
+            "portion_size": 1,
+            "published": true,
+            "radius": 100.0,
+            "volume": 5.0
+        },
+        {
+            "capacity": 0.0,
+            "enabled_sections": 1,
+            "eve_graphic_id": null,
+            "eve_group_id": 774,
+            "eve_market_group_id": null,
+            "icon_id": 3193,
+            "id": 31752,
+            "mass": 200.0,
+            "name": "Small Thermal Shield Reinforcer I",
+            "packaged_volume": 5.0,
+            "portion_size": 1,
+            "published": true,
+            "radius": 100.0,
+            "volume": 5.0
+        },
+        {
+            "capacity": 430.0,
+            "enabled_sections": 1,
+            "eve_graphic_id": null,
+            "eve_group_id": 1305,
+            "eve_market_group_id": null,
+            "icon_id": null,
+            "id": 34562,
+            "mass": 1400000.0,
+            "name": "Svipul",
+            "packaged_volume": 5000.0,
+            "portion_size": 1,
+            "published": true,
+            "radius": 144.0,
+            "volume": 47000.0
+        },
+        {
+            "capacity": 0.0,
             "enabled_sections": 0,
             "eve_graphic_id": null,
             "eve_group_id": 1657,
@@ -1162,473 +4364,2561 @@
     ],
     "EveTypeDogmaAttribute": [
         {
+            "eve_dogma_attribute_id": 64,
+            "eve_type_id": 519,
+            "id": 1366,
+            "value": 1.1
+        },
+        {
+            "eve_dogma_attribute_id": 161,
+            "eve_type_id": 519,
+            "id": 1367,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 162,
+            "eve_type_id": 519,
+            "id": 1368,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 4,
+            "eve_type_id": 519,
+            "id": 1369,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 38,
+            "eve_type_id": 519,
+            "id": 1370,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 422,
+            "eve_type_id": 519,
+            "id": 1371,
+            "value": 2.0
+        },
+        {
+            "eve_dogma_attribute_id": 9,
+            "eve_type_id": 519,
+            "id": 1372,
+            "value": 40.0
+        },
+        {
+            "eve_dogma_attribute_id": 204,
+            "eve_type_id": 519,
+            "id": 1373,
+            "value": 0.895
+        },
+        {
+            "eve_dogma_attribute_id": 50,
+            "eve_type_id": 519,
+            "id": 1374,
+            "value": 30.0
+        },
+        {
+            "eve_dogma_attribute_id": 277,
+            "eve_type_id": 519,
+            "id": 1375,
+            "value": 4.0
+        },
+        {
+            "eve_dogma_attribute_id": 182,
+            "eve_type_id": 519,
+            "id": 1376,
+            "value": 3318.0
+        },
+        {
+            "eve_dogma_attribute_id": 633,
+            "eve_type_id": 519,
+            "id": 1377,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 30,
+            "eve_type_id": 519,
+            "id": 1378,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 4,
+            "eve_type_id": 2048,
+            "id": 1379,
+            "value": 5000.0
+        },
+        {
+            "eve_dogma_attribute_id": 1544,
+            "eve_type_id": 2048,
+            "id": 1380,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 9,
+            "eve_type_id": 2048,
+            "id": 1381,
+            "value": 40.0
+        },
+        {
+            "eve_dogma_attribute_id": 267,
+            "eve_type_id": 2048,
+            "id": 1382,
+            "value": 0.85
+        },
+        {
+            "eve_dogma_attribute_id": 268,
+            "eve_type_id": 2048,
+            "id": 1383,
+            "value": 0.85
+        },
+        {
+            "eve_dogma_attribute_id": 269,
+            "eve_type_id": 2048,
+            "id": 1384,
+            "value": 0.85
+        },
+        {
+            "eve_dogma_attribute_id": 270,
+            "eve_type_id": 2048,
+            "id": 1385,
+            "value": 0.85
+        },
+        {
+            "eve_dogma_attribute_id": 271,
+            "eve_type_id": 2048,
+            "id": 1386,
+            "value": 0.875
+        },
+        {
+            "eve_dogma_attribute_id": 272,
+            "eve_type_id": 2048,
+            "id": 1387,
+            "value": 0.875
+        },
+        {
+            "eve_dogma_attribute_id": 273,
+            "eve_type_id": 2048,
+            "id": 1388,
+            "value": 0.875
+        },
+        {
+            "eve_dogma_attribute_id": 274,
+            "eve_type_id": 2048,
+            "id": 1389,
+            "value": 0.875
+        },
+        {
+            "eve_dogma_attribute_id": 277,
+            "eve_type_id": 2048,
+            "id": 1390,
+            "value": 4.0
+        },
+        {
+            "eve_dogma_attribute_id": 1692,
+            "eve_type_id": 2048,
+            "id": 1391,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 30,
+            "eve_type_id": 2048,
+            "id": 1392,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 161,
+            "eve_type_id": 2048,
+            "id": 1393,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 162,
+            "eve_type_id": 2048,
+            "id": 1394,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 422,
+            "eve_type_id": 2048,
+            "id": 1395,
+            "value": 2.0
+        },
+        {
+            "eve_dogma_attribute_id": 50,
+            "eve_type_id": 2048,
+            "id": 1396,
+            "value": 30.0
+        },
+        {
+            "eve_dogma_attribute_id": 182,
+            "eve_type_id": 2048,
+            "id": 1397,
+            "value": 3394.0
+        },
+        {
+            "eve_dogma_attribute_id": 974,
+            "eve_type_id": 2048,
+            "id": 1398,
+            "value": 0.6
+        },
+        {
+            "eve_dogma_attribute_id": 975,
+            "eve_type_id": 2048,
+            "id": 1399,
+            "value": 0.6
+        },
+        {
+            "eve_dogma_attribute_id": 976,
+            "eve_type_id": 2048,
+            "id": 1400,
+            "value": 0.6
+        },
+        {
+            "eve_dogma_attribute_id": 977,
+            "eve_type_id": 2048,
+            "id": 1401,
+            "value": 0.6
+        },
+        {
+            "eve_dogma_attribute_id": 38,
+            "eve_type_id": 2048,
+            "id": 1402,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 633,
+            "eve_type_id": 2048,
+            "id": 1403,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 161,
+            "eve_type_id": 1999,
+            "id": 1404,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 162,
+            "eve_type_id": 1999,
+            "id": 1405,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 4,
+            "eve_type_id": 1999,
+            "id": 1406,
+            "value": 30.0
+        },
+        {
+            "eve_dogma_attribute_id": 38,
+            "eve_type_id": 1999,
+            "id": 1407,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 422,
+            "eve_type_id": 1999,
+            "id": 1408,
+            "value": 2.0
+        },
+        {
+            "eve_dogma_attribute_id": 9,
+            "eve_type_id": 1999,
+            "id": 1409,
+            "value": 40.0
+        },
+        {
+            "eve_dogma_attribute_id": 50,
+            "eve_type_id": 1999,
+            "id": 1410,
+            "value": 15.0
+        },
+        {
+            "eve_dogma_attribute_id": 277,
+            "eve_type_id": 1999,
+            "id": 1411,
+            "value": 4.0
+        },
+        {
+            "eve_dogma_attribute_id": 182,
+            "eve_type_id": 1999,
+            "id": 1412,
+            "value": 3318.0
+        },
+        {
+            "eve_dogma_attribute_id": 633,
+            "eve_type_id": 1999,
+            "id": 1413,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 767,
+            "eve_type_id": 1999,
+            "id": 1414,
+            "value": 9.5
+        },
+        {
+            "eve_dogma_attribute_id": 349,
+            "eve_type_id": 1999,
+            "id": 1415,
+            "value": 20.0
+        },
+        {
+            "eve_dogma_attribute_id": 30,
+            "eve_type_id": 1999,
+            "id": 1416,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 351,
+            "eve_type_id": 1999,
+            "id": 1417,
+            "value": 10.0
+        },
+        {
+            "eve_dogma_attribute_id": 128,
+            "eve_type_id": 1952,
+            "id": 1418,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 1027,
+            "eve_type_id": 1952,
+            "id": 1419,
+            "value": 48.0
+        },
+        {
+            "eve_dogma_attribute_id": 1028,
+            "eve_type_id": 1952,
+            "id": 1420,
+            "value": 48.0
+        },
+        {
+            "eve_dogma_attribute_id": 1029,
+            "eve_type_id": 1952,
+            "id": 1421,
+            "value": 48.0
+        },
+        {
+            "eve_dogma_attribute_id": 6,
+            "eve_type_id": 1952,
+            "id": 1422,
+            "value": 12.0
+        },
+        {
+            "eve_dogma_attribute_id": 9,
+            "eve_type_id": 1952,
+            "id": 1423,
+            "value": 40.0
+        },
+        {
+            "eve_dogma_attribute_id": 1936,
+            "eve_type_id": 1952,
+            "id": 1424,
+            "value": 15.0
+        },
+        {
+            "eve_dogma_attribute_id": 1795,
+            "eve_type_id": 1952,
+            "id": 1425,
+            "value": 0.01
+        },
+        {
+            "eve_dogma_attribute_id": 277,
+            "eve_type_id": 1952,
+            "id": 1426,
+            "value": 4.0
+        },
+        {
+            "eve_dogma_attribute_id": 4,
+            "eve_type_id": 1952,
+            "id": 1427,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 1180,
+            "eve_type_id": 1952,
+            "id": 1428,
+            "value": 0.02
+        },
+        {
+            "eve_dogma_attribute_id": 30,
+            "eve_type_id": 1952,
+            "id": 1429,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 161,
+            "eve_type_id": 1952,
+            "id": 1430,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 162,
+            "eve_type_id": 1952,
+            "id": 1431,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 1030,
+            "eve_type_id": 1952,
+            "id": 1432,
+            "value": 48.0
+        },
+        {
+            "eve_dogma_attribute_id": 422,
+            "eve_type_id": 1952,
+            "id": 1433,
+            "value": 2.0
+        },
+        {
+            "eve_dogma_attribute_id": 50,
+            "eve_type_id": 1952,
+            "id": 1434,
+            "value": 16.0
+        },
+        {
+            "eve_dogma_attribute_id": 309,
+            "eve_type_id": 1952,
+            "id": 1435,
+            "value": 30.0
+        },
+        {
+            "eve_dogma_attribute_id": 566,
+            "eve_type_id": 1952,
+            "id": 1436,
+            "value": 30.0
+        },
+        {
+            "eve_dogma_attribute_id": 1211,
+            "eve_type_id": 1952,
+            "id": 1437,
+            "value": 3.4
+        },
+        {
+            "eve_dogma_attribute_id": 1212,
+            "eve_type_id": 1952,
+            "id": 1438,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 182,
+            "eve_type_id": 1952,
+            "id": 1439,
+            "value": 3428.0
+        },
+        {
+            "eve_dogma_attribute_id": 73,
+            "eve_type_id": 1952,
+            "id": 1440,
+            "value": 10000.0
+        },
+        {
+            "eve_dogma_attribute_id": 604,
+            "eve_type_id": 1952,
+            "id": 1441,
+            "value": 910.0
+        },
+        {
+            "eve_dogma_attribute_id": 38,
+            "eve_type_id": 1952,
+            "id": 1442,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 633,
+            "eve_type_id": 1952,
+            "id": 1443,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 1222,
+            "eve_type_id": 3244,
+            "id": 1444,
+            "value": 20.0
+        },
+        {
+            "eve_dogma_attribute_id": 161,
+            "eve_type_id": 3244,
+            "id": 1445,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 162,
+            "eve_type_id": 3244,
+            "id": 1446,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 4,
+            "eve_type_id": 3244,
+            "id": 1447,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 182,
+            "eve_type_id": 3244,
+            "id": 1448,
+            "value": 3435.0
+        },
+        {
+            "eve_dogma_attribute_id": 6,
+            "eve_type_id": 3244,
+            "id": 1449,
+            "value": 30.0
+        },
+        {
+            "eve_dogma_attribute_id": 422,
+            "eve_type_id": 3244,
+            "id": 1450,
+            "value": 2.0
+        },
+        {
+            "eve_dogma_attribute_id": 38,
+            "eve_type_id": 3244,
+            "id": 1451,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 9,
+            "eve_type_id": 3244,
+            "id": 1452,
+            "value": 40.0
+        },
+        {
+            "eve_dogma_attribute_id": 50,
+            "eve_type_id": 3244,
+            "id": 1453,
+            "value": 44.0
+        },
+        {
+            "eve_dogma_attribute_id": 1212,
+            "eve_type_id": 3244,
+            "id": 1454,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 105,
+            "eve_type_id": 3244,
+            "id": 1455,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 158,
+            "eve_type_id": 3244,
+            "id": 1456,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 54,
+            "eve_type_id": 3244,
+            "id": 1457,
+            "value": 24000.0
+        },
+        {
+            "eve_dogma_attribute_id": 73,
+            "eve_type_id": 3244,
+            "id": 1458,
+            "value": 5000.0
+        },
+        {
+            "eve_dogma_attribute_id": 633,
+            "eve_type_id": 3244,
+            "id": 1459,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 1211,
+            "eve_type_id": 3244,
+            "id": 1460,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 1180,
+            "eve_type_id": 3244,
+            "id": 1461,
+            "value": 0.02
+        },
+        {
+            "eve_dogma_attribute_id": 30,
+            "eve_type_id": 3244,
+            "id": 1462,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 277,
+            "eve_type_id": 3244,
+            "id": 1463,
+            "value": 2.0
+        },
+        {
+            "eve_dogma_attribute_id": 4,
+            "eve_type_id": 5973,
+            "id": 1464,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 6,
+            "eve_type_id": 5973,
+            "id": 1465,
+            "value": 45.0
+        },
+        {
+            "eve_dogma_attribute_id": 9,
+            "eve_type_id": 5973,
+            "id": 1466,
+            "value": 40.0
+        },
+        {
+            "eve_dogma_attribute_id": 147,
+            "eve_type_id": 5973,
+            "id": 1467,
+            "value": 0.75
+        },
+        {
+            "eve_dogma_attribute_id": 20,
+            "eve_type_id": 5973,
+            "id": 1468,
+            "value": 505.0
+        },
+        {
+            "eve_dogma_attribute_id": 277,
+            "eve_type_id": 5973,
+            "id": 1469,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 1180,
+            "eve_type_id": 5973,
+            "id": 1470,
+            "value": 0.04
+        },
+        {
+            "eve_dogma_attribute_id": 669,
+            "eve_type_id": 5973,
+            "id": 1471,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 30,
+            "eve_type_id": 5973,
+            "id": 1472,
+            "value": 14.0
+        },
+        {
+            "eve_dogma_attribute_id": 801,
+            "eve_type_id": 5973,
+            "id": 1473,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 162,
+            "eve_type_id": 5973,
+            "id": 1474,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 422,
+            "eve_type_id": 5973,
+            "id": 1475,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 796,
+            "eve_type_id": 5973,
+            "id": 1476,
+            "value": 500000.0
+        },
+        {
+            "eve_dogma_attribute_id": 554,
+            "eve_type_id": 5973,
+            "id": 1477,
+            "value": 500.0
+        },
+        {
+            "eve_dogma_attribute_id": 50,
+            "eve_type_id": 5973,
+            "id": 1478,
+            "value": 21.0
+        },
+        {
+            "eve_dogma_attribute_id": 182,
+            "eve_type_id": 5973,
+            "id": 1479,
+            "value": 3454.0
+        },
+        {
+            "eve_dogma_attribute_id": 567,
+            "eve_type_id": 5973,
+            "id": 1480,
+            "value": 1500000.0
+        },
+        {
+            "eve_dogma_attribute_id": 1211,
+            "eve_type_id": 5973,
+            "id": 1481,
+            "value": 19.0
+        },
+        {
+            "eve_dogma_attribute_id": 1212,
+            "eve_type_id": 5973,
+            "id": 1482,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 1223,
+            "eve_type_id": 5973,
+            "id": 1483,
+            "value": 50.0
+        },
+        {
+            "eve_dogma_attribute_id": 73,
+            "eve_type_id": 5973,
+            "id": 1484,
+            "value": 10000.0
+        },
+        {
+            "eve_dogma_attribute_id": 38,
+            "eve_type_id": 5973,
+            "id": 1485,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 161,
+            "eve_type_id": 5973,
+            "id": 1486,
+            "value": 10.0
+        },
+        {
+            "eve_dogma_attribute_id": 633,
+            "eve_type_id": 5973,
+            "id": 1487,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 763,
+            "eve_type_id": 5973,
+            "id": 1488,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 128,
+            "eve_type_id": 2977,
+            "id": 1489,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 1795,
+            "eve_type_id": 2977,
+            "id": 1490,
+            "value": 10000.0
+        },
+        {
+            "eve_dogma_attribute_id": 4,
+            "eve_type_id": 2977,
+            "id": 1491,
+            "value": 500.0
+        },
+        {
+            "eve_dogma_attribute_id": 6,
+            "eve_type_id": 2977,
+            "id": 1492,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 9,
+            "eve_type_id": 2977,
+            "id": 1493,
+            "value": 40.0
+        },
+        {
+            "eve_dogma_attribute_id": 277,
+            "eve_type_id": 2977,
+            "id": 1494,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 278,
+            "eve_type_id": 2977,
+            "id": 1495,
+            "value": 2.0
+        },
+        {
+            "eve_dogma_attribute_id": 279,
+            "eve_type_id": 2977,
+            "id": 1496,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 1180,
+            "eve_type_id": 2977,
+            "id": 1497,
+            "value": 0.02
+        },
+        {
+            "eve_dogma_attribute_id": 158,
+            "eve_type_id": 2977,
+            "id": 1498,
+            "value": 8750.0
+        },
+        {
+            "eve_dogma_attribute_id": 160,
+            "eve_type_id": 2977,
+            "id": 1499,
+            "value": 64.0
+        },
+        {
+            "eve_dogma_attribute_id": 161,
+            "eve_type_id": 2977,
+            "id": 1500,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 162,
+            "eve_type_id": 2977,
+            "id": 1501,
+            "value": 20.0
+        },
+        {
+            "eve_dogma_attribute_id": 422,
+            "eve_type_id": 2977,
+            "id": 1502,
+            "value": 2.0
+        },
+        {
+            "eve_dogma_attribute_id": 47,
+            "eve_type_id": 2977,
+            "id": 1503,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 50,
+            "eve_type_id": 2977,
+            "id": 1504,
+            "value": 16.0
+        },
+        {
+            "eve_dogma_attribute_id": 51,
+            "eve_type_id": 2977,
+            "id": 1505,
+            "value": 10710.0
+        },
+        {
+            "eve_dogma_attribute_id": 30,
+            "eve_type_id": 2977,
+            "id": 1506,
+            "value": 11.0
+        },
+        {
+            "eve_dogma_attribute_id": 182,
+            "eve_type_id": 2977,
+            "id": 1507,
+            "value": 3302.0
+        },
+        {
+            "eve_dogma_attribute_id": 183,
+            "eve_type_id": 2977,
+            "id": 1508,
+            "value": 3300.0
+        },
+        {
+            "eve_dogma_attribute_id": 184,
+            "eve_type_id": 2977,
+            "id": 1509,
+            "value": 12201.0
+        },
+        {
+            "eve_dogma_attribute_id": 1211,
+            "eve_type_id": 2977,
+            "id": 1510,
+            "value": 2.6
+        },
+        {
+            "eve_dogma_attribute_id": 1212,
+            "eve_type_id": 2977,
+            "id": 1511,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 63,
+            "eve_type_id": 2977,
+            "id": 1512,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 64,
+            "eve_type_id": 2977,
+            "id": 1513,
+            "value": 8.452
+        },
+        {
+            "eve_dogma_attribute_id": 54,
+            "eve_type_id": 2977,
+            "id": 1514,
+            "value": 12000.0
+        },
+        {
+            "eve_dogma_attribute_id": 56,
+            "eve_type_id": 2977,
+            "id": 1515,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 604,
+            "eve_type_id": 2977,
+            "id": 1516,
+            "value": 83.0
+        },
+        {
+            "eve_dogma_attribute_id": 605,
+            "eve_type_id": 2977,
+            "id": 1517,
+            "value": 376.0
+        },
+        {
+            "eve_dogma_attribute_id": 1205,
+            "eve_type_id": 2977,
+            "id": 1518,
+            "value": -15.0
+        },
+        {
+            "eve_dogma_attribute_id": 38,
+            "eve_type_id": 2977,
+            "id": 1519,
+            "value": 0.05
+        },
+        {
+            "eve_dogma_attribute_id": 1768,
+            "eve_type_id": 2977,
+            "id": 1520,
+            "value": 11343.0
+        },
+        {
+            "eve_dogma_attribute_id": 620,
+            "eve_type_id": 2977,
+            "id": 1521,
+            "value": 40000.0
+        },
+        {
+            "eve_dogma_attribute_id": 633,
+            "eve_type_id": 2977,
+            "id": 1522,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 128,
+            "eve_type_id": 21924,
+            "id": 1523,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 161,
+            "eve_type_id": 21924,
+            "id": 1524,
+            "value": 0.0025
+        },
+        {
+            "eve_dogma_attribute_id": 1692,
+            "eve_type_id": 21924,
+            "id": 1525,
+            "value": 4.0
+        },
+        {
+            "eve_dogma_attribute_id": 612,
+            "eve_type_id": 21924,
+            "id": 1526,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 613,
+            "eve_type_id": 21924,
+            "id": 1527,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 422,
+            "eve_type_id": 21924,
+            "id": 1528,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 137,
+            "eve_type_id": 21924,
+            "id": 1529,
+            "value": 55.0
+        },
+        {
+            "eve_dogma_attribute_id": 779,
+            "eve_type_id": 21924,
+            "id": 1530,
+            "value": 0.625
+        },
+        {
+            "eve_dogma_attribute_id": 162,
+            "eve_type_id": 21924,
+            "id": 1531,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 114,
+            "eve_type_id": 21924,
+            "id": 1532,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 116,
+            "eve_type_id": 21924,
+            "id": 1533,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 117,
+            "eve_type_id": 21924,
+            "id": 1534,
+            "value": 2.3
+        },
+        {
+            "eve_dogma_attribute_id": 118,
+            "eve_type_id": 21924,
+            "id": 1535,
+            "value": 11.5
+        },
+        {
+            "eve_dogma_attribute_id": 120,
+            "eve_type_id": 21924,
+            "id": 1536,
+            "value": 0.5
+        },
+        {
+            "eve_dogma_attribute_id": 244,
+            "eve_type_id": 21924,
+            "id": 1537,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 38,
+            "eve_type_id": 21924,
+            "id": 1538,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 124,
+            "eve_type_id": 21924,
+            "id": 1539,
+            "value": 3304021.0
+        },
+        {
+            "eve_dogma_attribute_id": 4,
+            "eve_type_id": 21924,
+            "id": 1540,
+            "value": 0.01
+        },
+        {
+            "eve_dogma_attribute_id": 1153,
+            "eve_type_id": 31328,
+            "id": 1541,
+            "value": 150.0
+        },
+        {
+            "eve_dogma_attribute_id": 162,
+            "eve_type_id": 31328,
+            "id": 1542,
+            "value": 100.0
+        },
+        {
+            "eve_dogma_attribute_id": 4,
+            "eve_type_id": 31328,
+            "id": 1543,
+            "value": 200.0
+        },
+        {
+            "eve_dogma_attribute_id": 38,
+            "eve_type_id": 31328,
+            "id": 1544,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 422,
+            "eve_type_id": 31328,
+            "id": 1545,
+            "value": 2.0
+        },
+        {
+            "eve_dogma_attribute_id": 161,
+            "eve_type_id": 31328,
+            "id": 1546,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 9,
+            "eve_type_id": 31328,
+            "id": 1547,
+            "value": 40.0
+        },
+        {
+            "eve_dogma_attribute_id": 1547,
+            "eve_type_id": 31328,
+            "id": 1548,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 1138,
+            "eve_type_id": 31328,
+            "id": 1549,
+            "value": -10.0
+        },
+        {
+            "eve_dogma_attribute_id": 566,
+            "eve_type_id": 31328,
+            "id": 1550,
+            "value": 25.0
+        },
+        {
+            "eve_dogma_attribute_id": 633,
+            "eve_type_id": 31328,
+            "id": 1551,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 1153,
+            "eve_type_id": 31740,
+            "id": 1552,
+            "value": 50.0
+        },
+        {
+            "eve_dogma_attribute_id": 162,
+            "eve_type_id": 31740,
+            "id": 1553,
+            "value": 100.0
+        },
+        {
+            "eve_dogma_attribute_id": 4,
+            "eve_type_id": 31740,
+            "id": 1554,
+            "value": 200.0
+        },
+        {
+            "eve_dogma_attribute_id": 38,
+            "eve_type_id": 31740,
+            "id": 1555,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 422,
+            "eve_type_id": 31740,
+            "id": 1556,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 161,
+            "eve_type_id": 31740,
+            "id": 1557,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 9,
+            "eve_type_id": 31740,
+            "id": 1558,
+            "value": 40.0
+        },
+        {
+            "eve_dogma_attribute_id": 1547,
+            "eve_type_id": 31740,
+            "id": 1559,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 1138,
+            "eve_type_id": 31740,
+            "id": 1560,
+            "value": 10.0
+        },
+        {
+            "eve_dogma_attribute_id": 633,
+            "eve_type_id": 31740,
+            "id": 1561,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 986,
+            "eve_type_id": 31740,
+            "id": 1562,
+            "value": -30.0
+        },
+        {
+            "eve_dogma_attribute_id": 1153,
+            "eve_type_id": 31752,
+            "id": 1563,
+            "value": 50.0
+        },
+        {
+            "eve_dogma_attribute_id": 162,
+            "eve_type_id": 31752,
+            "id": 1564,
+            "value": 100.0
+        },
+        {
+            "eve_dogma_attribute_id": 4,
+            "eve_type_id": 31752,
+            "id": 1565,
+            "value": 200.0
+        },
+        {
+            "eve_dogma_attribute_id": 38,
+            "eve_type_id": 31752,
+            "id": 1566,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 422,
+            "eve_type_id": 31752,
+            "id": 1567,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 161,
+            "eve_type_id": 31752,
+            "id": 1568,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 9,
+            "eve_type_id": 31752,
+            "id": 1569,
+            "value": 40.0
+        },
+        {
+            "eve_dogma_attribute_id": 1547,
+            "eve_type_id": 31752,
+            "id": 1570,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 1138,
+            "eve_type_id": 31752,
+            "id": 1571,
+            "value": 10.0
+        },
+        {
+            "eve_dogma_attribute_id": 633,
+            "eve_type_id": 31752,
+            "id": 1572,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 987,
+            "eve_type_id": 31752,
+            "id": 1573,
+            "value": -30.0
+        },
+        {
+            "eve_dogma_attribute_id": 3,
+            "eve_type_id": 34562,
+            "id": 1574,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 4,
+            "eve_type_id": 34562,
+            "id": 1575,
+            "value": 1400000.0
+        },
+        {
+            "eve_dogma_attribute_id": 9,
+            "eve_type_id": 34562,
+            "id": 1576,
+            "value": 550.0
+        },
+        {
+            "eve_dogma_attribute_id": 1547,
+            "eve_type_id": 34562,
+            "id": 1577,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 12,
+            "eve_type_id": 34562,
+            "id": 1578,
+            "value": 4.0
+        },
+        {
+            "eve_dogma_attribute_id": 13,
+            "eve_type_id": 34562,
+            "id": 1579,
+            "value": 4.0
+        },
+        {
+            "eve_dogma_attribute_id": 14,
+            "eve_type_id": 34562,
+            "id": 1580,
+            "value": 6.0
+        },
+        {
+            "eve_dogma_attribute_id": 15,
+            "eve_type_id": 34562,
+            "id": 1581,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 18,
+            "eve_type_id": 34562,
+            "id": 1582,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 19,
+            "eve_type_id": 34562,
+            "id": 1583,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 21,
+            "eve_type_id": 34562,
+            "id": 1584,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 37,
+            "eve_type_id": 34562,
+            "id": 1585,
+            "value": 220.0
+        },
+        {
+            "eve_dogma_attribute_id": 38,
+            "eve_type_id": 34562,
+            "id": 1586,
+            "value": 430.0
+        },
+        {
+            "eve_dogma_attribute_id": 552,
+            "eve_type_id": 34562,
+            "id": 1587,
+            "value": 60.0
+        },
+        {
+            "eve_dogma_attribute_id": 48,
+            "eve_type_id": 34562,
+            "id": 1588,
+            "value": 205.0
+        },
+        {
+            "eve_dogma_attribute_id": 49,
+            "eve_type_id": 34562,
+            "id": 1589,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 564,
+            "eve_type_id": 34562,
+            "id": 1590,
+            "value": 530.0
+        },
+        {
+            "eve_dogma_attribute_id": 55,
+            "eve_type_id": 34562,
+            "id": 1591,
+            "value": 240000.0
+        },
+        {
+            "eve_dogma_attribute_id": 2113,
+            "eve_type_id": 34562,
+            "id": 1592,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 11,
+            "eve_type_id": 34562,
+            "id": 1593,
+            "value": 54.0
+        },
+        {
+            "eve_dogma_attribute_id": 70,
+            "eve_type_id": 34562,
+            "id": 1594,
+            "value": 3.8
+        },
+        {
+            "eve_dogma_attribute_id": 524,
+            "eve_type_id": 34562,
+            "id": 1595,
+            "value": 0.75
+        },
+        {
+            "eve_dogma_attribute_id": 76,
+            "eve_type_id": 34562,
+            "id": 1596,
+            "value": 40000.0
+        },
+        {
+            "eve_dogma_attribute_id": 525,
+            "eve_type_id": 34562,
+            "id": 1597,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 600,
+            "eve_type_id": 34562,
+            "id": 1598,
+            "value": 4.5
+        },
+        {
+            "eve_dogma_attribute_id": 101,
+            "eve_type_id": 34562,
+            "id": 1599,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 102,
+            "eve_type_id": 34562,
+            "id": 1600,
+            "value": 4.0
+        },
+        {
+            "eve_dogma_attribute_id": 1132,
+            "eve_type_id": 34562,
+            "id": 1601,
+            "value": 400.0
+        },
+        {
+            "eve_dogma_attribute_id": 109,
+            "eve_type_id": 34562,
+            "id": 1602,
+            "value": 0.67
+        },
+        {
+            "eve_dogma_attribute_id": 110,
+            "eve_type_id": 34562,
+            "id": 1603,
+            "value": 0.67
+        },
+        {
+            "eve_dogma_attribute_id": 111,
+            "eve_type_id": 34562,
+            "id": 1604,
+            "value": 0.67
+        },
+        {
+            "eve_dogma_attribute_id": 1137,
+            "eve_type_id": 34562,
+            "id": 1605,
+            "value": 3.0
+        },
+        {
+            "eve_dogma_attribute_id": 1555,
+            "eve_type_id": 34562,
+            "id": 1606,
+            "value": 40.0
+        },
+        {
+            "eve_dogma_attribute_id": 633,
+            "eve_type_id": 34562,
+            "id": 1607,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 124,
+            "eve_type_id": 34562,
+            "id": 1608,
+            "value": 16777215.0
+        },
+        {
+            "eve_dogma_attribute_id": 129,
+            "eve_type_id": 34562,
+            "id": 1609,
+            "value": 450.0
+        },
+        {
+            "eve_dogma_attribute_id": 1154,
+            "eve_type_id": 34562,
+            "id": 1610,
+            "value": 3.0
+        },
+        {
+            "eve_dogma_attribute_id": 136,
+            "eve_type_id": 34562,
+            "id": 1611,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 661,
+            "eve_type_id": 34562,
+            "id": 1612,
+            "value": 2000.0
+        },
+        {
+            "eve_dogma_attribute_id": 662,
+            "eve_type_id": 34562,
+            "id": 1613,
+            "value": 0.25
+        },
+        {
+            "eve_dogma_attribute_id": 153,
+            "eve_type_id": 34562,
+            "id": 1614,
+            "value": 8.13e-07
+        },
+        {
+            "eve_dogma_attribute_id": 1178,
+            "eve_type_id": 34562,
+            "id": 1615,
+            "value": 100.0
+        },
+        {
+            "eve_dogma_attribute_id": 1179,
+            "eve_type_id": 34562,
+            "id": 1616,
+            "value": 0.01
+        },
+        {
+            "eve_dogma_attribute_id": 161,
+            "eve_type_id": 34562,
+            "id": 1617,
+            "value": 47000.0
+        },
+        {
+            "eve_dogma_attribute_id": 162,
+            "eve_type_id": 34562,
+            "id": 1618,
+            "value": 144.0
+        },
+        {
+            "eve_dogma_attribute_id": 113,
+            "eve_type_id": 34562,
+            "id": 1619,
+            "value": 0.67
+        },
+        {
+            "eve_dogma_attribute_id": 1196,
+            "eve_type_id": 34562,
+            "id": 1620,
+            "value": 0.01
+        },
+        {
+            "eve_dogma_attribute_id": 1198,
+            "eve_type_id": 34562,
+            "id": 1621,
+            "value": 0.01
+        },
+        {
+            "eve_dogma_attribute_id": 1199,
+            "eve_type_id": 34562,
+            "id": 1622,
+            "value": 100.0
+        },
+        {
+            "eve_dogma_attribute_id": 1200,
+            "eve_type_id": 34562,
+            "id": 1623,
+            "value": 100.0
+        },
+        {
+            "eve_dogma_attribute_id": 182,
+            "eve_type_id": 34562,
+            "id": 1624,
+            "value": 34533.0
+        },
+        {
+            "eve_dogma_attribute_id": 192,
+            "eve_type_id": 34562,
+            "id": 1625,
+            "value": 7.0
+        },
+        {
+            "eve_dogma_attribute_id": 1224,
+            "eve_type_id": 34562,
+            "id": 1626,
+            "value": 0.85
+        },
+        {
+            "eve_dogma_attribute_id": 208,
+            "eve_type_id": 34562,
+            "id": 1627,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 209,
+            "eve_type_id": 34562,
+            "id": 1628,
+            "value": 11.0
+        },
+        {
+            "eve_dogma_attribute_id": 210,
+            "eve_type_id": 34562,
+            "id": 1629,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 211,
+            "eve_type_id": 34562,
+            "id": 1630,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 217,
+            "eve_type_id": 34562,
+            "id": 1631,
+            "value": 394.0
+        },
+        {
+            "eve_dogma_attribute_id": 1768,
+            "eve_type_id": 34562,
+            "id": 1632,
+            "value": 11313.0
+        },
+        {
+            "eve_dogma_attribute_id": 1259,
+            "eve_type_id": 34562,
+            "id": 1633,
+            "value": 0.76
+        },
+        {
+            "eve_dogma_attribute_id": 1261,
+            "eve_type_id": 34562,
+            "id": 1634,
+            "value": 0.63
+        },
+        {
+            "eve_dogma_attribute_id": 1262,
+            "eve_type_id": 34562,
+            "id": 1635,
+            "value": 0.63
+        },
+        {
+            "eve_dogma_attribute_id": 246,
+            "eve_type_id": 34562,
+            "id": 1636,
+            "value": 394.0
+        },
+        {
+            "eve_dogma_attribute_id": 1271,
+            "eve_type_id": 34562,
+            "id": 1637,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 1281,
+            "eve_type_id": 34562,
+            "id": 1638,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 263,
+            "eve_type_id": 34562,
+            "id": 1639,
+            "value": 800.0
+        },
+        {
+            "eve_dogma_attribute_id": 264,
+            "eve_type_id": 34562,
+            "id": 1640,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 265,
+            "eve_type_id": 34562,
+            "id": 1641,
+            "value": 700.0
+        },
+        {
+            "eve_dogma_attribute_id": 267,
+            "eve_type_id": 34562,
+            "id": 1642,
+            "value": 0.2
+        },
+        {
+            "eve_dogma_attribute_id": 268,
+            "eve_type_id": 34562,
+            "id": 1643,
+            "value": 0.9
+        },
+        {
+            "eve_dogma_attribute_id": 269,
+            "eve_type_id": 34562,
+            "id": 1644,
+            "value": 0.75
+        },
+        {
+            "eve_dogma_attribute_id": 270,
+            "eve_type_id": 34562,
+            "id": 1645,
+            "value": 0.4875
+        },
+        {
+            "eve_dogma_attribute_id": 271,
+            "eve_type_id": 34562,
+            "id": 1646,
+            "value": 0.5
+        },
+        {
+            "eve_dogma_attribute_id": 272,
+            "eve_type_id": 34562,
+            "id": 1647,
+            "value": 0.5
+        },
+        {
+            "eve_dogma_attribute_id": 273,
+            "eve_type_id": 34562,
+            "id": 1648,
+            "value": 0.6
+        },
+        {
+            "eve_dogma_attribute_id": 274,
+            "eve_type_id": 34562,
+            "id": 1649,
+            "value": 0.6
+        },
+        {
+            "eve_dogma_attribute_id": 277,
+            "eve_type_id": 34562,
+            "id": 1650,
+            "value": 1.0
+        },
+        {
+            "eve_dogma_attribute_id": 793,
+            "eve_type_id": 34562,
+            "id": 1651,
+            "value": 33.0
+        },
+        {
+            "eve_dogma_attribute_id": 283,
+            "eve_type_id": 34562,
+            "id": 1652,
+            "value": 0.0
+        },
+        {
+            "eve_dogma_attribute_id": 422,
+            "eve_type_id": 34562,
+            "id": 1653,
+            "value": 3.0
+        },
+        {
+            "eve_dogma_attribute_id": 1985,
+            "eve_type_id": 34562,
+            "id": 1654,
+            "value": 10000.0
+        },
+        {
+            "eve_dogma_attribute_id": 1989,
+            "eve_type_id": 34562,
+            "id": 1655,
+            "value": -95.0
+        },
+        {
+            "eve_dogma_attribute_id": 2004,
+            "eve_type_id": 34562,
+            "id": 1656,
+            "value": 5.0
+        },
+        {
+            "eve_dogma_attribute_id": 2005,
+            "eve_type_id": 34562,
+            "id": 1657,
+            "value": 10.0
+        },
+        {
+            "eve_dogma_attribute_id": 2006,
+            "eve_type_id": 34562,
+            "id": 1658,
+            "value": -5.0
+        },
+        {
+            "eve_dogma_attribute_id": 79,
+            "eve_type_id": 34562,
+            "id": 1659,
+            "value": 5000.0
+        },
+        {
+            "eve_dogma_attribute_id": 479,
+            "eve_type_id": 34562,
+            "id": 1660,
+            "value": 800000.0
+        },
+        {
+            "eve_dogma_attribute_id": 482,
+            "eve_type_id": 34562,
+            "id": 1661,
+            "value": 600.0
+        },
+        {
+            "eve_dogma_attribute_id": 484,
+            "eve_type_id": 34562,
+            "id": 1662,
+            "value": 0.75
+        },
+        {
+            "eve_dogma_attribute_id": 2045,
+            "eve_type_id": 34562,
+            "id": 1663,
+            "value": 1.0
+        },
+        {
             "eve_dogma_attribute_id": 161,
             "eve_type_id": 19540,
-            "id": 3440,
+            "id": 1664,
             "value": 1.0
         },
         {
             "eve_dogma_attribute_id": 802,
             "eve_type_id": 19540,
-            "id": 3441,
+            "id": 1665,
             "value": 1.15
         },
         {
             "eve_dogma_attribute_id": 4,
             "eve_type_id": 19540,
-            "id": 3442,
+            "id": 1666,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 38,
             "eve_type_id": 19540,
-            "id": 3443,
+            "id": 1667,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 422,
             "eve_type_id": 19540,
-            "id": 3444,
+            "id": 1668,
             "value": 2.0
         },
         {
             "eve_dogma_attribute_id": 331,
             "eve_type_id": 19540,
-            "id": 3445,
+            "id": 1669,
             "value": 1.0
         },
         {
             "eve_dogma_attribute_id": 162,
             "eve_type_id": 19540,
-            "id": 3446,
+            "id": 1670,
             "value": 1.0
         },
         {
             "eve_dogma_attribute_id": 175,
             "eve_type_id": 19540,
-            "id": 3447,
+            "id": 1671,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 176,
             "eve_type_id": 19540,
-            "id": 3448,
+            "id": 1672,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 177,
             "eve_type_id": 19540,
-            "id": 3449,
+            "id": 1673,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 178,
             "eve_type_id": 19540,
-            "id": 3450,
+            "id": 1674,
             "value": 4.0
         },
         {
             "eve_dogma_attribute_id": 179,
             "eve_type_id": 19540,
-            "id": 3451,
+            "id": 1675,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 277,
             "eve_type_id": 19540,
-            "id": 3452,
+            "id": 1676,
             "value": 2.0
         },
         {
             "eve_dogma_attribute_id": 182,
             "eve_type_id": 19540,
-            "id": 3453,
+            "id": 1677,
             "value": 3411.0
         },
         {
             "eve_dogma_attribute_id": 633,
             "eve_type_id": 19540,
-            "id": 3454,
+            "id": 1678,
             "value": 9.0
         },
         {
             "eve_dogma_attribute_id": 315,
             "eve_type_id": 19540,
-            "id": 3455,
+            "id": 1679,
             "value": 0.5
         },
         {
             "eve_dogma_attribute_id": 447,
             "eve_type_id": 19540,
-            "id": 3456,
+            "id": 1680,
             "value": 0.01
         },
         {
             "eve_dogma_attribute_id": 161,
             "eve_type_id": 19551,
-            "id": 3457,
+            "id": 1681,
             "value": 1.0
         },
         {
             "eve_dogma_attribute_id": 802,
             "eve_type_id": 19551,
-            "id": 3458,
+            "id": 1682,
             "value": 1.15
         },
         {
             "eve_dogma_attribute_id": 4,
             "eve_type_id": 19551,
-            "id": 3459,
+            "id": 1683,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 38,
             "eve_type_id": 19551,
-            "id": 3460,
+            "id": 1684,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 422,
             "eve_type_id": 19551,
-            "id": 3461,
+            "id": 1685,
             "value": 2.0
         },
         {
             "eve_dogma_attribute_id": 331,
             "eve_type_id": 19551,
-            "id": 3462,
+            "id": 1686,
             "value": 2.0
         },
         {
             "eve_dogma_attribute_id": 162,
             "eve_type_id": 19551,
-            "id": 3463,
+            "id": 1687,
             "value": 1.0
         },
         {
             "eve_dogma_attribute_id": 175,
             "eve_type_id": 19551,
-            "id": 3464,
+            "id": 1688,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 176,
             "eve_type_id": 19551,
-            "id": 3465,
+            "id": 1689,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 177,
             "eve_type_id": 19551,
-            "id": 3466,
+            "id": 1690,
             "value": 4.0
         },
         {
             "eve_dogma_attribute_id": 178,
             "eve_type_id": 19551,
-            "id": 3467,
+            "id": 1691,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 179,
             "eve_type_id": 19551,
-            "id": 3468,
+            "id": 1692,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 277,
             "eve_type_id": 19551,
-            "id": 3469,
+            "id": 1693,
             "value": 2.0
         },
         {
             "eve_dogma_attribute_id": 182,
             "eve_type_id": 19551,
-            "id": 3470,
+            "id": 1694,
             "value": 3411.0
         },
         {
             "eve_dogma_attribute_id": 633,
             "eve_type_id": 19551,
-            "id": 3471,
+            "id": 1695,
             "value": 9.0
         },
         {
             "eve_dogma_attribute_id": 315,
             "eve_type_id": 19551,
-            "id": 3472,
+            "id": 1696,
             "value": 0.625
         },
         {
             "eve_dogma_attribute_id": 447,
             "eve_type_id": 19551,
-            "id": 3473,
+            "id": 1697,
             "value": 0.02
         },
         {
             "eve_dogma_attribute_id": 161,
             "eve_type_id": 19553,
-            "id": 3474,
+            "id": 1698,
             "value": 1.0
         },
         {
             "eve_dogma_attribute_id": 802,
             "eve_type_id": 19553,
-            "id": 3475,
+            "id": 1699,
             "value": 1.15
         },
         {
             "eve_dogma_attribute_id": 4,
             "eve_type_id": 19553,
-            "id": 3476,
+            "id": 1700,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 38,
             "eve_type_id": 19553,
-            "id": 3477,
+            "id": 1701,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 422,
             "eve_type_id": 19553,
-            "id": 3478,
+            "id": 1702,
             "value": 2.0
         },
         {
             "eve_dogma_attribute_id": 331,
             "eve_type_id": 19553,
-            "id": 3479,
+            "id": 1703,
             "value": 3.0
         },
         {
             "eve_dogma_attribute_id": 162,
             "eve_type_id": 19553,
-            "id": 3480,
+            "id": 1704,
             "value": 1.0
         },
         {
             "eve_dogma_attribute_id": 175,
             "eve_type_id": 19553,
-            "id": 3481,
+            "id": 1705,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 176,
             "eve_type_id": 19553,
-            "id": 3482,
+            "id": 1706,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 177,
             "eve_type_id": 19553,
-            "id": 3483,
+            "id": 1707,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 178,
             "eve_type_id": 19553,
-            "id": 3484,
+            "id": 1708,
             "value": 0.0
         },
         {
             "eve_dogma_attribute_id": 179,
             "eve_type_id": 19553,
-            "id": 3485,
+            "id": 1709,
             "value": 4.0
         },
         {
             "eve_dogma_attribute_id": 277,
             "eve_type_id": 19553,
-            "id": 3486,
+            "id": 1710,
             "value": 3.0
         },
         {
             "eve_dogma_attribute_id": 182,
             "eve_type_id": 19553,
-            "id": 3487,
+            "id": 1711,
             "value": 3411.0
         },
         {
             "eve_dogma_attribute_id": 633,
             "eve_type_id": 19553,
-            "id": 3488,
+            "id": 1712,
             "value": 9.0
         },
         {
             "eve_dogma_attribute_id": 315,
             "eve_type_id": 19553,
-            "id": 3489,
+            "id": 1713,
             "value": 0.75
         },
         {
             "eve_dogma_attribute_id": 447,
             "eve_type_id": 19553,
-            "id": 3490,
+            "id": 1714,
             "value": 0.03
         }
     ],
     "EveTypeDogmaEffect": [
         {
+            "eve_dogma_effect_id": 11,
+            "eve_type_id": 519,
+            "id": 309,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 16,
+            "eve_type_id": 519,
+            "id": 310,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 89,
+            "eve_type_id": 519,
+            "id": 311,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 92,
+            "eve_type_id": 519,
+            "id": 312,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 11,
+            "eve_type_id": 2048,
+            "id": 313,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 16,
+            "eve_type_id": 2048,
+            "id": 314,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 2302,
+            "eve_type_id": 2048,
+            "id": 315,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 11,
+            "eve_type_id": 1999,
+            "id": 316,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 16,
+            "eve_type_id": 1999,
+            "id": 317,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 3655,
+            "eve_type_id": 1999,
+            "id": 318,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 3656,
+            "eve_type_id": 1999,
+            "id": 319,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 4527,
+            "eve_type_id": 1999,
+            "id": 320,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 13,
+            "eve_type_id": 1952,
+            "id": 321,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 16,
+            "eve_type_id": 1952,
+            "id": 322,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 2670,
+            "eve_type_id": 1952,
+            "id": 323,
+            "is_default": true
+        },
+        {
+            "eve_dogma_effect_id": 5757,
+            "eve_type_id": 1952,
+            "id": 324,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 13,
+            "eve_type_id": 3244,
+            "id": 325,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 16,
+            "eve_type_id": 3244,
+            "id": 326,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 39,
+            "eve_type_id": 3244,
+            "id": 327,
+            "is_default": true
+        },
+        {
+            "eve_dogma_effect_id": 3174,
+            "eve_type_id": 3244,
+            "id": 328,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 13,
+            "eve_type_id": 5973,
+            "id": 329,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 16,
+            "eve_type_id": 5973,
+            "id": 330,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 58,
+            "eve_type_id": 5973,
+            "id": 331,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 3175,
+            "eve_type_id": 5973,
+            "id": 332,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 6730,
+            "eve_type_id": 5973,
+            "id": 333,
+            "is_default": true
+        },
+        {
+            "eve_dogma_effect_id": 12,
+            "eve_type_id": 2977,
+            "id": 334,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 16,
+            "eve_type_id": 2977,
+            "id": 335,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 34,
+            "eve_type_id": 2977,
+            "id": 336,
+            "is_default": true
+        },
+        {
+            "eve_dogma_effect_id": 42,
+            "eve_type_id": 2977,
+            "id": 337,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 253,
+            "eve_type_id": 2977,
+            "id": 338,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 254,
+            "eve_type_id": 2977,
+            "id": 339,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 263,
+            "eve_type_id": 2977,
+            "id": 340,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 3001,
+            "eve_type_id": 2977,
+            "id": 341,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 596,
+            "eve_type_id": 21924,
+            "id": 342,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 600,
+            "eve_type_id": 21924,
+            "id": 343,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 1173,
+            "eve_type_id": 21924,
+            "id": 344,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 699,
+            "eve_type_id": 31328,
+            "id": 345,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 2663,
+            "eve_type_id": 31328,
+            "id": 346,
+            "is_default": true
+        },
+        {
+            "eve_dogma_effect_id": 2718,
+            "eve_type_id": 31328,
+            "id": 347,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 2663,
+            "eve_type_id": 31740,
+            "id": 348,
+            "is_default": true
+        },
+        {
+            "eve_dogma_effect_id": 2716,
+            "eve_type_id": 31740,
+            "id": 349,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 2795,
+            "eve_type_id": 31740,
+            "id": 350,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 2663,
+            "eve_type_id": 31752,
+            "id": 351,
+            "is_default": true
+        },
+        {
+            "eve_dogma_effect_id": 2716,
+            "eve_type_id": 31752,
+            "id": 352,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 2795,
+            "eve_type_id": 31752,
+            "id": 353,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 2215,
+            "eve_type_id": 34562,
+            "id": 354,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 6009,
+            "eve_type_id": 34562,
+            "id": 355,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 6036,
+            "eve_type_id": 34562,
+            "id": 356,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 6037,
+            "eve_type_id": 34562,
+            "id": 357,
+            "is_default": false
+        },
+        {
+            "eve_dogma_effect_id": 6038,
+            "eve_type_id": 34562,
+            "id": 358,
+            "is_default": false
+        },
+        {
             "eve_dogma_effect_id": 302,
             "eve_type_id": 19540,
-            "id": 198,
+            "id": 359,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 304,
             "eve_type_id": 19540,
-            "id": 199,
+            "id": 360,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 306,
             "eve_type_id": 19540,
-            "id": 200,
+            "id": 361,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 308,
             "eve_type_id": 19540,
-            "id": 201,
+            "id": 362,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 310,
             "eve_type_id": 19540,
-            "id": 202,
+            "id": 363,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 394,
             "eve_type_id": 19540,
-            "id": 203,
+            "id": 364,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 1244,
             "eve_type_id": 19540,
-            "id": 204,
+            "id": 365,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 1261,
             "eve_type_id": 19540,
-            "id": 205,
+            "id": 366,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 1262,
             "eve_type_id": 19540,
-            "id": 206,
+            "id": 367,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 302,
             "eve_type_id": 19551,
-            "id": 207,
+            "id": 368,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 304,
             "eve_type_id": 19551,
-            "id": 208,
+            "id": 369,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 306,
             "eve_type_id": 19551,
-            "id": 209,
+            "id": 370,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 308,
             "eve_type_id": 19551,
-            "id": 210,
+            "id": 371,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 310,
             "eve_type_id": 19551,
-            "id": 211,
+            "id": 372,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 394,
             "eve_type_id": 19551,
-            "id": 212,
+            "id": 373,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 1244,
             "eve_type_id": 19551,
-            "id": 213,
+            "id": 374,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 1261,
             "eve_type_id": 19551,
-            "id": 214,
+            "id": 375,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 1262,
             "eve_type_id": 19551,
-            "id": 215,
+            "id": 376,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 302,
             "eve_type_id": 19553,
-            "id": 216,
+            "id": 377,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 304,
             "eve_type_id": 19553,
-            "id": 217,
+            "id": 378,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 306,
             "eve_type_id": 19553,
-            "id": 218,
+            "id": 379,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 308,
             "eve_type_id": 19553,
-            "id": 219,
+            "id": 380,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 310,
             "eve_type_id": 19553,
-            "id": 220,
+            "id": 381,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 394,
             "eve_type_id": 19553,
-            "id": 221,
+            "id": 382,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 1244,
             "eve_type_id": 19553,
-            "id": 222,
+            "id": 383,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 1261,
             "eve_type_id": 19553,
-            "id": 223,
+            "id": 384,
             "is_default": false
         },
         {
             "eve_dogma_effect_id": 1262,
             "eve_type_id": 19553,
-            "id": 224,
+            "id": 385,
             "is_default": false
         }
     ]
