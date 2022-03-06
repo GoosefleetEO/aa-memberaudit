@@ -281,6 +281,7 @@ def skill_sets_report_data(request) -> JsonResponse:
             "has_required": has_required_html,
             "has_required_str": yesno_str(bool(has_required)),
             "is_doctrine_str": yesno_str(group.is_doctrine if group else False),
+            "is_main_str": yesno_str(character.is_main),
         }
 
     failed_required_skills_qs = SkillSetSkill.objects.filter(
