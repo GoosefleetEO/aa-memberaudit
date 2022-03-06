@@ -1,6 +1,6 @@
 """Eve Online Fittings"""
 from dataclasses import dataclass
-from typing import Iterable, List, Set
+from typing import Iterable, List, Optional, Set
 
 from eveuniverse.models import EveEntity, EveType
 
@@ -12,7 +12,6 @@ class Module:
     """A ship module used in a fitting."""
 
     module_type: EveType
-    position: int
     charge_type: EveType = None
 
     def type_ids(self) -> Set[int]:
@@ -60,10 +59,10 @@ class Fitting:
 
     name: str
     ship_type: EveType
-    high_slots: List[Module] = None
-    medium_slots: List[Module] = None
-    low_slots: List[Module] = None
-    rigs: List[Module] = None
+    high_slots: List[Optional[Module]] = None
+    medium_slots: List[Optional[Module]] = None
+    low_slots: List[Optional[Module]] = None
+    rigs: List[Optional[Module]] = None
     cargo_bay: List[Item] = None
     drone_bay: List[Item] = None
     fighter_bay: List[Item] = None
@@ -99,7 +98,7 @@ class Fitting:
         if include_cargo:
             objs += self.cargo_bay
         type_ids = {self.ship_type.id}
-        for obj in objs:
+        for obj in [x for x in objs if x]:
             type_ids |= {type_id for type_id in obj.type_ids()}
         return type_ids
 
@@ -108,15 +107,18 @@ class Fitting:
         ...
 
     def to_eft(self) -> str:
-        def add_section(objs) -> List[str]:
-            return [""] + [obj.to_eft() for obj in objs]
+        def add_section(objs, keyword: str = None) -> List[str]:
+            lines = [""]
+            for obj in objs:
+                lines.append(obj.to_eft() if obj else f"[Empty {keyword} slot]")
+            return lines
 
         lines = []
         lines.append(f"[{self.ship_type.name}, {self.name}]")
-        lines += add_section(self.low_slots)
-        lines += add_section(self.medium_slots)
-        lines += add_section(self.high_slots)
-        lines += add_section(self.rigs)
+        lines += add_section(self.low_slots, "Low")
+        lines += add_section(self.medium_slots, "Med")
+        lines += add_section(self.high_slots, "High")
+        lines += add_section(self.rigs, "Rig")
         if self.drone_bay:
             lines.append("")
             lines += add_section(self.drone_bay)
@@ -149,28 +151,25 @@ class Fitting:
             elif section.is_fighter_bay():
                 fighter_bay = section.parse_bay()
             else:
-                counter = 0
                 modules = []
                 for line in section.lines:
                     if line.startswith("["):
                         if "," in line:
+                            # fitting title
                             ship_type_name, fit_name = line[1:-1].split(",")
                             ship_type = _fetch_eve_type(ship_type_name)
                             continue
 
                         if "empty" in line.strip("[]").lower():
-                            continue
+                            # empty slot
+                            modules.append(None)
                     else:
                         if "," in line:
                             module_name, charge_name = line.split(",")
                             module_type = _fetch_eve_type(module_name)
                             charge_type = _fetch_eve_type(charge_name.strip())
                             modules.append(
-                                Module(
-                                    module_type=module_type,
-                                    position=counter,
-                                    charge_type=charge_type,
-                                )
+                                Module(module_type=module_type, charge_type=charge_type)
                             )
                         else:
                             quantity = line.split()[
@@ -188,10 +187,7 @@ class Fitting:
                             else:
                                 module_name = line.strip()
                                 eve_type = _fetch_eve_type(module_name)
-                                modules.append(
-                                    Module(module_type=eve_type, position=counter)
-                                )
-                    counter += 1
+                                modules.append(Module(module_type=eve_type))
                 slots.append(modules)
         return cls(
             name=fit_name.strip(),

@@ -22,21 +22,17 @@ def create_fitting(**kwargs):
         "high_slots": [
             Module(
                 EveType.objects.get(name="280mm Howitzer Artillery II"),
-                position=0,
                 charge_type=EveType.objects.get(name="Republic Fleet Phased Plasma S"),
-            )
+            ),
+            None,
         ],
-        "medium_slots": [
-            Module(EveType.objects.get(name="Sensor Booster II"), position=0)
-        ],
-        "low_slots": [
-            Module(EveType.objects.get(name="Damage Control II"), position=0)
-        ],
+        "medium_slots": [Module(EveType.objects.get(name="Sensor Booster II")), None],
+        "low_slots": [Module(EveType.objects.get(name="Damage Control II")), None],
         "rigs": [
             Module(
                 EveType.objects.get(name="Small Kinetic Shield Reinforcer I"),
-                position=0,
-            )
+            ),
+            None,
         ],
         "drone_bay": [Item(EveType.objects.get(name="Damage Control II"), quantity=5)],
         "cargo_bay": [Item(EveType.objects.get(name="Damage Control II"), quantity=3)],
@@ -60,44 +56,38 @@ class TestFitting(NoSocketsTestCase):
         self.assertEqual(fitting.name, "Svipul - Insta Tank NEW")
         self.assertEqual(fitting.ship_type.name, "Svipul")
         self.assertEqual(
-            fitting.low_slots[0],
-            Module(EveType.objects.get(name="Damage Control II"), position=0),
+            fitting.low_slots[0], Module(EveType.objects.get(name="Damage Control II"))
         )
         self.assertEqual(
-            fitting.low_slots[1],
-            Module(EveType.objects.get(name="Gyrostabilizer II"), position=1),
+            fitting.low_slots[1], Module(EveType.objects.get(name="Gyrostabilizer II"))
         )
         self.assertEqual(
-            fitting.low_slots[2],
-            Module(EveType.objects.get(name="Gyrostabilizer II"), position=2),
+            fitting.low_slots[2], Module(EveType.objects.get(name="Gyrostabilizer II"))
         )
         self.assertEqual(
             fitting.low_slots[3],
-            Module(EveType.objects.get(name="Tracking Enhancer II"), position=3),
+            Module(EveType.objects.get(name="Tracking Enhancer II")),
         )
         self.assertEqual(
             fitting.medium_slots[0],
-            Module(EveType.objects.get(name="Sensor Booster II"), position=0),
+            Module(EveType.objects.get(name="Sensor Booster II")),
         )
         self.assertEqual(
             fitting.medium_slots[1],
-            Module(EveType.objects.get(name="Sensor Booster II"), position=1),
+            Module(EveType.objects.get(name="Sensor Booster II")),
         )
         self.assertEqual(
             fitting.medium_slots[2],
-            Module(EveType.objects.get(name="Warp Disruptor II"), position=2),
+            Module(EveType.objects.get(name="Warp Disruptor II")),
         )
         self.assertEqual(
             fitting.medium_slots[3],
-            Module(
-                EveType.objects.get(name="5MN Y-T8 Compact Microwarpdrive"), position=3
-            ),
+            Module(EveType.objects.get(name="5MN Y-T8 Compact Microwarpdrive")),
         )
         self.assertEqual(
             fitting.high_slots[0],
             Module(
                 EveType.objects.get(name="280mm Howitzer Artillery II"),
-                position=0,
                 charge_type=EveType.objects.get(name="Republic Fleet Phased Plasma S"),
             ),
         )
@@ -105,46 +95,36 @@ class TestFitting(NoSocketsTestCase):
             fitting.high_slots[1],
             Module(
                 EveType.objects.get(name="280mm Howitzer Artillery II"),
-                position=1,
                 charge_type=EveType.objects.get(name="Republic Fleet Phased Plasma S"),
             ),
         )
-        self.assertEqual(
-            fitting.high_slots[2],
-            Module(
-                EveType.objects.get(name="280mm Howitzer Artillery II"),
-                position=2,
-                charge_type=EveType.objects.get(name="Republic Fleet Phased Plasma S"),
-            ),
-        )
+        self.assertIsNone(fitting.high_slots[2])
         self.assertEqual(
             fitting.high_slots[3],
             Module(
                 EveType.objects.get(name="280mm Howitzer Artillery II"),
-                position=3,
                 charge_type=EveType.objects.get(name="Republic Fleet Phased Plasma S"),
             ),
         )
         self.assertEqual(
-            fitting.rigs[0],
+            fitting.high_slots[4],
             Module(
-                EveType.objects.get(name="Small Targeting System Subcontroller II"),
-                position=0,
+                EveType.objects.get(name="280mm Howitzer Artillery II"),
+                charge_type=EveType.objects.get(name="Republic Fleet Phased Plasma S"),
             ),
+        )
+        self.assertIsNone(fitting.high_slots[5])
+        self.assertEqual(
+            fitting.rigs[0],
+            Module(EveType.objects.get(name="Small Targeting System Subcontroller II")),
         )
         self.assertEqual(
             fitting.rigs[1],
-            Module(
-                EveType.objects.get(name="Small Thermal Shield Reinforcer I"),
-                position=1,
-            ),
+            Module(EveType.objects.get(name="Small Thermal Shield Reinforcer I")),
         )
         self.assertEqual(
             fitting.rigs[2],
-            Module(
-                EveType.objects.get(name="Small Kinetic Shield Reinforcer I"),
-                position=2,
-            ),
+            Module(EveType.objects.get(name="Small Kinetic Shield Reinforcer I")),
         )
 
     # def test_should_read_fitting_with_drones(self):
@@ -161,10 +141,30 @@ class TestFitting(NoSocketsTestCase):
         # then
         self.assertSetEqual(type_ids, {1952, 2977, 34562, 2048, 21924, 31740})
 
-    def test_eft_parser_rountrip(self):
+    def test_eft_parser_rountrip_archon(self):
         # given
         self.maxDiff = None
         fitting_text_original = read_fitting_file("fitting_archon.txt")
+        fitting = Fitting.create_from_eft(fitting_text_original)
+        # when
+        fitting_text_generated = fitting.to_eft()
+        # then
+        self.assertEqual(fitting_text_original, fitting_text_generated)
+
+    def test_eft_parser_rountrip_tristan(self):
+        # given
+        self.maxDiff = None
+        fitting_text_original = read_fitting_file("fitting_tristan.txt")
+        fitting = Fitting.create_from_eft(fitting_text_original)
+        # when
+        fitting_text_generated = fitting.to_eft()
+        # then
+        self.assertEqual(fitting_text_original, fitting_text_generated)
+
+    def test_eft_parser_rountrip_svipul_empty_slots(self):
+        # given
+        self.maxDiff = None
+        fitting_text_original = read_fitting_file("fitting_svipul_2.txt")
         fitting = Fitting.create_from_eft(fitting_text_original)
         # when
         fitting_text_generated = fitting.to_eft()
