@@ -1,7 +1,7 @@
+"""Eve Online Fittings"""
 from dataclasses import dataclass
-from typing import Iterable, List
+from typing import Iterable, List, Set
 
-from django.db import models
 from eveuniverse.models import EveEntity, EveType
 
 from ..constants import EveCategoryId
@@ -15,6 +15,20 @@ class Module:
     position: int
     charge_type: EveType = None
 
+    def type_ids(self) -> Set[int]:
+        """Type IDs used in this module."""
+        ids = {self.module_type.id}
+        if self.charge_type:
+            ids.add(self.charge_type.id)
+        return ids
+
+    def to_eft(self) -> str:
+        """Convert to EFT format."""
+        text = self.module_type.name
+        if self.charge_type:
+            text += f", {self.charge_type.name}"
+        return text
+
 
 @dataclass
 class Item:
@@ -22,6 +36,14 @@ class Item:
 
     eve_type: EveType
     quantity: int
+
+    def type_ids(self) -> Set[int]:
+        """Type IDs used in this module."""
+        return {self.eve_type.id}
+
+    def to_eft(self) -> str:
+        """Convert to EFT format."""
+        return f"{self.eve_type.name} x{self.quantity}"
 
 
 @dataclass
@@ -38,14 +60,30 @@ class Fitting:
 
     name: str
     ship_type: EveType
-    high_slots: List[Module]
-    medium_slots: List[Module]
-    low_slots: List[Module]
-    rigs: List[Module]
-    cargo: List[Item]
-    drone_bay: List[Item]
-    fighter_bay: List[Item]
-    fitting_notes: str
+    high_slots: List[Module] = None
+    medium_slots: List[Module] = None
+    low_slots: List[Module] = None
+    rigs: List[Module] = None
+    cargo_bay: List[Item] = None
+    drone_bay: List[Item] = None
+    fighter_bay: List[Item] = None
+    fitting_notes: str = ""
+
+    def __post_init__(self):
+        if not self.high_slots:
+            self.high_slots = []
+        if not self.medium_slots:
+            self.medium_slots = []
+        if not self.low_slots:
+            self.low_slots = []
+        if not self.rigs:
+            self.rigs = []
+        if not self.cargo_bay:
+            self.cargo_bay = []
+        if not self.drone_bay:
+            self.drone_bay = []
+        if not self.fighter_bay:
+            self.fighter_bay = []
 
     def __str__(self) -> str:
         return f"{self.name}"
@@ -55,14 +93,40 @@ class Fitting:
         """All fitted modules."""
         return self.high_slots + self.medium_slots + self.low_slots + self.rigs
 
-    def main_types(self) -> models.QuerySet:
-        """Main types used in the fitting. Does not include cargo."""
-        type_ids = {module.eve_type.id for module in self.modules} | {self.ship_type.id}
-        return EveType.objects.filter(id__in=type_ids)
+    def type_ids(self, include_cargo=True) -> Set[int]:
+        """Types of all modules and items."""
+        objs = self.modules + self.drone_bay + self.fighter_bay
+        if include_cargo:
+            objs += self.cargo_bay
+        type_ids = {self.ship_type.id}
+        for obj in objs:
+            type_ids |= {type_id for type_id in obj.type_ids()}
+        return type_ids
 
     def required_skills(self) -> List[Skill]:
         """Skills required to fly this fitting."""
         ...
+
+    def to_eft(self) -> str:
+        def add_section(objs) -> List[str]:
+            return [""] + [obj.to_eft() for obj in objs]
+
+        lines = []
+        lines.append(f"[{self.ship_type.name}, {self.name}]")
+        lines += add_section(self.low_slots)
+        lines += add_section(self.medium_slots)
+        lines += add_section(self.high_slots)
+        lines += add_section(self.rigs)
+        if self.drone_bay:
+            lines.append("")
+            lines += add_section(self.drone_bay)
+        if self.fighter_bay:
+            lines.append("")
+            lines += add_section(self.fighter_bay)
+        if self.cargo_bay:
+            lines.append("")
+            lines += add_section(self.cargo_bay)
+        return "\n".join(lines)
 
     @classmethod
     def create_from_eft(cls, eft_text: str) -> "Fitting":
@@ -74,7 +138,7 @@ class Fitting:
             for section in _Section.create_from_lines(parsed_fitting_notes["eft_lines"])
         ]
         slots = []
-        cargo = []
+        cargo_bay = []
         drone_bay = []
         fighter_bay = []
         ship_type = ""
@@ -115,7 +179,7 @@ class Fitting:
                             if "x" in quantity and quantity[1:].isdigit():
                                 item_name = line.split(quantity)[0].strip()
                                 eve_type = _fetch_eve_type(item_name)
-                                cargo.append(
+                                cargo_bay.append(
                                     Item(
                                         eve_type=eve_type,
                                         quantity=int(quantity.strip("x")),
@@ -136,7 +200,7 @@ class Fitting:
             medium_slots=_list_index_or_default(slots, 2, []),
             low_slots=_list_index_or_default(slots, 1, []),
             rigs=_list_index_or_default(slots, 4, []),
-            cargo=cargo,
+            cargo_bay=cargo_bay,
             drone_bay=drone_bay,
             fighter_bay=fighter_bay,
             fitting_notes=parsed_fitting_notes["fitting_notes"],
@@ -240,7 +304,11 @@ def _fetch_eve_type(name: str) -> EveType:
     - ValueError: If type does not exist
     """
     try:
-        return EveType.objects.select_related("eve_group").get(name=name)
+        return (
+            EveType.objects.filter(enabled_sections=EveType.enabled_sections.dogmas)
+            .select_related("eve_group")
+            .get(name=name)
+        )
     except EveType.DoesNotExist:
         entities = EveEntity.objects.fetch_by_names([name]).filter(
             category=EveEntity.CATEGORY_INVENTORY_TYPE
@@ -248,7 +316,7 @@ def _fetch_eve_type(name: str) -> EveType:
         if entities.exists():
             entity = entities.first()
             return EveType.objects.select_related("eve_group").get_or_create_esi(
-                id=entity.id
+                id=entity.id, enabled_sections=[EveType.Section.DOGMAS]
             )
         raise ValueError("Type with name {name} does not exist.")
 

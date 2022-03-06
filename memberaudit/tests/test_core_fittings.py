@@ -4,27 +4,56 @@ from eveuniverse.models import EveType
 
 from app_utils.testing import NoSocketsTestCase
 
-from ..core.eft_parser import Fitting, Module
+from ..core.fittings import Fitting, Item, Module
 from .testdata.load_eveuniverse import load_eveuniverse
 
 
-class TestEftParser(NoSocketsTestCase):
+def read_fitting_file(file_name: str) -> str:
+    testdata_folder = Path(__file__).parent / "testdata"
+    svipul_fitting_file = testdata_folder / file_name
+    with svipul_fitting_file.open("r") as fp:
+        return fp.read()
+
+
+def create_fitting(**kwargs):
+    params = {
+        "name": "Test fitting",
+        "ship_type": EveType.objects.get(name="Svipul"),
+        "high_slots": [
+            Module(
+                EveType.objects.get(name="280mm Howitzer Artillery II"),
+                position=0,
+                charge_type=EveType.objects.get(name="Republic Fleet Phased Plasma S"),
+            )
+        ],
+        "medium_slots": [
+            Module(EveType.objects.get(name="Sensor Booster II"), position=0)
+        ],
+        "low_slots": [
+            Module(EveType.objects.get(name="Damage Control II"), position=0)
+        ],
+        "rigs": [
+            Module(
+                EveType.objects.get(name="Small Kinetic Shield Reinforcer I"),
+                position=0,
+            )
+        ],
+        "drone_bay": [Item(EveType.objects.get(name="Damage Control II"), quantity=5)],
+        "cargo_bay": [Item(EveType.objects.get(name="Damage Control II"), quantity=3)],
+    }
+    params.update(kwargs)
+    return Fitting(**params)
+
+
+class TestFitting(NoSocketsTestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
         load_eveuniverse()
 
-    @staticmethod
-    def read_fitting_file(file_name: str) -> str:
-        testdata_folder = Path(__file__).parent / "testdata"
-        svipul_fitting_file = testdata_folder / file_name
-        with svipul_fitting_file.open("r") as fp:
-            return fp.read()
-
     def test_should_read_fitting_simple(self):
         # given
-        svipul_fitting = self.read_fitting_file("fitting_svipul.txt")
-        self.maxDiff = None
+        svipul_fitting = read_fitting_file("fitting_svipul.txt")
         # when
         fitting = Fitting.create_from_eft(svipul_fitting)
         # then
@@ -119,7 +148,25 @@ class TestEftParser(NoSocketsTestCase):
         )
 
     # def test_should_read_fitting_with_drones(self):
-    #     svipul_fitting = self.read_fitting_file("fitting_tristan.txt")
+    #     svipul_fitting = read_fitting_file("fitting_tristan.txt")
     #     result = Fitting.create_from_eft(svipul_fitting)
     #     print(result)
     #     print([obj.name for obj in result.main_types()])
+
+    def test_should_return_eve_type_ids(self):
+        # given
+        fit = create_fitting()
+        # when
+        type_ids = fit.type_ids()
+        # then
+        self.assertSetEqual(type_ids, {1952, 2977, 34562, 2048, 21924, 31740})
+
+    def test_eft_parser_rountrip(self):
+        # given
+        self.maxDiff = None
+        fitting_text_original = read_fitting_file("fitting_archon.txt")
+        fitting = Fitting.create_from_eft(fitting_text_original)
+        # when
+        fitting_text_generated = fitting.to_eft()
+        # then
+        self.assertEqual(fitting_text_original, fitting_text_generated)
