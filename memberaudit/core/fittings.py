@@ -4,22 +4,22 @@ from typing import Iterable, List, Optional, Set
 
 from eveuniverse.models import EveEntity, EveType
 
-from ..constants import EveCategoryId
+from ..constants import EveCategoryId, EveDogmaAttributeId
 
 
-@dataclass
+@dataclass(frozen=True)
 class Module:
     """A ship module used in a fitting."""
 
     module_type: EveType
     charge_type: EveType = None
 
-    def type_ids(self) -> Set[int]:
-        """Type IDs used in this module."""
-        ids = {self.module_type.id}
+    def eve_types(self) -> Set[EveType]:
+        """Eve types used in this module."""
+        types = {self.module_type}
         if self.charge_type:
-            ids.add(self.charge_type.id)
-        return ids
+            types.add(self.charge_type)
+        return types
 
     def to_eft(self) -> str:
         """Convert to EFT format."""
@@ -29,23 +29,23 @@ class Module:
         return text
 
 
-@dataclass
+@dataclass(frozen=True)
 class Item:
     """An item used in a fitting."""
 
     eve_type: EveType
     quantity: int
 
-    def type_ids(self) -> Set[int]:
-        """Type IDs used in this module."""
-        return {self.eve_type.id}
+    def eve_types(self) -> Set[EveType]:
+        """Eve types used in this item."""
+        return {self.eve_type}
 
     def to_eft(self) -> str:
         """Convert to EFT format."""
         return f"{self.eve_type.name} x{self.quantity}"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Skill:
     """A skill in Eve Online."""
 
@@ -92,19 +92,62 @@ class Fitting:
         """All fitted modules."""
         return self.high_slots + self.medium_slots + self.low_slots + self.rigs
 
-    def type_ids(self, include_cargo=True) -> Set[int]:
+    def eve_types(self, include_cargo=True) -> Set[EveType]:
         """Types of all modules and items."""
         objs = self.modules + self.drone_bay + self.fighter_bay
         if include_cargo:
             objs += self.cargo_bay
-        type_ids = {self.ship_type.id}
+        types = {self.ship_type}
         for obj in [x for x in objs if x]:
-            type_ids |= {type_id for type_id in obj.type_ids()}
-        return type_ids
+            types |= {eve_type for eve_type in obj.eve_types()}
+        return types
 
-    def required_skills(self) -> List[Skill]:
+    def required_skills(self) -> Set[Skill]:
         """Skills required to fly this fitting."""
-        ...
+
+        def create_skill_from_attributes(
+            attributes: dict, skill_id: int, skill_level_id: int
+        ):
+            if skill_id in attributes and skill_level_id in attributes:
+                skill_type_id = attributes[skill_id]
+                skill_level = attributes[skill_level_id]
+                eve_type, _ = EveType.objects.get_or_create_esi(id=skill_type_id)
+                return Skill(eve_type=eve_type, level=skill_level)
+            return None
+
+        skills = set()
+        for eve_type in self.eve_types(include_cargo=False):
+            attributes_raw = eve_type.dogma_attributes.filter(
+                eve_dogma_attribute_id__in=[
+                    EveDogmaAttributeId.REQUIRED_SKILL_1,
+                    EveDogmaAttributeId.REQUIRED_SKILL_1_LEVEL,
+                    EveDogmaAttributeId.REQUIRED_SKILL_2,
+                    EveDogmaAttributeId.REQUIRED_SKILL_2_LEVEL,
+                    EveDogmaAttributeId.REQUIRED_SKILL_3,
+                    EveDogmaAttributeId.REQUIRED_SKILL_3_LEVEL,
+                ]
+            ).values_list("eve_dogma_attribute_id", "value")
+            attributes = {int(obj[0]): int(obj[1]) for obj in attributes_raw}
+            for skill_id, skill_level_id in [
+                (
+                    EveDogmaAttributeId.REQUIRED_SKILL_1,
+                    EveDogmaAttributeId.REQUIRED_SKILL_1_LEVEL,
+                ),
+                (
+                    EveDogmaAttributeId.REQUIRED_SKILL_2,
+                    EveDogmaAttributeId.REQUIRED_SKILL_2_LEVEL,
+                ),
+                (
+                    EveDogmaAttributeId.REQUIRED_SKILL_3,
+                    EveDogmaAttributeId.REQUIRED_SKILL_3_LEVEL,
+                ),
+            ]:
+                skill = create_skill_from_attributes(
+                    attributes, skill_id, skill_level_id
+                )
+                if skill:
+                    skills.add(skill)
+        return skills
 
     def to_eft(self) -> str:
         def add_section(objs, keyword: str = None) -> List[str]:
@@ -158,9 +201,7 @@ class Fitting:
                             # fitting title
                             ship_type_name, fit_name = line[1:-1].split(",")
                             ship_type = _fetch_eve_type(ship_type_name)
-                            continue
-
-                        if "empty" in line.strip("[]").lower():
+                        elif "empty" in line.strip("[]").lower():
                             # empty slot
                             modules.append(None)
                     else:

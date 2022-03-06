@@ -133,13 +133,15 @@ class TestFitting(NoSocketsTestCase):
     #     print(result)
     #     print([obj.name for obj in result.main_types()])
 
-    def test_should_return_eve_type_ids(self):
+    def test_should_return_eve_types(self):
         # given
         fit = create_fitting()
         # when
-        type_ids = fit.type_ids()
+        types = fit.eve_types()
         # then
-        self.assertSetEqual(type_ids, {1952, 2977, 34562, 2048, 21924, 31740})
+        self.assertSetEqual(
+            {obj.id for obj in types}, {1952, 2977, 34562, 2048, 21924, 31740}
+        )
 
     def test_eft_parser_rountrip_archon(self):
         # given
@@ -170,3 +172,29 @@ class TestFitting(NoSocketsTestCase):
         fitting_text_generated = fitting.to_eft()
         # then
         self.assertEqual(fitting_text_original, fitting_text_generated)
+
+    def test_required_skills(self):
+        # given
+        fitting_text = read_fitting_file("fitting_tristan.txt")
+        fitting = Fitting.create_from_eft(fitting_text)
+        # when
+        skills = fitting.required_skills()
+        # then
+        self.assertSetEqual(
+            {obj.eve_type.id for obj in skills},
+            {
+                3328,
+                3425,
+                3394,
+                3300,
+                12485,
+                3302,
+                12484,
+                3435,
+                3436,
+                11084,
+                24241,
+                3318,
+                3454,
+            },
+        )
