@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from django.contrib.auth.models import Group
 from django.contrib.sessions.middleware import SessionMiddleware
@@ -214,7 +214,7 @@ class TestAddCharacter(TestCase):
         request = self.factory.get(reverse("memberaudit:add_character"))
         request.user = user
         request.token = token
-        middleware = SessionMiddleware()
+        middleware = SessionMiddleware(Mock())
         middleware.process_request(request)
         orig_view = add_character.__wrapped__.__wrapped__.__wrapped__
         return orig_view(request, token)
