@@ -18,7 +18,7 @@ class TestSkill(NoSocketsTestCase):
         super().setUpClass()
         load_eveuniverse()
 
-    def test_can_create_skill_simple_1(self):
+    def test_can_create_skill_simple(self):
         # when
         drones = EveType.objects.get(name="Drones")
         skill = Skill(eve_type=drones, level=1)
@@ -26,13 +26,20 @@ class TestSkill(NoSocketsTestCase):
         self.assertEqual(skill.eve_type, drones)
         self.assertEqual(skill.level, 1)
 
-    def test_can_create_skill_simple_2(self):
+    def test_can_create_from_eve_type(self):
         # when
-        drones = EveType.objects.get(name="Drones")
-        skill = Skill(eve_type=drones, level=1)
+        archon = EveType.objects.get(name="125mm Gatling AutoCannon II")
+        skills = Skill.create_from_eve_type(archon)
         # then
-        self.assertEqual(skill.eve_type, drones)
-        self.assertEqual(skill.level, 1)
+        skills_str = sorted([str(skill) for skill in skills])
+        self.assertListEqual(
+            skills_str,
+            [
+                "Gunnery II",
+                "Small Autocannon Specialization I",
+                "Small Projectile Turret V",
+            ],
+        )
 
     def test_str_1(self):
         # given
