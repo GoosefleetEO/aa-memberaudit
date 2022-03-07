@@ -53,7 +53,7 @@ class Skill:
     level: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class Fitting:
     """A fitting for a ship in Eve Online."""
 
@@ -69,20 +69,17 @@ class Fitting:
     fitting_notes: str = ""
 
     def __post_init__(self):
-        if not self.high_slots:
-            self.high_slots = []
-        if not self.medium_slots:
-            self.medium_slots = []
-        if not self.low_slots:
-            self.low_slots = []
-        if not self.rigs:
-            self.rigs = []
-        if not self.cargo_bay:
-            self.cargo_bay = []
-        if not self.drone_bay:
-            self.drone_bay = []
-        if not self.fighter_bay:
-            self.fighter_bay = []
+        for prop in [
+            "high_slots",
+            "medium_slots",
+            "low_slots",
+            "rigs",
+            "cargo_bay",
+            "drone_bay",
+            "fighter_bay",
+        ]:
+            if not getattr(self, prop):
+                object.__setattr__(self, prop, [])
 
     def __str__(self) -> str:
         return f"{self.name}"
