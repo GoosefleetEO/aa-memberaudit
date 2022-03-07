@@ -255,7 +255,7 @@ class CharacterAdmin(admin.ModelAdmin):
             return redirect(request.get_full_path())
         return render(
             request,
-            "admin/confirm_character_deletion.html",
+            "admin/memberaudit/character/confirm_character_deletion.html",
             {
                 "title": "Are you sure you want to delete these characters?",
                 "queryset": queryset.all(),
