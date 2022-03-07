@@ -4,6 +4,7 @@ from typing import Optional, Tuple
 import humanize
 
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
@@ -1979,3 +1980,13 @@ def data_export_run_update(request, topic: str):
         ),
     )
     return redirect("memberaudit:data_export")
+
+
+@login_required
+@staff_member_required
+def admin_generate_skillset(request):
+    if request.method != "POST":
+        raise Http404("This view must be called via POST")
+    content = request.POST.get("content", "")
+    messages.success(request, f"Skill set created: {content}")
+    return redirect("admin:memberaudit_skillset_changelist")

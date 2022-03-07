@@ -1,0 +1,34 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block object-tools-items %}
+{{ block.super }}
+<li>
+    <form id="fitting-form" action="{% url 'memberaudit:admin_generate_skillset' %}" method="post">
+        {% csrf_token %}
+        <input id="fitting-content" type="hidden" name="content" />
+        <a id="fitting-submit-button" href="#" class="btn btn-high addlink">
+            {% translate "Import from clipboard" %}
+        </a>
+    </form>
+</li>
+
+<script>
+    const form = document.getElementById("fitting-form");
+
+    document.getElementById("fitting-submit-button").addEventListener("click", function () {
+        navigator.clipboard.readText()
+        .then((text) => {
+            console.log('clipboard contents', text)
+        })
+        /*
+        navigator.clipboard.readText().then(
+            clipText => document.getElementById("fitting-content").value = clipText;
+        );
+        */
+        form.submit();
+    });
+</script>
+
+{% endblock %}
