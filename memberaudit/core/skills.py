@@ -1,5 +1,6 @@
 """Eve Online Skills"""
-from dataclasses import dataclass, field
+from collections import defaultdict
+from dataclasses import dataclass
 from typing import List, Optional
 
 from eveuniverse.models import EveType
@@ -14,25 +15,33 @@ class Skill:
 
     eve_type: EveType
     level: int
-    required_skills: List["Skill"] = field(default_factory=list)
 
     def __str__(self) -> str:
-        if self.required_skills:
-            skills_str = [str(obj) for obj in self.required_skills]
-            required_skills = f" [{', '.join(skills_str)}]"
-        else:
-            required_skills = ""
         level_str = MAP_ARABIC_TO_ROMAN_NUMBERS[self.level]
-        return f"{self.eve_type.name} {level_str}{required_skills}"
+        return f"{self.eve_type.name} {level_str}"
+
+    def __lt__(self, other):
+        if self.eve_type != other.eve_type:
+            raise TypeError("'<' not supported for skills of different type")
+        return self.level < other.level
+
+    def __le__(self, other):
+        if self.eve_type != other.eve_type:
+            raise TypeError("'<=' not supported for skills of different type")
+        return self.level <= other.level
+
+    def __gt__(self, other):
+        if self.eve_type != other.eve_type:
+            raise TypeError("'>' not supported for skills of different type")
+        return self.level > other.level
+
+    def __ge__(self, other):
+        if self.eve_type != other.eve_type:
+            raise TypeError("'>=' not supported for skills of different type")
+        return self.level >= other.level
 
     @classmethod
-    def create(cls, eve_type: EveType, level: int) -> "Skill":
-        """Create new skill."""
-        required_skills = cls.create_required_skills(eve_type)
-        return cls(eve_type=eve_type, level=level, required_skills=required_skills)
-
-    @classmethod
-    def create_required_skills(cls, eve_type: EveType) -> Optional[List["Skill"]]:
+    def create_from_eve_type(cls, eve_type: EveType) -> Optional[List["Skill"]]:
         """Create required skills from given type."""
 
         def _create_skill_from_attributes(
@@ -42,7 +51,7 @@ class Skill:
                 skill_type_id = attributes[skill_id]
                 skill_level = attributes[skill_level_id]
                 eve_type, _ = EveType.objects.get_or_create_esi(id=skill_type_id)
-                return Skill.create(eve_type=eve_type, level=skill_level)
+                return Skill(eve_type=eve_type, level=skill_level)
             return None
 
         attributes_raw = eve_type.dogma_attributes.filter(
@@ -66,3 +75,11 @@ class Skill:
             if skill:
                 skills.append(skill)
         return sorted(skills, key=lambda x: x.eve_type.name)
+
+    @classmethod
+    def compress_skills(cls, skills: List["Skill"]) -> List["Skill"]:
+        """Compresses a list of skill by removing redundant skills."""
+        skills_map = defaultdict(list)
+        for skill in skills:
+            skills_map[skill.eve_type.id].append(skill)
+        return [max(same_skils) for _, same_skils in skills_map.items()]

@@ -82,9 +82,13 @@ class Fitting:
     def required_skills(self) -> List[Skill]:
         """Skills required to fly this fitting."""
 
+        skills = self._required_skills_raw()
+        return Skill.compress_skills(skills)
+
+    def _required_skills_raw(self):
         skills = []
         for eve_type in self.eve_types(include_cargo=False):
-            required_skills = Skill.create_required_skills(eve_type)
+            required_skills = Skill.create_from_eve_type(eve_type)
             if required_skills:
                 skills += required_skills
         return skills
