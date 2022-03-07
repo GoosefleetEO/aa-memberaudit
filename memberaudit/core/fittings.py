@@ -296,9 +296,10 @@ def _fetch_eve_type(name: str) -> EveType:
         )
         if entities.exists():
             entity = entities.first()
-            return EveType.objects.select_related("eve_group").get_or_create_esi(
+            obj, _ = EveType.objects.get_or_create_esi(
                 id=entity.id, enabled_sections=[EveType.Section.DOGMAS]
             )
+            return obj
         raise ValueError("Type with name {name} does not exist.")
 
 

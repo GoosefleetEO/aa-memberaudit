@@ -28,3 +28,5 @@ class EveDogmaAttributeId(IntEnum):
 
 
 MAP_ARABIC_TO_ROMAN_NUMBERS = {0: "-", 1: "I", 2: "II", 3: "III", 4: "IV", 5: "V"}
+
+DATETIME_FORMAT = "%Y-%b-%d %H:%M"

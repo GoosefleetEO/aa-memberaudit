@@ -44,9 +44,11 @@ from app_utils.views import (
 
 from . import __title__, tasks
 from .app_settings import MEMBERAUDIT_APP_NAME, MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE
-from .constants import MAP_ARABIC_TO_ROMAN_NUMBERS, EveCategoryId
+from .constants import DATETIME_FORMAT, MAP_ARABIC_TO_ROMAN_NUMBERS, EveCategoryId
 from .core import data_exporters
+from .core.fittings import Fitting
 from .decorators import fetch_character_if_allowed
+from .forms import ImportFittingForm
 from .helpers import eve_solar_system_to_html
 from .models import (
     Character,
@@ -64,7 +66,6 @@ from .models import (
 
 # module constants
 MY_DATETIME_FORMAT = "Y-M-d H:i"
-DATETIME_FORMAT = "%Y-%b-%d %H:%M"
 MAIL_LABEL_ID_ALL_MAILS = 0
 UNGROUPED_SKILL_SET = gettext_lazy("[Ungrouped]")
 DEFAULT_ICON_SIZE = 32
@@ -1985,8 +1986,20 @@ def data_export_run_update(request, topic: str):
 @login_required
 @staff_member_required
 def admin_generate_skillset(request):
-    if request.method != "POST":
-        raise Http404("This view must be called via POST")
-    content = request.POST.get("content", "")
-    messages.success(request, f"Skill set created: {content}")
-    return redirect("admin:memberaudit_skillset_changelist")
+    if request.method == "POST":
+        form = ImportFittingForm(request.POST)
+        if form.is_valid():
+            fitting = Fitting.create_from_eft(form.cleaned_data["fitting_text"])
+            obj, created = SkillSet.objects.update_or_create_from_fitting(
+                fitting=fitting, user=request.user
+            )
+            if created:
+                messages.info(request, f"Skill Set has been created: {obj.name}")
+            else:
+                messages.info(request, f"Skill Set has been updated: {obj.name}")
+            return redirect("admin:memberaudit_skillset_changelist")
+    else:
+        form = ImportFittingForm()
+    return render(
+        request, "admin/memberaudit/skillset/import_fitting.html", {"form": form}
+    )
