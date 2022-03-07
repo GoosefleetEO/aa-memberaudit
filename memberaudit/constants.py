@@ -25,3 +25,6 @@ class EveDogmaAttributeId(IntEnum):
     REQUIRED_SKILL_1_LEVEL = 277
     REQUIRED_SKILL_2_LEVEL = 278
     REQUIRED_SKILL_3_LEVEL = 279
+
+
+MAP_ARABIC_TO_ROMAN_NUMBERS = {0: "-", 1: "I", 2: "II", 3: "III", 4: "IV", 5: "V"}

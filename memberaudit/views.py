@@ -43,7 +43,7 @@ from app_utils.views import (
 
 from . import __title__, tasks
 from .app_settings import MEMBERAUDIT_APP_NAME, MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE
-from .constants import EveCategoryId
+from .constants import MAP_ARABIC_TO_ROMAN_NUMBERS, EveCategoryId
 from .core import data_exporters
 from .decorators import fetch_character_if_allowed
 from .helpers import eve_solar_system_to_html
@@ -65,7 +65,6 @@ from .models import (
 MY_DATETIME_FORMAT = "Y-M-d H:i"
 DATETIME_FORMAT = "%Y-%b-%d %H:%M"
 MAIL_LABEL_ID_ALL_MAILS = 0
-MAP_SKILL_LEVEL_ARABIC_TO_ROMAN = {0: "-", 1: "I", 2: "II", 3: "III", 4: "IV", 5: "V"}
 UNGROUPED_SKILL_SET = gettext_lazy("[Ungrouped]")
 DEFAULT_ICON_SIZE = 32
 ICON_SIZE_64 = 64
@@ -1148,7 +1147,7 @@ def character_skillqueue_data(
         for row in character.skillqueue.select_related("eve_type").filter(
             character_id=character_pk
         ):
-            level_roman = MAP_SKILL_LEVEL_ARABIC_TO_ROMAN[row.finished_level]
+            level_roman = MAP_ARABIC_TO_ROMAN_NUMBERS[row.finished_level]
             skill_str = f"{row.eve_type.name}&nbsp;{level_roman}"
             if row.is_active:
                 skill_str += " [ACTIVE]"
@@ -1267,7 +1266,7 @@ def character_skill_sets_data(
                 format_html(
                     "{}&nbsp;{}",
                     obj["eve_type__name"],
-                    MAP_SKILL_LEVEL_ARABIC_TO_ROMAN[obj[level_name]],
+                    MAP_ARABIC_TO_ROMAN_NUMBERS[obj[level_name]],
                 ),
                 "default",
             )
@@ -1331,15 +1330,13 @@ def character_skill_set_details(
         met_required = True
 
         if cs:
-            current_str = MAP_SKILL_LEVEL_ARABIC_TO_ROMAN[cs.active_skill_level]
+            current_str = MAP_ARABIC_TO_ROMAN_NUMBERS[cs.active_skill_level]
 
         if skill.recommended_level:
-            recommended_level_str = MAP_SKILL_LEVEL_ARABIC_TO_ROMAN[
-                skill.recommended_level
-            ]
+            recommended_level_str = MAP_ARABIC_TO_ROMAN_NUMBERS[skill.recommended_level]
 
         if skill.required_level:
-            required_level_str = MAP_SKILL_LEVEL_ARABIC_TO_ROMAN[skill.required_level]
+            required_level_str = MAP_ARABIC_TO_ROMAN_NUMBERS[skill.required_level]
 
         if not cs:
             result_icon = ICON_FAILED
@@ -1430,7 +1427,7 @@ def character_skills_data(
         for skill in character.skills.select_related(
             "eve_type", "eve_type__eve_group"
         ).filter(active_skill_level__gte=1):
-            level_str = MAP_SKILL_LEVEL_ARABIC_TO_ROMAN[skill.active_skill_level]
+            level_str = MAP_ARABIC_TO_ROMAN_NUMBERS[skill.active_skill_level]
             skill_name = f"{skill.eve_type.name} {level_str}"
             skills_data.append(
                 {

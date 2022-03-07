@@ -1,10 +1,11 @@
 """Eve Online Fittings"""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Iterable, List, Optional, Set
 
 from eveuniverse.models import EveEntity, EveType
 
-from ..constants import EveCategoryId, EveDogmaAttributeId
+from ..constants import EveCategoryId
+from .skills import Skill
 
 
 @dataclass(frozen=True)
@@ -46,40 +47,19 @@ class Item:
 
 
 @dataclass(frozen=True)
-class Skill:
-    """A skill in Eve Online."""
-
-    eve_type: EveType
-    level: int
-
-
-@dataclass(frozen=True)
 class Fitting:
     """A fitting for a ship in Eve Online."""
 
     name: str
     ship_type: EveType
-    high_slots: List[Optional[Module]] = None
-    medium_slots: List[Optional[Module]] = None
-    low_slots: List[Optional[Module]] = None
-    rigs: List[Optional[Module]] = None
-    cargo_bay: List[Item] = None
-    drone_bay: List[Item] = None
-    fighter_bay: List[Item] = None
+    high_slots: List[Optional[Module]] = field(default_factory=list)
+    medium_slots: List[Optional[Module]] = field(default_factory=list)
+    low_slots: List[Optional[Module]] = field(default_factory=list)
+    rigs: List[Optional[Module]] = field(default_factory=list)
+    cargo_bay: List[Item] = field(default_factory=list)
+    drone_bay: List[Item] = field(default_factory=list)
+    fighter_bay: List[Item] = field(default_factory=list)
     fitting_notes: str = ""
-
-    def __post_init__(self):
-        for prop in [
-            "high_slots",
-            "medium_slots",
-            "low_slots",
-            "rigs",
-            "cargo_bay",
-            "drone_bay",
-            "fighter_bay",
-        ]:
-            if not getattr(self, prop):
-                object.__setattr__(self, prop, [])
 
     def __str__(self) -> str:
         return f"{self.name}"
@@ -99,51 +79,14 @@ class Fitting:
             types |= {eve_type for eve_type in obj.eve_types()}
         return types
 
-    def required_skills(self) -> Set[Skill]:
+    def required_skills(self) -> List[Skill]:
         """Skills required to fly this fitting."""
 
-        def create_skill_from_attributes(
-            attributes: dict, skill_id: int, skill_level_id: int
-        ):
-            if skill_id in attributes and skill_level_id in attributes:
-                skill_type_id = attributes[skill_id]
-                skill_level = attributes[skill_level_id]
-                eve_type, _ = EveType.objects.get_or_create_esi(id=skill_type_id)
-                return Skill(eve_type=eve_type, level=skill_level)
-            return None
-
-        skills = set()
+        skills = []
         for eve_type in self.eve_types(include_cargo=False):
-            attributes_raw = eve_type.dogma_attributes.filter(
-                eve_dogma_attribute_id__in=[
-                    EveDogmaAttributeId.REQUIRED_SKILL_1,
-                    EveDogmaAttributeId.REQUIRED_SKILL_1_LEVEL,
-                    EveDogmaAttributeId.REQUIRED_SKILL_2,
-                    EveDogmaAttributeId.REQUIRED_SKILL_2_LEVEL,
-                    EveDogmaAttributeId.REQUIRED_SKILL_3,
-                    EveDogmaAttributeId.REQUIRED_SKILL_3_LEVEL,
-                ]
-            ).values_list("eve_dogma_attribute_id", "value")
-            attributes = {int(obj[0]): int(obj[1]) for obj in attributes_raw}
-            for skill_id, skill_level_id in [
-                (
-                    EveDogmaAttributeId.REQUIRED_SKILL_1,
-                    EveDogmaAttributeId.REQUIRED_SKILL_1_LEVEL,
-                ),
-                (
-                    EveDogmaAttributeId.REQUIRED_SKILL_2,
-                    EveDogmaAttributeId.REQUIRED_SKILL_2_LEVEL,
-                ),
-                (
-                    EveDogmaAttributeId.REQUIRED_SKILL_3,
-                    EveDogmaAttributeId.REQUIRED_SKILL_3_LEVEL,
-                ),
-            ]:
-                skill = create_skill_from_attributes(
-                    attributes, skill_id, skill_level_id
-                )
-                if skill:
-                    skills.add(skill)
+            required_skills = Skill.create_required_skills(eve_type)
+            if required_skills:
+                skills += required_skills
         return skills
 
     def to_eft(self) -> str:

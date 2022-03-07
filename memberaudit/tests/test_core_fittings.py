@@ -173,28 +173,28 @@ class TestFitting(NoSocketsTestCase):
         # then
         self.assertEqual(fitting_text_original, fitting_text_generated)
 
-    def test_required_skills(self):
-        # given
-        fitting_text = read_fitting_file("fitting_tristan.txt")
-        fitting = Fitting.create_from_eft(fitting_text)
-        # when
-        skills = fitting.required_skills()
-        # then
-        self.assertSetEqual(
-            {obj.eve_type.id for obj in skills},
-            {
-                3328,
-                3425,
-                3394,
-                3300,
-                12485,
-                3302,
-                12484,
-                3435,
-                3436,
-                11084,
-                24241,
-                3318,
-                3454,
-            },
-        )
+    # def test_required_skills(self):
+    #     # given
+    #     fitting_text = read_fitting_file("fitting_tristan.txt")
+    #     fitting = Fitting.create_from_eft(fitting_text)
+    #     # when
+    #     skills = fitting.required_skills()
+    #     # then
+    #     self.assertSetEqual(
+    #         {obj.eve_type.id for obj in skills},
+    #         {
+    #             3328,
+    #             3425,
+    #             3394,
+    #             3300,
+    #             12485,
+    #             3302,
+    #             12484,
+    #             3435,
+    #             3436,
+    #             11084,
+    #             24241,
+    #             3318,
+    #             3454,
+    #         },
+    #     )
