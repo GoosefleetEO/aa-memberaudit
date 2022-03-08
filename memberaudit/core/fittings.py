@@ -5,7 +5,7 @@ from typing import Iterable, List, Optional, Set
 from eveuniverse.models import EveEntity, EveType
 
 from ..constants import EveCategoryId
-from .skills import Skill
+from .skills import Skill, compress_skills, required_skills_from_eve_types
 
 
 @dataclass(frozen=True)
@@ -82,16 +82,9 @@ class Fitting:
     def required_skills(self) -> List[Skill]:
         """Skills required to fly this fitting."""
 
-        skills = self._required_skills_raw()
-        return Skill.compress_skills(skills)
-
-    def _required_skills_raw(self):
-        skills = []
-        for eve_type in self.eve_types(include_cargo=False):
-            required_skills = Skill.create_from_eve_type(eve_type)
-            if required_skills:
-                skills += required_skills
-        return skills
+        eve_types = self.eve_types(include_cargo=False)
+        skills = required_skills_from_eve_types(eve_types)
+        return compress_skills(skills)
 
     def to_eft(self) -> str:
         def add_section(objs, keyword: str = None) -> List[str]:

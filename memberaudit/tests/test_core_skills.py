@@ -2,7 +2,7 @@ from eveuniverse.models import EveType
 
 from app_utils.testing import NoSocketsTestCase
 
-from ..core.skills import Skill
+from ..core.skills import Skill, compress_skills, required_skills_from_eve_types
 from .testdata.load_eveuniverse import load_eveuniverse
 
 
@@ -26,10 +26,10 @@ class TestSkill(NoSocketsTestCase):
         self.assertEqual(skill.eve_type, drones)
         self.assertEqual(skill.level, 1)
 
-    def test_can_create_from_eve_type(self):
+    def test_can_create_required_skills_from_eve_types(self):
         # when
         archon = EveType.objects.get(name="125mm Gatling AutoCannon II")
-        skills = Skill.create_from_eve_type(archon)
+        skills = required_skills_from_eve_types([archon])
         # then
         skills_str = sorted([str(skill) for skill in skills])
         self.assertListEqual(
@@ -65,7 +65,7 @@ class TestSkill(NoSocketsTestCase):
         skill_3 = create_skill(eve_type=drones, level=3)
         skills = [skill_1, skill_2, skill_3]
         # when
-        results = Skill.compress_skills(skills)
+        results = compress_skills(skills)
         # then
         self.assertEqual(len(results), 2)
         self.assertIn(skill_2, results)
