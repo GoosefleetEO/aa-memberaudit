@@ -14,6 +14,11 @@ class EveCategoryId(IntEnum):
     STRUCTURE = 65
 
 
+class EveGroupId(IntEnum):
+    CYBERIMPLANT = 300
+    BOOSTER = 303
+
+
 class EveTypeId(IntEnum):
     SOLAR_SYSTEM = 5
 

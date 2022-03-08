@@ -4,7 +4,7 @@ from eveuniverse.models import EveType
 
 from app_utils.testing import NoSocketsTestCase
 
-from ..core.fittings import Fitting, Item, Module
+from ..core.fittings import Fitting, Item, Module, create_fitting_from_eft
 from .testdata.load_eveuniverse import load_eveuniverse
 
 
@@ -28,7 +28,7 @@ def create_fitting(**kwargs):
         ],
         "medium_slots": [Module(EveType.objects.get(name="Sensor Booster II")), None],
         "low_slots": [Module(EveType.objects.get(name="Damage Control II")), None],
-        "rigs": [
+        "rig_slots": [
             Module(
                 EveType.objects.get(name="Small Kinetic Shield Reinforcer I"),
             ),
@@ -51,7 +51,7 @@ class TestFitting(NoSocketsTestCase):
         # given
         svipul_fitting = read_fitting_file("fitting_svipul.txt")
         # when
-        fitting = Fitting.create_from_eft(svipul_fitting)
+        fitting = create_fitting_from_eft(svipul_fitting)
         # then
         self.assertEqual(fitting.name, "Svipul - Insta Tank NEW")
         self.assertEqual(fitting.ship_type.name, "Svipul")
@@ -115,21 +115,21 @@ class TestFitting(NoSocketsTestCase):
         )
         self.assertIsNone(fitting.high_slots[5])
         self.assertEqual(
-            fitting.rigs[0],
+            fitting.rig_slots[0],
             Module(EveType.objects.get(name="Small Targeting System Subcontroller II")),
         )
         self.assertEqual(
-            fitting.rigs[1],
+            fitting.rig_slots[1],
             Module(EveType.objects.get(name="Small Thermal Shield Reinforcer I")),
         )
         self.assertEqual(
-            fitting.rigs[2],
+            fitting.rig_slots[2],
             Module(EveType.objects.get(name="Small Kinetic Shield Reinforcer I")),
         )
 
     # def test_should_read_fitting_with_drones(self):
     #     svipul_fitting = read_fitting_file("fitting_tristan.txt")
-    #     result = Fitting.create_from_eft(svipul_fitting)
+    #     result = create_fitting_from_eft(svipul_fitting)
     #     print(result)
     #     print([obj.name for obj in result.main_types()])
 
@@ -147,7 +147,7 @@ class TestFitting(NoSocketsTestCase):
         # given
         self.maxDiff = None
         fitting_text_original = read_fitting_file("fitting_archon.txt")
-        fitting = Fitting.create_from_eft(fitting_text_original)
+        fitting = create_fitting_from_eft(fitting_text_original)
         # when
         fitting_text_generated = fitting.to_eft()
         # then
@@ -157,7 +157,7 @@ class TestFitting(NoSocketsTestCase):
         # given
         self.maxDiff = None
         fitting_text_original = read_fitting_file("fitting_tristan.txt")
-        fitting = Fitting.create_from_eft(fitting_text_original)
+        fitting = create_fitting_from_eft(fitting_text_original)
         # when
         fitting_text_generated = fitting.to_eft()
         # then
@@ -167,7 +167,7 @@ class TestFitting(NoSocketsTestCase):
         # given
         self.maxDiff = None
         fitting_text_original = read_fitting_file("fitting_svipul_2.txt")
-        fitting = Fitting.create_from_eft(fitting_text_original)
+        fitting = create_fitting_from_eft(fitting_text_original)
         # when
         fitting_text_generated = fitting.to_eft()
         # then
@@ -176,7 +176,7 @@ class TestFitting(NoSocketsTestCase):
     def test_required_skills(self):
         # given
         fitting_text = read_fitting_file("fitting_tristan.txt")
-        fitting = Fitting.create_from_eft(fitting_text)
+        fitting = create_fitting_from_eft(fitting_text)
         # when
         skills = fitting.required_skills()
         # then
@@ -199,3 +199,18 @@ class TestFitting(NoSocketsTestCase):
                 "Weapon Upgrades IV",
             ],
         )
+
+
+class TestFitting2(NoSocketsTestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        load_eveuniverse()
+
+    def test_should_read_fitting_simple(self):
+        # given
+        svipul_fitting = read_fitting_file("fitting_svipul.txt")
+        # when
+        fitting = create_fitting_from_eft(svipul_fitting)
+        # then
+        print(fitting)

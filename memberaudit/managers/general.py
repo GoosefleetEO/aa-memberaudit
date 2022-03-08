@@ -510,10 +510,14 @@ class SkillSetManager(models.Manager):
                 },
             )
             SkillSetSkill.objects.filter(skill_set=skill_set).delete()
-            for skill in required_skills:
-                SkillSetSkill.objects.create(
+            skills = [
+                SkillSetSkill(
                     skill_set=skill_set,
                     eve_type=skill.eve_type,
                     required_level=skill.level,
                 )
+                for skill in required_skills
+            ]
+            SkillSetSkill.objects.bulk_create(skills)
+
         return skill_set, created
