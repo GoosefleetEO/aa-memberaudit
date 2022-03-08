@@ -1,9 +1,9 @@
 """Eve Online Skills"""
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, Tuple
 
-from eveuniverse.models import EveType
+from eveuniverse.models import EveType, EveTypeDogmaAttribute
 
 from ..constants import MAP_ARABIC_TO_ROMAN_NUMBERS
 from ..constants import EveDogmaAttributeId as AttributeId
@@ -52,8 +52,11 @@ def compress_skills(skills: List["Skill"]) -> List["Skill"]:
 def required_skills_from_eve_types(
     eve_types: Iterable[EveType],
 ) -> Optional[List["Skill"]]:
-    """Create list of required skills from eve types."""
-    skills_raw = _identify_skills(eve_types)
+    """Create list of required skills from eve types.
+
+    For best performance make sure that all types have been loaded with dogmas.
+    """
+    skills_raw = _identify_skills_from_eve_types(eve_types)
     skill_types = _gather_skill_types(skills_raw)
     skills = [
         Skill(eve_type=skill_types[type_id], level=level)
@@ -62,31 +65,56 @@ def required_skills_from_eve_types(
     return sorted(skills, key=lambda x: x.eve_type.name)
 
 
-def _identify_skills(eve_types: Iterable[EveType]) -> list:
-    skills_raw = []
+def _identify_skills_from_eve_types(
+    eve_types: Iterable[EveType],
+) -> List[Tuple[int, int]]:
+    eve_types = _reload_eve_types_without_dogmas(eve_types)
+    all_attributes_map = _fetch_attributes_for_eve_types(eve_types)
+    return _create_skills_from_attributes(all_attributes_map)
+
+
+def _reload_eve_types_without_dogmas(eve_types: List[EveType]) -> List[EveType]:
     for eve_type in eve_types:
-        attributes_raw = eve_type.dogma_attributes.filter(
-            eve_dogma_attribute_id__in=[
-                AttributeId.REQUIRED_SKILL_1,
-                AttributeId.REQUIRED_SKILL_1_LEVEL,
-                AttributeId.REQUIRED_SKILL_2,
-                AttributeId.REQUIRED_SKILL_2_LEVEL,
-                AttributeId.REQUIRED_SKILL_3,
-                AttributeId.REQUIRED_SKILL_3_LEVEL,
-            ]
-        ).values_list("eve_dogma_attribute_id", "value")
-        attributes = {int(obj[0]): int(obj[1]) for obj in attributes_raw}
+        if not eve_type.enabled_sections.dogmas:
+            eve_type, _ = EveType.objects.update_or_create_esi(
+                id=eve_type.id, enabled_sections=[EveType.Section.DOGMAS]
+            )
+    return eve_types
+
+
+def _fetch_attributes_for_eve_types(eve_types: List[EveType]) -> dict:
+    eve_type_ids = {obj.id for obj in eve_types}
+    all_attributes_raw = EveTypeDogmaAttribute.objects.filter(
+        eve_dogma_attribute_id__in=[
+            AttributeId.REQUIRED_SKILL_1,
+            AttributeId.REQUIRED_SKILL_1_LEVEL,
+            AttributeId.REQUIRED_SKILL_2,
+            AttributeId.REQUIRED_SKILL_2_LEVEL,
+            AttributeId.REQUIRED_SKILL_3,
+            AttributeId.REQUIRED_SKILL_3_LEVEL,
+        ],
+        eve_type_id__in=eve_type_ids,
+    ).values_list("eve_type_id", "eve_dogma_attribute_id", "value")
+    all_attributes_map = defaultdict(dict)
+    for eve_type_id, eve_dogma_attribute_id, value in all_attributes_raw:
+        all_attributes_map[eve_type_id][eve_dogma_attribute_id] = int(value)
+    return all_attributes_map
+
+
+def _create_skills_from_attributes(all_attributes_map: dict) -> List[Tuple[int, int]]:
+    skills = []
+    for attributes in all_attributes_map.values():
         for skill_id, skill_level_id in {
             AttributeId.REQUIRED_SKILL_1: AttributeId.REQUIRED_SKILL_1_LEVEL,
             AttributeId.REQUIRED_SKILL_2: AttributeId.REQUIRED_SKILL_2_LEVEL,
             AttributeId.REQUIRED_SKILL_3: AttributeId.REQUIRED_SKILL_3_LEVEL,
         }.items():
             if skill_id in attributes and skill_level_id in attributes:
-                skills_raw.append((attributes[skill_id], attributes[skill_level_id]))
-    return skills_raw
+                skills.append((attributes[skill_id], attributes[skill_level_id]))
+    return skills
 
 
-def _gather_skill_types(skills_raw: list) -> dict:
+def _gather_skill_types(skills_raw: List[Tuple[int, int]]) -> Dict[int, EveType]:
     type_ids = {skill[0] for skill in skills_raw}
     skill_types = {obj.id: obj for obj in EveType.objects.filter(id__in=type_ids)}
     missing_type_ids = type_ids - set(skill_types.keys())
