@@ -172,7 +172,7 @@ urlpatterns = [
         name="download_export_file",
     ),
     path(
-        "admin/generate_skillset",
+        "admin/generate-skillset",
         views.admin_generate_skillset,
         name="admin_generate_skillset",
     ),

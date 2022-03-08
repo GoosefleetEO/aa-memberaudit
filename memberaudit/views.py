@@ -2001,5 +2001,11 @@ def admin_generate_skillset(request):
     else:
         form = ImportFittingForm()
     return render(
-        request, "admin/memberaudit/skillset/import_fitting.html", {"form": form}
+        request,
+        "admin/memberaudit/skillset/import_fitting.html",
+        {
+            "title": "Member Audit",
+            "subtitle": "Create skill set from fitting",
+            "form": form,
+        },
     )
