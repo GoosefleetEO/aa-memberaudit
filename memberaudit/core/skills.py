@@ -44,16 +44,6 @@ class Skill:
     def create_from_eve_type(cls, eve_type: EveType) -> Optional[List["Skill"]]:
         """Create required skills from given type."""
 
-        def _create_skill_from_attributes(
-            attributes: dict, skill_id: int, skill_level_id: int
-        ):
-            if skill_id in attributes and skill_level_id in attributes:
-                skill_type_id = attributes[skill_id]
-                skill_level = attributes[skill_level_id]
-                eve_type, _ = EveType.objects.get_or_create_esi(id=skill_type_id)
-                return Skill(eve_type=eve_type, level=skill_level)
-            return None
-
         attributes_raw = eve_type.dogma_attributes.filter(
             eve_dogma_attribute_id__in=[
                 AttributeId.REQUIRED_SKILL_1,
@@ -65,15 +55,25 @@ class Skill:
             ]
         ).values_list("eve_dogma_attribute_id", "value")
         attributes = {int(obj[0]): int(obj[1]) for obj in attributes_raw}
-        skills = []
+        skills_raw = dict()
         for skill_id, skill_level_id in {
             AttributeId.REQUIRED_SKILL_1: AttributeId.REQUIRED_SKILL_1_LEVEL,
             AttributeId.REQUIRED_SKILL_2: AttributeId.REQUIRED_SKILL_2_LEVEL,
             AttributeId.REQUIRED_SKILL_3: AttributeId.REQUIRED_SKILL_3_LEVEL,
         }.items():
-            skill = _create_skill_from_attributes(attributes, skill_id, skill_level_id)
-            if skill:
-                skills.append(skill)
+            if skill_id in attributes and skill_level_id in attributes:
+                skills_raw[attributes[skill_id]] = attributes[skill_level_id]
+        eve_types = {
+            obj.id: obj for obj in EveType.objects.filter(id__in=skills_raw.keys())
+        }
+        missing_type_ids = set(skills_raw.keys()) - set(eve_types.keys())
+        for type_id in missing_type_ids:
+            eve_type, _ = EveType.objects.get_or_create_esi(id=type_id)
+            eve_types[type_id] = eve_type
+        skills = [
+            Skill(eve_type=eve_types[type_id], level=level)
+            for type_id, level in skills_raw.items()
+        ]
         return sorted(skills, key=lambda x: x.eve_type.name)
 
     @classmethod
