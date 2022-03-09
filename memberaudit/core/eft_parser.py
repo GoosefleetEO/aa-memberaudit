@@ -9,8 +9,16 @@ from ..constants import EveCategoryId, EveGroupId
 from .fittings import Fitting, Item, Module
 
 
-class EftFormatError(ValueError):
-    pass
+class EftParserError(Exception):
+    """Base error for EFT parser."""
+
+
+class MissingTitleError(EftParserError):
+    """Title is missing."""
+
+
+class MissingSectionsError(EftParserError):
+    """Insufficient sections defined."""
 
 
 @dataclass
@@ -64,7 +72,7 @@ class _EveTypes:
             eve_types[obj.name] = obj
         missing_type_names = type_names - set(eve_types.keys())
         if missing_type_names:
-            raise EftFormatError(
+            raise EftParserError(
                 f"Types with these names do not exist: {missing_type_names}"
             )
         return eve_types
@@ -243,7 +251,7 @@ def _text_into_lines(eft_text: str) -> List[str]:
     """Convert text into lines."""
     lines = eft_text.strip().splitlines()
     if not lines:
-        raise EftFormatError("Text is empty")
+        raise MissingSectionsError("Text is empty")
     return lines
 
 
@@ -267,6 +275,8 @@ def _text_sections_to_eft_sections(
     text_sections: List[List[str]],
 ) -> List[_EftSection]:
     """Create eft sections from text sections."""
+    if len(text_sections) < 4:
+        raise MissingSectionsError("Must contain at least 4 sections.")
     slot_categories = [
         _EftSection.Category.LOW_SLOTS,
         _EftSection.Category.MEDIUM_SLOTS,
@@ -290,7 +300,7 @@ def _parse_title(line: str) -> Tuple[str, str]:
     if line.startswith("[") and "," in line:
         ship_type_name, fitting_name = line[1:-1].split(",")
         return ship_type_name.strip(), fitting_name.strip()
-    raise EftFormatError("Title not found")
+    raise MissingTitleError("Title not found")
 
 
 def _load_eve_types(ship_type_name: str, sections: List[_EftSection]) -> _EveTypes:

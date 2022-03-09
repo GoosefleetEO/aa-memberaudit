@@ -2,7 +2,12 @@ from eveuniverse.models import EveType
 
 from app_utils.testing import NoSocketsTestCase
 
-from ..core.eft_parser import _EveTypes, create_fitting_from_eft
+from ..core.eft_parser import (
+    MissingSectionsError,
+    MissingTitleError,
+    _EveTypes,
+    create_fitting_from_eft,
+)
 from .testdata.load_eveuniverse import load_eveuniverse
 from .utils import read_fitting_file
 
@@ -66,6 +71,25 @@ class TestFitting(NoSocketsTestCase):
         self.assertEqual(fitting.drone_bay[0].quantity, 5)
         self.assertEqual(fitting.drone_bay[1].item_type.name, "Warrior II")
         self.assertEqual(fitting.drone_bay[1].quantity, 3)
+
+    def test_should_raise_error_when_title_is_missing(self):
+        # given
+        fitting_text = read_fitting_file("fitting_tristan_no_title.txt")
+        # when
+        with self.assertRaises(MissingTitleError):
+            create_fitting_from_eft(fitting_text)
+
+    def test_should_raise_error_when_text_is_empty(self):
+        # when
+        with self.assertRaises(MissingSectionsError):
+            create_fitting_from_eft("")
+
+    def test_should_raise_error_when_slots_are_missing(self):
+        # given
+        fitting_text = read_fitting_file("fitting_tristan_missing_rigs.txt")
+        # when
+        with self.assertRaises(MissingSectionsError):
+            create_fitting_from_eft(fitting_text)
 
 
 class TestEveTypes(NoSocketsTestCase):
