@@ -55,7 +55,7 @@ class Item(_BaseFittingItem):
     """An item used in a fitting."""
 
     eve_type: EveType
-    quantity: int
+    quantity: int = None
 
     def eve_types(self) -> Set[EveType]:
         """Eve types used in this item."""
@@ -63,21 +63,28 @@ class Item(_BaseFittingItem):
 
     def to_eft(self) -> str:
         """Convert to EFT format."""
-        return f"{self.eve_type.name} x{self.quantity}"
+        text = self.eve_type.name
+        if self.quantity:
+            text += f" x{self.quantity}"
+        return text
 
 
 @dataclass
 class _EveTypes:
     """Container with EveType objects to enable quick name to object resolution."""
 
-    objs: Dict[str, EveType] = field(default_factory=dict)
+    objs_by_name: Dict[str, EveType] = field(default_factory=dict)
 
     def from_name(self, name: str) -> EveType:
-        return self.objs[str(name)]
+        return self.objs_by_name[str(name)]
 
     @classmethod
     def create_from_names(cls, type_names: Iterable[str]) -> "_EveTypes":
-        """Create new object from list of type names."""
+        """Create new object from list of type names.
+
+        Will try to fetch types from DB first and load missing types from ESI.
+        All types must have dogmas.
+        """
         type_names = set(type_names)
         eve_types = cls._fetch_types_from_db(type_names)
         missing_type_names = type_names - set(eve_types.keys())
@@ -191,7 +198,7 @@ class _EftSection:
         DRONES_BAY = auto()
         FIGHTER_BAY = auto()
         IMPLANTS = auto()
-        BOOSTER = auto()
+        BOOSTERS = auto()
         CARGO_BAY = auto()
 
         @property
@@ -236,7 +243,7 @@ class _EftSection:
                 return None
             group_id = ids.pop()
             if group_id == EveGroupId.BOOSTER:
-                return self.Category.BOOSTER
+                return self.Category.BOOSTERS
             elif group_id == EveGroupId.CYBERIMPLANT:
                 return self.Category.IMPLANTS
         return None
@@ -286,8 +293,9 @@ class Fitting:
     rig_slots: List[Optional[Module]] = field(default_factory=list)
     drone_bay: List[Item] = field(default_factory=list)
     fighter_bay: List[Item] = field(default_factory=list)
+    implants: List[Item] = field(default_factory=list)
+    boosters: List[Item] = field(default_factory=list)
     cargo_bay: List[Item] = field(default_factory=list)
-    fitting_notes: str = ""
 
     def __str__(self) -> str:
         return f"{self.name}"
@@ -333,6 +341,12 @@ class Fitting:
         if self.fighter_bay:
             lines.append("")
             lines += add_section(self.fighter_bay)
+        if self.implants:
+            lines.append("")
+            lines += add_section(self.implants)
+        if self.boosters:
+            lines.append("")
+            lines += add_section(self.boosters)
         if self.cargo_bay:
             lines.append("")
             lines += add_section(self.cargo_bay)
@@ -459,6 +473,10 @@ class Fitting:
                 params["drone_bay"] = section.to_items(eve_types)
             elif section.category == _EftSection.Category.FIGHTER_BAY:
                 params["fighter_bay"] = section.to_items(eve_types)
+            elif section.category == _EftSection.Category.IMPLANTS:
+                params["implants"] = section.to_items(eve_types)
+            elif section.category == _EftSection.Category.BOOSTERS:
+                params["boosters"] = section.to_items(eve_types)
             elif section.category == _EftSection.Category.CARGO_BAY:
                 params["cargo_bay"] = section.to_items(eve_types)
         return Fitting(**params)
