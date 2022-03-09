@@ -4,7 +4,7 @@ from eveuniverse.models import EveType
 
 from app_utils.testing import NoSocketsTestCase
 
-from ..core.fittings import Fitting, Item, Module, create_fitting_from_eft
+from ..core.fittings import Fitting, Item, Module, _EveTypes, create_fitting_from_eft
 from .testdata.load_eveuniverse import load_eveuniverse
 
 
@@ -201,16 +201,18 @@ class TestFitting(NoSocketsTestCase):
         )
 
 
-class TestFitting2(NoSocketsTestCase):
+class TestEveTypes(NoSocketsTestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
         load_eveuniverse()
 
-    def test_should_read_fitting_simple(self):
+    def test_should_create_from_names(self):
         # given
-        svipul_fitting = read_fitting_file("fitting_svipul.txt")
+        drones = EveType.objects.get(name="Dones")
+        gunnery = EveType.objects.get(name="Gunnery")
         # when
-        fitting = create_fitting_from_eft(svipul_fitting)
+        eve_types = _EveTypes.create_from_names(["Drones", "Gunnery"])
         # then
-        print(fitting)
+        self.assertEqual(eve_types.from_name("Drones"), drones)
+        self.assertEqual(eve_types.from_name("Gunnery"), gunnery)
