@@ -14,7 +14,19 @@ class EftFormatError(ValueError):
 
 
 @dataclass(frozen=True)
-class Module:
+class _BaseFittingItem:
+    def eve_types(self) -> Set[EveType]:
+        raise NotImplementedError()
+
+    def to_eft(self) -> str:
+        raise NotImplementedError()
+
+    def __init__(self) -> None:
+        raise RuntimeError("No instantiation from abstract base class")
+
+
+@dataclass(frozen=True)
+class Module(_BaseFittingItem):
     """A ship module used in a fitting."""
 
     module_type: EveType
@@ -33,11 +45,13 @@ class Module:
         text = self.module_type.name
         if self.charge_type:
             text += f", {self.charge_type.name}"
+        if self.is_offline:
+            text += " /OFFLINE"
         return text
 
 
 @dataclass(frozen=True)
-class Item:
+class Item(_BaseFittingItem):
     """An item used in a fitting."""
 
     eve_type: EveType
@@ -127,7 +141,7 @@ class _EftItem:
             return cls(is_empty=True)
         if "/OFFLINE" in line:
             is_offline = True
-            line.replace("/OFFLINE", "")
+            line = line.replace(" /OFFLINE", "")
         else:
             is_offline = False
         if "," in line:

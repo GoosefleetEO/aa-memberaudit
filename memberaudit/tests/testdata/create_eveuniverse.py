@@ -99,6 +99,7 @@ class CreateEveUniverseTestData(TestCase):
                     3436,
                     12484,
                     24241,
+                    45999,
                 ],
                 enabled_sections=[EveUniverseEntityModel.LOAD_DOGMAS],
             ),

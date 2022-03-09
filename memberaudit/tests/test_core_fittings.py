@@ -143,7 +143,7 @@ class TestFitting(NoSocketsTestCase):
             {obj.id for obj in types}, {1952, 2977, 34562, 2048, 21924, 31740}
         )
 
-    def test_eft_parser_rountrip_archon(self):
+    def test_eft_parser_rountrip_archon_normal(self):
         # given
         self.maxDiff = None
         fitting_text_original = read_fitting_file("fitting_archon.txt")
@@ -152,6 +152,16 @@ class TestFitting(NoSocketsTestCase):
         fitting_text_generated = fitting.to_eft()
         # then
         self.assertEqual(fitting_text_original, fitting_text_generated)
+
+    # def test_eft_parser_rountrip_archon_max(self):
+    #     # given
+    #     self.maxDiff = None
+    #     fitting_text_original = read_fitting_file("fitting_archon_max.txt")
+    #     fitting = Fitting.create_from_eft(fitting_text_original)
+    #     # when
+    #     fitting_text_generated = fitting.to_eft()
+    #     # then
+    #     self.assertEqual(fitting_text_original, fitting_text_generated)
 
     def test_eft_parser_rountrip_tristan(self):
         # given
@@ -163,7 +173,7 @@ class TestFitting(NoSocketsTestCase):
         # then
         self.assertEqual(fitting_text_original, fitting_text_generated)
 
-    def test_eft_parser_rountrip_svipul_empty_slots(self):
+    def test_eft_parser_rountrip_svipul_empty_slots_and_offline(self):
         # given
         self.maxDiff = None
         fitting_text_original = read_fitting_file("fitting_svipul_2.txt")
