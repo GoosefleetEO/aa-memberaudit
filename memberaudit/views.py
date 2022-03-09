@@ -46,7 +46,7 @@ from . import __title__, tasks
 from .app_settings import MEMBERAUDIT_APP_NAME, MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE
 from .constants import DATETIME_FORMAT, MAP_ARABIC_TO_ROMAN_NUMBERS, EveCategoryId
 from .core import data_exporters
-from .core.fittings import create_fitting_from_eft
+from .core.fittings import Fitting
 from .decorators import fetch_character_if_allowed
 from .forms import ImportFittingForm
 from .helpers import eve_solar_system_to_html
@@ -1989,7 +1989,7 @@ def admin_generate_skillset(request):
     if request.method == "POST":
         form = ImportFittingForm(request.POST)
         if form.is_valid():
-            fitting = create_fitting_from_eft(form.cleaned_data["fitting_text"])
+            fitting = Fitting.create_from_eft(form.cleaned_data["fitting_text"])
             obj, created = SkillSet.objects.update_or_create_from_fitting(
                 fitting=fitting, user=request.user
             )

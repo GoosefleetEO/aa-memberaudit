@@ -4,7 +4,7 @@ from eveuniverse.models import EveType
 
 from app_utils.testing import NoSocketsTestCase
 
-from ..core.fittings import Fitting, Item, Module, _EveTypes, create_fitting_from_eft
+from ..core.fittings import Fitting, Item, Module, _EveTypes
 from .testdata.load_eveuniverse import load_eveuniverse
 
 
@@ -51,7 +51,7 @@ class TestFitting(NoSocketsTestCase):
         # given
         svipul_fitting = read_fitting_file("fitting_svipul.txt")
         # when
-        fitting = create_fitting_from_eft(svipul_fitting)
+        fitting = Fitting.create_from_eft(svipul_fitting)
         # then
         self.assertEqual(fitting.name, "Svipul - Insta Tank NEW")
         self.assertEqual(fitting.ship_type.name, "Svipul")
@@ -129,7 +129,7 @@ class TestFitting(NoSocketsTestCase):
 
     # def test_should_read_fitting_with_drones(self):
     #     svipul_fitting = read_fitting_file("fitting_tristan.txt")
-    #     result = create_fitting_from_eft(svipul_fitting)
+    #     result = Fitting.create_from_eft(svipul_fitting)
     #     print(result)
     #     print([obj.name for obj in result.main_types()])
 
@@ -147,7 +147,7 @@ class TestFitting(NoSocketsTestCase):
         # given
         self.maxDiff = None
         fitting_text_original = read_fitting_file("fitting_archon.txt")
-        fitting = create_fitting_from_eft(fitting_text_original)
+        fitting = Fitting.create_from_eft(fitting_text_original)
         # when
         fitting_text_generated = fitting.to_eft()
         # then
@@ -157,7 +157,7 @@ class TestFitting(NoSocketsTestCase):
         # given
         self.maxDiff = None
         fitting_text_original = read_fitting_file("fitting_tristan.txt")
-        fitting = create_fitting_from_eft(fitting_text_original)
+        fitting = Fitting.create_from_eft(fitting_text_original)
         # when
         fitting_text_generated = fitting.to_eft()
         # then
@@ -167,7 +167,7 @@ class TestFitting(NoSocketsTestCase):
         # given
         self.maxDiff = None
         fitting_text_original = read_fitting_file("fitting_svipul_2.txt")
-        fitting = create_fitting_from_eft(fitting_text_original)
+        fitting = Fitting.create_from_eft(fitting_text_original)
         # when
         fitting_text_generated = fitting.to_eft()
         # then
@@ -176,7 +176,7 @@ class TestFitting(NoSocketsTestCase):
     def test_required_skills(self):
         # given
         fitting_text = read_fitting_file("fitting_tristan.txt")
-        fitting = create_fitting_from_eft(fitting_text)
+        fitting = Fitting.create_from_eft(fitting_text)
         # when
         skills = fitting.required_skills()
         # then
@@ -209,7 +209,7 @@ class TestEveTypes(NoSocketsTestCase):
 
     def test_should_create_from_names(self):
         # given
-        drones = EveType.objects.get(name="Dones")
+        drones = EveType.objects.get(name="Drones")
         gunnery = EveType.objects.get(name="Gunnery")
         # when
         eve_types = _EveTypes.create_from_names(["Drones", "Gunnery"])
