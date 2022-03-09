@@ -130,6 +130,8 @@ class _EftItem:
 
     @classmethod
     def create_from_non_slots(cls, line: str) -> "_EftItem":
+        if "empty" in line.strip("[]").lower():  # for structure services
+            return cls(is_empty=True)
         part = line.split()[-1]
         if "x" in part and part[1:].isdigit():
             item_type = line.split(part)[0].strip()
@@ -233,6 +235,8 @@ class _EftSection:
         objs = []
         unknown_types = set()
         for item in self.items:
+            if item.is_empty:
+                continue
             params = dict()
             item_type = eve_types.from_name(item.item_type)
             if item_type:
