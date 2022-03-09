@@ -46,6 +46,7 @@ from . import __title__, tasks
 from .app_settings import MEMBERAUDIT_APP_NAME, MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE
 from .constants import DATETIME_FORMAT, MAP_ARABIC_TO_ROMAN_NUMBERS, EveCategoryId
 from .core import data_exporters
+from .core.eft_parser import EftParserError
 from .core.fittings import Fitting
 from .decorators import fetch_character_if_allowed
 from .forms import ImportFittingForm
@@ -1989,19 +1990,27 @@ def admin_generate_skillset(request):
     if request.method == "POST":
         form = ImportFittingForm(request.POST)
         if form.is_valid():
-            fitting, errors = Fitting.create_from_eft(form.cleaned_data["fitting_text"])
-            obj, created = SkillSet.objects.update_or_create_from_fitting(
-                fitting=fitting, user=request.user
-            )
-            if created:
-                msg = f"Skill Set <b>{obj.name}</b> has been created"
+            try:
+                fitting, errors = Fitting.create_from_eft(
+                    form.cleaned_data["fitting_text"]
+                )
+            except EftParserError:
+                messages.warning(
+                    request, "The fitting does not appear to be a valid EFT format."
+                )
             else:
-                msg = f"Skill Set <b>{obj.name}</b> has been updated"
-            if errors:
-                msg += f" with issues:<br>- {'<br>- '.join(errors)}"
-                messages.warning(request, format_html(msg))
-            else:
-                messages.info(request, format_html(f"{msg}."))
+                obj, created = SkillSet.objects.update_or_create_from_fitting(
+                    fitting=fitting, user=request.user
+                )
+                if created:
+                    msg = f"Skill Set <b>{obj.name}</b> has been created"
+                else:
+                    msg = f"Skill Set <b>{obj.name}</b> has been updated"
+                if errors:
+                    msg += f" with issues:<br>- {'<br>- '.join(errors)}"
+                    messages.warning(request, format_html(msg))
+                else:
+                    messages.info(request, format_html(f"{msg}."))
             return redirect("admin:memberaudit_skillset_changelist")
     else:
         form = ImportFittingForm()
