@@ -1,18 +1,10 @@
-from pathlib import Path
-
 from eveuniverse.models import EveType
 
 from app_utils.testing import NoSocketsTestCase
 
-from ..core.fittings import Fitting, Item, Module, _EveTypes
+from ..core.fittings import Fitting, Item, Module
 from .testdata.load_eveuniverse import load_eveuniverse
-
-
-def read_fitting_file(file_name: str) -> str:
-    testdata_folder = Path(__file__).parent / "testdata"
-    svipul_fitting_file = testdata_folder / file_name
-    with svipul_fitting_file.open("r") as fp:
-        return fp.read()
+from .utils import read_fitting_file
 
 
 def create_fitting(**kwargs):
@@ -46,86 +38,6 @@ class TestFitting(NoSocketsTestCase):
     def setUpClass(cls) -> None:
         super().setUpClass()
         load_eveuniverse()
-
-    def test_should_read_fitting_simple(self):
-        # given
-        svipul_fitting = read_fitting_file("fitting_svipul.txt")
-        # when
-        fitting = Fitting.create_from_eft(svipul_fitting)
-        # then
-        self.assertEqual(fitting.name, "Svipul - Insta Tank NEW")
-        self.assertEqual(fitting.ship_type.name, "Svipul")
-        self.assertEqual(
-            fitting.low_slots[0], Module(EveType.objects.get(name="Damage Control II"))
-        )
-        self.assertEqual(
-            fitting.low_slots[1], Module(EveType.objects.get(name="Gyrostabilizer II"))
-        )
-        self.assertEqual(
-            fitting.low_slots[2], Module(EveType.objects.get(name="Gyrostabilizer II"))
-        )
-        self.assertEqual(
-            fitting.low_slots[3],
-            Module(EveType.objects.get(name="Tracking Enhancer II")),
-        )
-        self.assertEqual(
-            fitting.medium_slots[0],
-            Module(EveType.objects.get(name="Sensor Booster II")),
-        )
-        self.assertEqual(
-            fitting.medium_slots[1],
-            Module(EveType.objects.get(name="Sensor Booster II")),
-        )
-        self.assertEqual(
-            fitting.medium_slots[2],
-            Module(EveType.objects.get(name="Warp Disruptor II")),
-        )
-        self.assertEqual(
-            fitting.medium_slots[3],
-            Module(EveType.objects.get(name="5MN Y-T8 Compact Microwarpdrive")),
-        )
-        self.assertEqual(
-            fitting.high_slots[0],
-            Module(
-                EveType.objects.get(name="280mm Howitzer Artillery II"),
-                charge_type=EveType.objects.get(name="Republic Fleet Phased Plasma S"),
-            ),
-        )
-        self.assertEqual(
-            fitting.high_slots[1],
-            Module(
-                EveType.objects.get(name="280mm Howitzer Artillery II"),
-                charge_type=EveType.objects.get(name="Republic Fleet Phased Plasma S"),
-            ),
-        )
-        self.assertIsNone(fitting.high_slots[2])
-        self.assertEqual(
-            fitting.high_slots[3],
-            Module(
-                EveType.objects.get(name="280mm Howitzer Artillery II"),
-                charge_type=EveType.objects.get(name="Republic Fleet Phased Plasma S"),
-            ),
-        )
-        self.assertEqual(
-            fitting.high_slots[4],
-            Module(
-                EveType.objects.get(name="280mm Howitzer Artillery II"),
-                charge_type=EveType.objects.get(name="Republic Fleet Phased Plasma S"),
-            ),
-        )
-        self.assertIsNone(fitting.high_slots[5])
-        self.assertEqual(
-            fitting.rig_slots[0],
-            Module(EveType.objects.get(name="Small Targeting System Subcontroller II")),
-        )
-        self.assertEqual(
-            fitting.rig_slots[1],
-            Module(EveType.objects.get(name="Small Thermal Shield Reinforcer I")),
-        )
-        self.assertEqual(
-            fitting.rig_slots[2],
-            Module(EveType.objects.get(name="Small Kinetic Shield Reinforcer I")),
-        )
 
     # def test_should_read_fitting_with_drones(self):
     #     svipul_fitting = read_fitting_file("fitting_tristan.txt")
@@ -209,20 +121,3 @@ class TestFitting(NoSocketsTestCase):
                 "Weapon Upgrades IV",
             ],
         )
-
-
-class TestEveTypes(NoSocketsTestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        super().setUpClass()
-        load_eveuniverse()
-
-    def test_should_create_from_names(self):
-        # given
-        drones = EveType.objects.get(name="Drones")
-        gunnery = EveType.objects.get(name="Gunnery")
-        # when
-        eve_types = _EveTypes.create_from_names(["Drones", "Gunnery"])
-        # then
-        self.assertEqual(eve_types.from_name("Drones"), drones)
-        self.assertEqual(eve_types.from_name("Gunnery"), gunnery)
