@@ -94,7 +94,7 @@ class TestEftParser(NoSocketsTestCase):
         with self.assertRaises(MissingSectionsError):
             create_fitting_from_eft(fitting_text)
 
-    def test_report_unknown_types(self):
+    def test_should_report_unknown_types(self):
         # given
         fitting_text = read_fitting_file("fitting_tristan_unknown_types.txt")
         # when

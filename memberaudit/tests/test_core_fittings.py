@@ -95,6 +95,16 @@ class TestFitting(NoSocketsTestCase):
         # then
         self.assertEqual(fitting_text_original, fitting_text_generated)
 
+    def test_eft_parser_rountrip_empty(self):
+        # given
+        self.maxDiff = None
+        fitting_text_original = read_fitting_file("fitting_empty.txt")
+        fitting, _ = Fitting.create_from_eft(fitting_text_original)
+        # when
+        fitting_text_generated = fitting.to_eft()
+        # then
+        self.assertEqual(fitting_text_original, fitting_text_generated)
+
     def test_required_skills(self):
         # given
         fitting_text = read_fitting_file("fitting_tristan.txt")

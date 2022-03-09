@@ -87,11 +87,16 @@ class Fitting:
         """All fitted modules."""
         return self.high_slots + self.medium_slots + self.low_slots + self.rig_slots
 
-    def eve_types(self, include_cargo=True) -> Set[EveType]:
+    def eve_types(self) -> Set[EveType]:
         """Types of all modules and items."""
-        objs = self.modules + self.drone_bay + self.fighter_bay
-        if include_cargo:
-            objs += self.cargo_bay
+        objs = (
+            self.modules
+            + self.drone_bay
+            + self.fighter_bay
+            + self.implants
+            + self.boosters
+            + self.cargo_bay
+        )
         types = {self.ship_type}
         for obj in [x for x in objs if x]:
             types |= {eve_type for eve_type in obj.eve_types()}
@@ -100,7 +105,7 @@ class Fitting:
     def required_skills(self) -> List[Skill]:
         """Skills required to fly this fitting."""
 
-        eve_types = self.eve_types(include_cargo=False)
+        eve_types = self.eve_types()
         skills = required_skills_from_eve_types(eve_types)
         return compress_skills(skills)
 
