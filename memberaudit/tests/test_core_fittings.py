@@ -59,7 +59,7 @@ class TestFitting(NoSocketsTestCase):
         # given
         self.maxDiff = None
         fitting_text_original = read_fitting_file("fitting_archon.txt")
-        fitting = Fitting.create_from_eft(fitting_text_original)
+        fitting, _ = Fitting.create_from_eft(fitting_text_original)
         # when
         fitting_text_generated = fitting.to_eft()
         # then
@@ -69,7 +69,7 @@ class TestFitting(NoSocketsTestCase):
         # given
         self.maxDiff = None
         fitting_text_original = read_fitting_file("fitting_archon_max.txt")
-        fitting = Fitting.create_from_eft(fitting_text_original)
+        fitting, _ = Fitting.create_from_eft(fitting_text_original)
         # when
         fitting_text_generated = fitting.to_eft()
         # then
@@ -79,7 +79,7 @@ class TestFitting(NoSocketsTestCase):
         # given
         self.maxDiff = None
         fitting_text_original = read_fitting_file("fitting_tristan.txt")
-        fitting = Fitting.create_from_eft(fitting_text_original)
+        fitting, _ = Fitting.create_from_eft(fitting_text_original)
         # when
         fitting_text_generated = fitting.to_eft()
         # then
@@ -89,7 +89,7 @@ class TestFitting(NoSocketsTestCase):
         # given
         self.maxDiff = None
         fitting_text_original = read_fitting_file("fitting_svipul_2.txt")
-        fitting = Fitting.create_from_eft(fitting_text_original)
+        fitting, _ = Fitting.create_from_eft(fitting_text_original)
         # when
         fitting_text_generated = fitting.to_eft()
         # then
@@ -98,7 +98,7 @@ class TestFitting(NoSocketsTestCase):
     def test_required_skills(self):
         # given
         fitting_text = read_fitting_file("fitting_tristan.txt")
-        fitting = Fitting.create_from_eft(fitting_text)
+        fitting, _ = Fitting.create_from_eft(fitting_text)
         # when
         skills = fitting.required_skills()
         # then

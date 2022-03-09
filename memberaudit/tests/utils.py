@@ -13,7 +13,7 @@ from ..models import Character
 
 
 def read_fitting_file(file_name: str) -> str:
-    testdata_folder = Path(__file__).parent / "testdata"
+    testdata_folder = Path(__file__).parent / "testdata" / "fittings"
     fitting_file = testdata_folder / file_name
     with fitting_file.open("r") as fp:
         return fp.read()

@@ -1,4 +1,6 @@
-from eveuniverse.models import EveType
+from unittest.mock import patch
+
+from eveuniverse.models import EveEntity, EveType
 
 from app_utils.testing import NoSocketsTestCase
 
@@ -12,7 +14,7 @@ from .testdata.load_eveuniverse import load_eveuniverse
 from .utils import read_fitting_file
 
 
-class TestFitting(NoSocketsTestCase):
+class TestEftParser(NoSocketsTestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
@@ -22,8 +24,9 @@ class TestFitting(NoSocketsTestCase):
         # given
         fitting_text = read_fitting_file("fitting_tristan.txt")
         # when
-        fitting = create_fitting_from_eft(fitting_text)
+        fitting, errors = create_fitting_from_eft(fitting_text)
         # then
+        self.assertListEqual(errors, [])
         self.assertEqual(fitting.name, "Tristan - Standard Kite (cap stable)")
         self.assertEqual(fitting.ship_type.name, "Tristan")
         self.assertEqual(
@@ -90,6 +93,22 @@ class TestFitting(NoSocketsTestCase):
         # when
         with self.assertRaises(MissingSectionsError):
             create_fitting_from_eft(fitting_text)
+
+    def test_report_unknown_types(self):
+        # given
+        fitting_text = read_fitting_file("fitting_tristan_unknown_types.txt")
+        # when
+        with patch(
+            "memberaudit.core.eft_parser.EveEntity.objects.fetch_by_names_esi"
+        ) as mock:
+            mock.return_value = EveEntity.objects.none()
+            fitting, errors = create_fitting_from_eft(fitting_text)
+        # then
+        self.assertIn("Unknown Type Alpha", ", ".join(errors))
+        self.assertIn("Unknown Type Bravo", ", ".join(errors))
+        self.assertEqual(
+            fitting.low_slots[0].module_type.name, "Nanofiber Internal Structure II"
+        )
 
 
 class TestEveTypes(NoSocketsTestCase):

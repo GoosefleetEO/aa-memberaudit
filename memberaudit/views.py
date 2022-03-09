@@ -1989,14 +1989,19 @@ def admin_generate_skillset(request):
     if request.method == "POST":
         form = ImportFittingForm(request.POST)
         if form.is_valid():
-            fitting = Fitting.create_from_eft(form.cleaned_data["fitting_text"])
+            fitting, errors = Fitting.create_from_eft(form.cleaned_data["fitting_text"])
             obj, created = SkillSet.objects.update_or_create_from_fitting(
                 fitting=fitting, user=request.user
             )
             if created:
-                messages.info(request, f"Skill Set has been created: {obj.name}")
+                msg = f"Skill Set <b>{obj.name}</b> has been created"
             else:
-                messages.info(request, f"Skill Set has been updated: {obj.name}")
+                msg = f"Skill Set <b>{obj.name}</b> has been updated"
+            if errors:
+                msg += f" with issues:<br>- {'<br>- '.join(errors)}"
+                messages.warning(request, format_html(msg))
+            else:
+                messages.info(request, format_html(f"{msg}."))
             return redirect("admin:memberaudit_skillset_changelist")
     else:
         form = ImportFittingForm()
