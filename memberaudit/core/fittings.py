@@ -70,7 +70,7 @@ class Item(_BaseFittingItem):
 class _EveTypes:
     """Container with EveType objects to enable quick name to object resolution."""
 
-    objs: Dict[int, EveType] = field(default_factory=dict)
+    objs: Dict[str, EveType] = field(default_factory=dict)
 
     def from_name(self, name: str) -> EveType:
         return self.objs[str(name)]
@@ -79,28 +79,44 @@ class _EveTypes:
     def create_from_names(cls, type_names: Iterable[str]) -> "_EveTypes":
         """Create new object from list of type names."""
         type_names = set(type_names)
+        eve_types = cls._fetch_types_from_db(type_names)
+        missing_type_names = type_names - set(eve_types.keys())
+        if missing_type_names:
+            eve_types = cls._fetch_missing_types_from_esi(
+                type_names, missing_type_names, eve_types
+            )
+        return cls(eve_types)
+
+    @classmethod
+    def _fetch_types_from_db(cls, type_names: Iterable[str]) -> Dict[str, EveType]:
         eve_types_query = EveType.objects.select_related("eve_group").filter(
             enabled_sections=EveType.enabled_sections.dogmas, name__in=type_names
         )
         eve_types = {obj.name: obj for obj in eve_types_query}
-        missing_types = type_names - set(eve_types.keys())
-        if missing_types:
-            entity_ids = (
-                EveEntity.objects.fetch_by_names_esi(missing_types)
-                .filter(category=EveEntity.CATEGORY_INVENTORY_TYPE)
-                .values_list("id", flat=True)
+        return eve_types
+
+    @staticmethod
+    def _fetch_missing_types_from_esi(
+        type_names: Set[str],
+        missing_type_names: Set[str],
+        eve_types: Dict[str, EveType],
+    ) -> Dict[str, EveType]:
+        entity_ids = (
+            EveEntity.objects.fetch_by_names_esi(missing_type_names)
+            .filter(category=EveEntity.CATEGORY_INVENTORY_TYPE)
+            .values_list("id", flat=True)
+        )
+        for entity_id in entity_ids:
+            obj, _ = EveType.objects.get_or_create_esi(
+                id=entity_id, enabled_sections=[EveType.Section.DOGMAS]
             )
-            for entity_id in entity_ids:
-                obj, _ = EveType.objects.get_or_create_esi(
-                    id=entity_id, enabled_sections=[EveType.Section.DOGMAS]
-                )
-                eve_types[obj.name] = obj
-            missing_types = type_names - set(eve_types.keys())
-            if missing_types:
-                raise EftFormatError(
-                    f"Types with these names do not exist: {missing_types}"
-                )
-        return cls(eve_types)
+            eve_types[obj.name] = obj
+        missing_type_names = type_names - set(eve_types.keys())
+        if missing_type_names:
+            raise EftFormatError(
+                f"Types with these names do not exist: {missing_type_names}"
+            )
+        return eve_types
 
 
 @dataclass
