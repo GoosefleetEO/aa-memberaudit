@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.11.0b1] - 2022-03-10
+
+>**Update note**:<br>Please make sure to re-run the `memberaudit_load_eve` command, which will pre-load types needed to process fittings. Otherwise importing fittings can take a long time.
+
 ### Added
 
-- Ability to create skill sets from imported fittings in EFT format
+- Ability to create skill sets from imported fittings in EFT format via copy & paste from PYFA or Eve Client
 
 ## [1.10.0] - 2022-03-05
 
