@@ -101,9 +101,9 @@ class TestFitting(NoSocketsTestCase):
         self.maxDiff = None
         fitting_text_original = read_fitting_file("fitting_tengu.txt")
         fitting, _ = Fitting.create_from_eft(fitting_text_original)
-        # print(
-        #     ", ".join(map(str, sorted(list([obj.id for obj in fitting.eve_types()]))))
-        # )
+        print(
+            ", ".join(map(str, sorted(list([obj.id for obj in fitting.eve_types()]))))
+        )
         # when
         fitting_text_generated = fitting.to_eft()
         # then

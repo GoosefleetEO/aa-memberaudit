@@ -110,6 +110,10 @@ class CreateEveUniverseTestData(TestCase):
                     12805,
                     29984,
                     31796,
+                    45626,  # TENGU start
+                    45590,
+                    45602,
+                    45615,
                 ],
                 enabled_sections=[EveUniverseEntityModel.LOAD_DOGMAS],
             ),
