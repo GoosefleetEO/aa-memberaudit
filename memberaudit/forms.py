@@ -12,3 +12,6 @@ class ImportFittingForm(forms.Form):
             }
         ),
     )
+    can_overwrite = forms.BooleanField(
+        label="Overwrite skill sets with same name", required=False
+    )
