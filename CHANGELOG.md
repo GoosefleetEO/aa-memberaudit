@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Added
+
+- Ability to create skill sets from imported fittings in EFT format
+
 ## [1.10.0] - 2022-03-05
 
 ### Added
