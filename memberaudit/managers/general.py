@@ -498,7 +498,8 @@ class SkillSetManager(models.Manager):
 
         required_skills = fitting.required_skills()
         description = (
-            f"Generated from EFT fitting by {user if user else '?'} "
+            f"Generated from EFT fitting '{fitting.name}' "
+            f"by {user if user else '?'} "
             f"at {now().strftime(DATETIME_FORMAT)}"
         )
         with transaction.atomic():

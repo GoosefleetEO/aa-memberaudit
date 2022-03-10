@@ -18,7 +18,7 @@ class Command(BaseCommand):
         call_command(
             "eveuniverse_load_types",
             __title__,
-            "--category_id",
+            "--category_id_with_dogma",
             str(EveCategoryId.BLUEPRINT.value),
             "--category_id_with_dogma",
             str(EveCategoryId.SHIP.value),
@@ -34,6 +34,8 @@ class Command(BaseCommand):
             str(EveCategoryId.IMPLANT.value),
             "--category_id_with_dogma",
             str(EveCategoryId.FIGHTER.value),
+            "--category_id_with_dogma",
+            str(EveCategoryId.SUBSYSTEM.value),
             "--category_id",
             str(EveCategoryId.STRUCTURE.value),
         )

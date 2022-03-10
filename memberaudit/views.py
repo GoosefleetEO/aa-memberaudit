@@ -2014,6 +2014,9 @@ def admin_create_skillset_from_fitting(request):
                     obj, created = SkillSet.objects.update_or_create_from_fitting(
                         fitting=fitting, user=request.user
                     )
+                    logger.info(
+                        "Skill Set created from fitting with name: %s", fitting.name
+                    )
                     if created:
                         msg = f"Skill Set <b>{obj.name}</b> has been created"
                     else:
