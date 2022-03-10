@@ -1,10 +1,12 @@
 """Parser for fitting in EFT Format"""
+import concurrent.futures
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from bravado.exception import HTTPNotFound
 
+from django.conf import settings
 from eveuniverse.models import EveEntity, EveType
 
 from allianceauth.services.hooks import get_extension_logger
@@ -69,8 +71,9 @@ class _EveTypes:
         eve_types = {obj.name: obj for obj in eve_types_query}
         return eve_types
 
-    @staticmethod
+    @classmethod
     def _fetch_missing_types_from_esi(
+        cls,
         missing_type_names: Set[str],
     ) -> Dict[str, EveType]:
         def type_names_str(type_names: Iterable) -> str:
@@ -85,15 +88,7 @@ class _EveTypes:
             .filter(category=EveEntity.CATEGORY_INVENTORY_TYPE)
             .values_list("id", flat=True)
         )
-        eve_types = dict()
-        for entity_id in entity_ids:
-            try:
-                obj, _ = EveType.objects.get_or_create_esi(
-                    id=entity_id, enabled_sections=[EveType.Section.DOGMAS]
-                )
-                eve_types[obj.name] = obj
-            except HTTPNotFound:
-                pass
+        eve_types = cls._fetch_types_from_esi(entity_ids)
         missing_type_names_2 = missing_type_names - set(eve_types.keys())
         if missing_type_names_2:
             logger.info(
@@ -101,6 +96,26 @@ class _EveTypes:
                 type_names_str(missing_type_names_2),
             )
         return eve_types
+
+    @classmethod
+    def _fetch_types_from_esi(cls, entity_ids) -> Dict[str, EveType]:
+        """Fetch types from ESI concurrently using threads."""
+        max_workers = getattr(settings, "ESI_CONNECTION_POOL_MAXSIZE", 10)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            eve_types = executor.map(cls._fetch_type_from_esi, entity_ids)
+        return {obj.name: obj for obj in eve_types if obj}
+
+    @staticmethod
+    def _fetch_type_from_esi(entity_id) -> Optional[EveType]:
+        """Fetch type from ESI."""
+        try:
+            obj, _ = EveType.objects.get_or_create_esi(
+                id=entity_id, enabled_sections=[EveType.Section.DOGMAS]
+            )
+        except HTTPNotFound:
+            return None
+        else:
+            return obj
 
 
 @dataclass
