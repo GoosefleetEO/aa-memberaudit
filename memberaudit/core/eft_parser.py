@@ -3,10 +3,18 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
+from bravado.exception import HTTPNotFound
+
 from eveuniverse.models import EveEntity, EveType
 
+from allianceauth.services.hooks import get_extension_logger
+from app_utils.logging import LoggerAddTag
+
+from .. import __title__
 from ..constants import EveCategoryId, EveGroupId
 from .fittings import Fitting, Item, Module
+
+logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
 
 class EftParserError(Exception):
@@ -72,10 +80,13 @@ class _EveTypes:
         )
         eve_types = dict()
         for entity_id in entity_ids:
-            obj, _ = EveType.objects.get_or_create_esi(
-                id=entity_id, enabled_sections=[EveType.Section.DOGMAS]
-            )
-            eve_types[obj.name] = obj
+            try:
+                obj, _ = EveType.objects.get_or_create_esi(
+                    id=entity_id, enabled_sections=[EveType.Section.DOGMAS]
+                )
+                eve_types[obj.name] = obj
+            except HTTPNotFound:
+                pass
         return eve_types
 
 

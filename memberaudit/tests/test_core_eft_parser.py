@@ -1,7 +1,10 @@
 from unittest.mock import patch
 
+from bravado.exception import HTTPNotFound
+
 from eveuniverse.models import EveEntity, EveType
 
+from app_utils.esi_testing import BravadoResponseStub
 from app_utils.testing import NoSocketsTestCase
 
 from ..core.eft_parser import (
@@ -12,6 +15,8 @@ from ..core.eft_parser import (
 )
 from .testdata.load_eveuniverse import load_eveuniverse
 from .utils import read_fitting_file
+
+MODULE_PATH = "memberaudit.core.eft_parser"
 
 
 class TestEftParser(NoSocketsTestCase):
@@ -98,9 +103,7 @@ class TestEftParser(NoSocketsTestCase):
         # given
         fitting_text = read_fitting_file("fitting_tristan_unknown_types.txt")
         # when
-        with patch(
-            "memberaudit.core.eft_parser.EveEntity.objects.fetch_by_names_esi"
-        ) as mock:
+        with patch(MODULE_PATH + ".EveEntity.objects.fetch_by_names_esi") as mock:
             mock.return_value = EveEntity.objects.none()
             fitting, errors = create_fitting_from_eft(fitting_text)
         # then
@@ -126,3 +129,39 @@ class TestEveTypes(NoSocketsTestCase):
         # then
         self.assertEqual(eve_types.from_name("Drones"), drones)
         self.assertEqual(eve_types.from_name("Gunnery"), gunnery)
+
+    def test_should_try_to_fetch_unknown_types_from_esi(self):
+        # given
+        unknown_type = EveType(id=99, name="Unknown-Type")
+        # when
+        with patch(
+            MODULE_PATH + ".EveEntity.objects.fetch_by_names_esi"
+        ) as mock_fetch_by_names_esi, patch(
+            MODULE_PATH + ".EveType.objects.get_or_create_esi"
+        ) as mock_get_or_create_esi:
+            mock_fetch_by_names_esi.return_value.filter.return_value.values_list.return_value = [
+                99
+            ]
+            mock_get_or_create_esi.return_value = (unknown_type, False)
+            eve_types = _EveTypes.create_from_names(["Unknown-Type"])
+        # then
+        self.assertEqual(eve_types.from_name("Unknown-Type"), unknown_type)
+
+    def test_should_handle_type_not_found(self):
+        # given
+        http404 = HTTPNotFound(
+            BravadoResponseStub(status_code=404), message="Test exception"
+        )
+        # when
+        with patch(
+            MODULE_PATH + ".EveEntity.objects.fetch_by_names_esi"
+        ) as mock_fetch_by_names_esi, patch(
+            MODULE_PATH + ".EveType.objects.get_or_create_esi"
+        ) as mock_get_or_create_esi:
+            mock_fetch_by_names_esi.return_value.filter.return_value.values_list.return_value = [
+                99
+            ]
+            mock_get_or_create_esi.side_effect = http404
+            eve_types = _EveTypes.create_from_names(["Unknown-Type"])
+        # then
+        self.assertIsNone(eve_types.from_name("Unknown-Type"))
