@@ -851,7 +851,8 @@ class TestCreateSkillSetFromFitting(TestCase):
         self.assertEqual(skill_set.skills.count(), 0)
 
     @patch(MODULE_PATH + ".messages")
-    def test_should_overwrite_existing_skillset(self, mock_messages):
+    @patch(MODULE_PATH + ".tasks")
+    def test_should_overwrite_existing_skillset(self, mock_tasks, mock_messages):
         # given
         skill_set = SkillSet.objects.create(name="Tristan - Standard Kite (cap stable)")
         request = self.factory.post(
@@ -863,6 +864,7 @@ class TestCreateSkillSetFromFitting(TestCase):
         response = admin_create_skillset_from_fitting(request)
         # then
         self.assertEqual(response.status_code, 302)
+        self.assertTrue(mock_tasks.update_characters_skill_checks.delay.called)
         self.assertTrue(mock_messages.warning.info)
         skill_set.refresh_from_db()
         self.assertGreater(skill_set.skills.count(), 0)

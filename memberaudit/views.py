@@ -2017,6 +2017,7 @@ def admin_create_skillset_from_fitting(request):
                     logger.info(
                         "Skill Set created from fitting with name: %s", fitting.name
                     )
+                    tasks.update_characters_skill_checks.delay(force_update=True)
                     if created:
                         msg = f"Skill Set <b>{obj.name}</b> has been created"
                     else:
