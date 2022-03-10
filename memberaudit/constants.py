@@ -11,6 +11,7 @@ class EveCategoryId(IntEnum):
     DRONE = 18
     IMPLANT = 20
     FIGHTER = 87
+    SUBSYSTEM = 32
     STRUCTURE = 65
 
 

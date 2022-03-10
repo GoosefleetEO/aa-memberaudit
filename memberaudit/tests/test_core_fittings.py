@@ -1,3 +1,4 @@
+# from django.test import TestCase
 from eveuniverse.models import EveType
 
 from app_utils.testing import NoSocketsTestCase
@@ -90,6 +91,19 @@ class TestFitting(NoSocketsTestCase):
         self.maxDiff = None
         fitting_text_original = read_fitting_file("fitting_svipul_2.txt")
         fitting, _ = Fitting.create_from_eft(fitting_text_original)
+        # when
+        fitting_text_generated = fitting.to_eft()
+        # then
+        self.assertEqual(fitting_text_original, fitting_text_generated)
+
+    def test_eft_parser_rountrip_tengu(self):
+        # given
+        self.maxDiff = None
+        fitting_text_original = read_fitting_file("fitting_tengu.txt")
+        fitting, _ = Fitting.create_from_eft(fitting_text_original)
+        # print(
+        #     ", ".join(map(str, sorted(list([obj.id for obj in fitting.eve_types()]))))
+        # )
         # when
         fitting_text_generated = fitting.to_eft()
         # then

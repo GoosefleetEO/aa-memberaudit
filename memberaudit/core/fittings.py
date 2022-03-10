@@ -73,6 +73,7 @@ class Fitting:
     medium_slots: List[Optional[Module]] = field(default_factory=list)
     low_slots: List[Optional[Module]] = field(default_factory=list)
     rig_slots: List[Optional[Module]] = field(default_factory=list)
+    subsystem_slots: List[Optional[Module]] = field(default_factory=list)
     drone_bay: List[Item] = field(default_factory=list)
     fighter_bay: List[Item] = field(default_factory=list)
     implants: List[Item] = field(default_factory=list)
@@ -85,7 +86,13 @@ class Fitting:
     @property
     def modules(self) -> List[EveType]:
         """All fitted modules."""
-        return self.high_slots + self.medium_slots + self.low_slots + self.rig_slots
+        return (
+            self.high_slots
+            + self.medium_slots
+            + self.low_slots
+            + self.rig_slots
+            + self.subsystem_slots
+        )
 
     def eve_types(self) -> Set[EveType]:
         """Types of all modules and items."""
@@ -122,6 +129,8 @@ class Fitting:
         lines += add_section(self.medium_slots, "Med")
         lines += add_section(self.high_slots, "High")
         lines += add_section(self.rig_slots, "Rig")
+        if self.subsystem_slots:
+            lines += add_section(self.subsystem_slots, "Subsystem")
         if self.drone_bay:
             lines.append("")
             lines += add_section(self.drone_bay)

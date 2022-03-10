@@ -1,12 +1,10 @@
 """Parser for fitting in EFT Format"""
-import concurrent.futures
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from bravado.exception import HTTPNotFound
 
-from django.conf import settings
 from eveuniverse.models import EveEntity, EveType
 
 from allianceauth.services.hooks import get_extension_logger
@@ -97,25 +95,39 @@ class _EveTypes:
             )
         return eve_types
 
-    @classmethod
-    def _fetch_types_from_esi(cls, entity_ids) -> Dict[str, EveType]:
-        """Fetch types from ESI concurrently using threads."""
-        max_workers = getattr(settings, "ESI_CONNECTION_POOL_MAXSIZE", 10)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            eve_types = executor.map(cls._fetch_type_from_esi, entity_ids)
-        return {obj.name: obj for obj in eve_types if obj}
-
     @staticmethod
-    def _fetch_type_from_esi(entity_id) -> Optional[EveType]:
-        """Fetch type from ESI."""
-        try:
-            obj, _ = EveType.objects.get_or_create_esi(
-                id=entity_id, enabled_sections=[EveType.Section.DOGMAS]
-            )
-        except HTTPNotFound:
-            return None
-        else:
-            return obj
+    def _fetch_types_from_esi(entity_ids) -> Dict[str, EveType]:
+        eve_types = dict()
+        for entity_id in entity_ids:
+            try:
+                obj, _ = EveType.objects.get_or_create_esi(
+                    id=entity_id, enabled_sections=[EveType.Section.DOGMAS]
+                )
+            except HTTPNotFound:
+                pass
+            else:
+                eve_types[obj.name] = obj
+        return eve_types
+
+    # @classmethod
+    # def _fetch_types_from_esi(cls, entity_ids) -> Dict[str, EveType]:
+    #     """Fetch types from ESI concurrently using threads."""
+    #     max_workers = getattr(settings, "ESI_CONNECTION_POOL_MAXSIZE", 10)
+    #     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+    #         eve_types = executor.map(cls._fetch_type_from_esi, entity_ids)
+    #     return {obj.name: obj for obj in eve_types if obj}
+
+    # @staticmethod
+    # def _fetch_type_from_esi(entity_id) -> Optional[EveType]:
+    #     """Fetch type from ESI."""
+    #     try:
+    #         obj, _ = EveType.objects.get_or_create_esi(
+    #             id=entity_id, enabled_sections=[EveType.Section.DOGMAS]
+    #         )
+    #     except HTTPNotFound:
+    #         return None
+    #     else:
+    #         return obj
 
 
 @dataclass
@@ -189,6 +201,7 @@ class _EftSection:
         MEDIUM_SLOTS = auto()
         LOW_SLOTS = auto()
         RIG_SLOTS = auto()
+        SUBSYSTEM_SLOTS = auto()
         DRONES_BAY = auto()
         FIGHTER_BAY = auto()
         IMPLANTS = auto()
@@ -231,6 +244,8 @@ class _EftSection:
             return self.Category.DRONES_BAY
         elif category_id == EveCategoryId.FIGHTER:
             return self.Category.FIGHTER_BAY
+        elif category_id == EveCategoryId.SUBSYSTEM:
+            return self.Category.SUBSYSTEM_SLOTS
         elif category_id == EveCategoryId.IMPLANT:
             ids = self.group_ids(eve_types)
             if len(ids) != 1:
@@ -417,6 +432,8 @@ def _create_fitting_from_sections(
             params["low_slots"], unknown_types = section.to_modules(eve_types)
         elif section.category == _EftSection.Category.RIG_SLOTS:
             params["rig_slots"], unknown_types = section.to_modules(eve_types)
+        elif section.category == _EftSection.Category.SUBSYSTEM_SLOTS:
+            params["subsystem_slots"], unknown_types = section.to_modules(eve_types)
         elif section.category == _EftSection.Category.DRONES_BAY:
             params["drone_bay"], unknown_types = section.to_items(eve_types)
         elif section.category == _EftSection.Category.FIGHTER_BAY:
