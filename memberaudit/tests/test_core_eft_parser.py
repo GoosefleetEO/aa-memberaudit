@@ -165,3 +165,18 @@ class TestEveTypes(NoSocketsTestCase):
             eve_types = _EveTypes.create_from_names(["Unknown-Type"])
         # then
         self.assertIsNone(eve_types.from_name("Unknown-Type"))
+
+    def test_should_handle_unknown_types(self):
+        # given
+        drones = EveType.objects.get(name="Drones")
+        # when
+        with patch(
+            MODULE_PATH + ".EveEntity.objects.fetch_by_names_esi"
+        ) as mock_fetch_by_names_esi:
+            mock_fetch_by_names_esi.return_value.filter.return_value.values_list.return_value = (
+                []
+            )
+            eve_types = _EveTypes.create_from_names(["Drones", "Unknown-Type"])
+        # then
+        self.assertEqual(eve_types.from_name("Drones"), drones)
+        self.assertIsNone(eve_types.from_name("Unknown-Type"))

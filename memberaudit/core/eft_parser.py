@@ -73,6 +73,13 @@ class _EveTypes:
     def _fetch_missing_types_from_esi(
         missing_type_names: Set[str],
     ) -> Dict[str, EveType]:
+        def type_names_str(type_names: Iterable) -> str:
+            return ", ".join(sorted(list(type_names)))
+
+        logger.info(
+            "EFT parser: trying to fetch unknown types from ESI: %s",
+            type_names_str(missing_type_names),
+        )
         entity_ids = (
             EveEntity.objects.fetch_by_names_esi(missing_type_names)
             .filter(category=EveEntity.CATEGORY_INVENTORY_TYPE)
@@ -87,6 +94,12 @@ class _EveTypes:
                 eve_types[obj.name] = obj
             except HTTPNotFound:
                 pass
+        missing_type_names_2 = missing_type_names - set(eve_types.keys())
+        if missing_type_names_2:
+            logger.info(
+                "EFT parser: failed to identify types: %s",
+                type_names_str(missing_type_names_2),
+            )
         return eve_types
 
 
