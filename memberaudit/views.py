@@ -4,6 +4,7 @@ from typing import Optional, Tuple
 import humanize
 
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
@@ -43,9 +44,12 @@ from app_utils.views import (
 
 from . import __title__, tasks
 from .app_settings import MEMBERAUDIT_APP_NAME, MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE
-from .constants import EveCategoryId
+from .constants import DATETIME_FORMAT, MAP_ARABIC_TO_ROMAN_NUMBERS, EveCategoryId
 from .core import data_exporters
+from .core.eft_parser import EftParserError
+from .core.fittings import Fitting
 from .decorators import fetch_character_if_allowed
+from .forms import ImportFittingForm
 from .helpers import eve_solar_system_to_html
 from .models import (
     Character,
@@ -63,9 +67,7 @@ from .models import (
 
 # module constants
 MY_DATETIME_FORMAT = "Y-M-d H:i"
-DATETIME_FORMAT = "%Y-%b-%d %H:%M"
 MAIL_LABEL_ID_ALL_MAILS = 0
-MAP_SKILL_LEVEL_ARABIC_TO_ROMAN = {0: "-", 1: "I", 2: "II", 3: "III", 4: "IV", 5: "V"}
 UNGROUPED_SKILL_SET = gettext_lazy("[Ungrouped]")
 DEFAULT_ICON_SIZE = 32
 ICON_SIZE_64 = 64
@@ -1148,7 +1150,7 @@ def character_skillqueue_data(
         for row in character.skillqueue.select_related("eve_type").filter(
             character_id=character_pk
         ):
-            level_roman = MAP_SKILL_LEVEL_ARABIC_TO_ROMAN[row.finished_level]
+            level_roman = MAP_ARABIC_TO_ROMAN_NUMBERS[row.finished_level]
             skill_str = f"{row.eve_type.name}&nbsp;{level_roman}"
             if row.is_active:
                 skill_str += " [ACTIVE]"
@@ -1267,7 +1269,7 @@ def character_skill_sets_data(
                 format_html(
                     "{}&nbsp;{}",
                     obj["eve_type__name"],
-                    MAP_SKILL_LEVEL_ARABIC_TO_ROMAN[obj[level_name]],
+                    MAP_ARABIC_TO_ROMAN_NUMBERS[obj[level_name]],
                 ),
                 "default",
             )
@@ -1331,15 +1333,13 @@ def character_skill_set_details(
         met_required = True
 
         if cs:
-            current_str = MAP_SKILL_LEVEL_ARABIC_TO_ROMAN[cs.active_skill_level]
+            current_str = MAP_ARABIC_TO_ROMAN_NUMBERS[cs.active_skill_level]
 
         if skill.recommended_level:
-            recommended_level_str = MAP_SKILL_LEVEL_ARABIC_TO_ROMAN[
-                skill.recommended_level
-            ]
+            recommended_level_str = MAP_ARABIC_TO_ROMAN_NUMBERS[skill.recommended_level]
 
         if skill.required_level:
-            required_level_str = MAP_SKILL_LEVEL_ARABIC_TO_ROMAN[skill.required_level]
+            required_level_str = MAP_ARABIC_TO_ROMAN_NUMBERS[skill.required_level]
 
         if not cs:
             result_icon = ICON_FAILED
@@ -1430,7 +1430,7 @@ def character_skills_data(
         for skill in character.skills.select_related(
             "eve_type", "eve_type__eve_group"
         ).filter(active_skill_level__gte=1):
-            level_str = MAP_SKILL_LEVEL_ARABIC_TO_ROMAN[skill.active_skill_level]
+            level_str = MAP_ARABIC_TO_ROMAN_NUMBERS[skill.active_skill_level]
             skill_name = f"{skill.eve_type.name} {level_str}"
             skills_data.append(
                 {
@@ -1982,3 +1982,60 @@ def data_export_run_update(request, topic: str):
         ),
     )
     return redirect("memberaudit:data_export")
+
+
+@login_required
+@staff_member_required
+def admin_create_skillset_from_fitting(request):
+    if request.method == "POST":
+        form = ImportFittingForm(request.POST)
+        if form.is_valid():
+            try:
+                fitting, errors = Fitting.create_from_eft(
+                    form.cleaned_data["fitting_text"]
+                )
+            except EftParserError:
+                messages.warning(
+                    request, "The fitting does not appear to be a valid EFT format."
+                )
+            else:
+                if (
+                    not form.cleaned_data["can_overwrite"]
+                    and SkillSet.objects.filter(name=fitting.name).exists()
+                ):
+                    messages.warning(
+                        request,
+                        format_html(
+                            "A skill set with the name "
+                            f"<b>{fitting.name}</b> already exists."
+                        ),
+                    )
+                else:
+                    obj, created = SkillSet.objects.update_or_create_from_fitting(
+                        fitting=fitting, user=request.user
+                    )
+                    logger.info(
+                        "Skill Set created from fitting with name: %s", fitting.name
+                    )
+                    tasks.update_characters_skill_checks.delay(force_update=True)
+                    if created:
+                        msg = f"Skill Set <b>{obj.name}</b> has been created"
+                    else:
+                        msg = f"Skill Set <b>{obj.name}</b> has been updated"
+                    if errors:
+                        msg += f" with issues:<br>- {'<br>- '.join(errors)}"
+                        messages.warning(request, format_html(msg))
+                    else:
+                        messages.info(request, format_html(f"{msg}."))
+            return redirect("admin:memberaudit_skillset_changelist")
+    else:
+        form = ImportFittingForm()
+    return render(
+        request,
+        "admin/memberaudit/skillset/import_fitting.html",
+        {
+            "title": "Member Audit",
+            "subtitle": "Create skill set from fitting",
+            "form": form,
+        },
+    )

@@ -1,0 +1,12 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block object-tools-items %}
+{{ block.super }}
+<li>
+    <a href="{% url 'memberaudit:admin_create_skillset_from_fitting' %}" class="btn btn-high addlink">
+        {% translate "skill set from fitting" %}
+    </a>
+</li>
+{% endblock %}

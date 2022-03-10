@@ -171,4 +171,9 @@ urlpatterns = [
         views.download_export_file,
         name="download_export_file",
     ),
+    path(
+        "admin/create-skillset-from-fitting",
+        views.admin_create_skillset_from_fitting,
+        name="admin_create_skillset_from_fitting",
+    ),
 ]

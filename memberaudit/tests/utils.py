@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Tuple
 
 from django.contrib.auth.models import User
@@ -9,6 +10,13 @@ from allianceauth.tests.auth_utils import AuthUtils
 from app_utils.testing import add_character_to_user
 
 from ..models import Character
+
+
+def read_fitting_file(file_name: str) -> str:
+    testdata_folder = Path(__file__).parent / "testdata" / "fittings"
+    fitting_file = testdata_folder / file_name
+    with fitting_file.open("r") as fp:
+        return fp.read()
 
 
 def create_user_from_evecharacter_with_access(

@@ -1,6 +1,6 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
@@ -28,6 +28,7 @@ from ..models import (
 )
 from ..views import (
     add_character,
+    admin_create_skillset_from_fitting,
     character_mail,
     character_mail_headers_by_label_data,
     character_mail_headers_by_list_data,
@@ -52,6 +53,7 @@ from .utils import (
     add_memberaudit_character_to_user,
     create_memberaudit_character,
     create_user_from_evecharacter_with_access,
+    read_fitting_file,
 )
 
 MODULE_PATH = "memberaudit.views"
@@ -214,7 +216,7 @@ class TestAddCharacter(TestCase):
         request = self.factory.get(reverse("memberaudit:add_character"))
         request.user = user
         request.token = token
-        middleware = SessionMiddleware()
+        middleware = SessionMiddleware(Mock())
         middleware.process_request(request)
         orig_view = add_character.__wrapped__.__wrapped__.__wrapped__
         return orig_view(request, token)
@@ -793,3 +795,76 @@ class TestSkillSetReportData(TestCase):
     #     response = skill_sets_report_data(request)
     #     data = json_response_to_dict(response)
     #     self.assertEqual(len(data), 4)
+
+
+class TestCreateSkillSetFromFitting(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.factory = RequestFactory()
+        load_eveuniverse()
+        load_entities()
+        cls.superuser = User.objects.create_superuser("Superman")
+        cls.fitting_text = read_fitting_file("fitting_tristan.txt")
+
+    def test_should_open_page(self):
+        # given
+        request = self.factory.get(
+            reverse("memberaudit:admin_create_skillset_from_fitting")
+        )
+        request.user = self.superuser
+        # when
+        response = admin_create_skillset_from_fitting(request)
+        # then
+        self.assertEqual(response.status_code, 200)
+
+    @patch(MODULE_PATH + ".messages")
+    def test_should_create_new_skillset(self, mock_messages):
+        # given
+        request = self.factory.post(
+            reverse("memberaudit:admin_create_skillset_from_fitting"),
+            data={"fitting_text": self.fitting_text},
+        )
+        request.user = self.superuser
+        # when
+        response = admin_create_skillset_from_fitting(request)
+        # then
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(mock_messages.info.called)
+        self.assertEqual(SkillSet.objects.count(), 1)
+
+    @patch(MODULE_PATH + ".messages")
+    def test_should_not_overwrite_existing_skillset(self, mock_messages):
+        # given
+        skill_set = SkillSet.objects.create(name="Tristan - Standard Kite (cap stable)")
+        request = self.factory.post(
+            reverse("memberaudit:admin_create_skillset_from_fitting"),
+            data={"fitting_text": self.fitting_text},
+        )
+        request.user = self.superuser
+        # when
+        response = admin_create_skillset_from_fitting(request)
+        # then
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(mock_messages.warning.called)
+        skill_set.refresh_from_db()
+        self.assertEqual(skill_set.skills.count(), 0)
+
+    @patch(MODULE_PATH + ".messages")
+    @patch(MODULE_PATH + ".tasks")
+    def test_should_overwrite_existing_skillset(self, mock_tasks, mock_messages):
+        # given
+        skill_set = SkillSet.objects.create(name="Tristan - Standard Kite (cap stable)")
+        request = self.factory.post(
+            reverse("memberaudit:admin_create_skillset_from_fitting"),
+            data={"fitting_text": self.fitting_text, "can_overwrite": True},
+        )
+        request.user = self.superuser
+        # when
+        response = admin_create_skillset_from_fitting(request)
+        # then
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(mock_tasks.update_characters_skill_checks.delay.called)
+        self.assertTrue(mock_messages.warning.info)
+        skill_set.refresh_from_db()
+        self.assertGreater(skill_set.skills.count(), 0)

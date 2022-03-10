@@ -21,6 +21,7 @@ from ..managers.general import (
     EveSkillTypeManger,
     LocationManager,
     MailEntityManager,
+    SkillSetManager,
 )
 from .constants import NAMES_MAX_LENGTH
 
@@ -274,7 +275,7 @@ class SkillSetGroup(models.Model):
 
 class SkillSet(models.Model):
     """A set of required and recommended skills needed to perform
-    a particular task like flying a doctrine ships
+    a particular task like flying a doctrine ships.
     """
 
     name = models.CharField(max_length=NAMES_MAX_LENGTH, unique=True)
@@ -300,12 +301,14 @@ class SkillSet(models.Model):
         ),
     )
 
+    objects = SkillSetManager()
+
     def __str__(self) -> str:
         return str(self.name)
 
 
 class SkillSetSkill(models.Model):
-    # A specific skill within a skill set
+    """A specific skill within a skill set."""
 
     skill_set = models.ForeignKey(
         SkillSet, on_delete=models.CASCADE, related_name="skills"

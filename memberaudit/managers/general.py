@@ -4,7 +4,7 @@ from typing import Iterable, Tuple
 from bravado.exception import HTTPForbidden, HTTPUnauthorized
 
 from django.contrib.auth.models import Group, User
-from django.db import models
+from django.db import models, transaction
 from django.utils.timezone import now
 from esi.models import Token
 from eveuniverse.models import EveEntity, EveSolarSystem, EveType
@@ -19,7 +19,8 @@ from ..app_settings import (
     MEMBERAUDIT_BULK_METHODS_BATCH_SIZE,
     MEMBERAUDIT_LOCATION_STALE_HOURS,
 )
-from ..constants import EveCategoryId, EveTypeId
+from ..constants import DATETIME_FORMAT, EveCategoryId, EveTypeId
+from ..core.fittings import Fitting
 from ..helpers import filter_groups_available_to_user
 from ..providers import esi
 
@@ -487,3 +488,37 @@ class MailEntityManager(models.Manager):
     #             output_field=models.CharField(),
     #         )
     #     )
+
+
+class SkillSetManager(models.Manager):
+    def update_or_create_from_fitting(
+        self, fitting: Fitting, user: User = None
+    ) -> models.Model:
+        from ..models import SkillSetSkill
+
+        required_skills = fitting.required_skills()
+        description = (
+            f"Generated from EFT fitting '{fitting.name}' "
+            f"by {user if user else '?'} "
+            f"at {now().strftime(DATETIME_FORMAT)}"
+        )
+        with transaction.atomic():
+            skill_set, created = self.get_or_create(
+                name=fitting.name,
+                defaults={
+                    "ship_type": fitting.ship_type,
+                    "description": description,
+                },
+            )
+            SkillSetSkill.objects.filter(skill_set=skill_set).delete()
+            skills = [
+                SkillSetSkill(
+                    skill_set=skill_set,
+                    eve_type=skill.eve_type,
+                    required_level=skill.level,
+                )
+                for skill in required_skills
+            ]
+            SkillSetSkill.objects.bulk_create(skills)
+
+        return skill_set, created

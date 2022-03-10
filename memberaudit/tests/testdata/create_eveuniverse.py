@@ -35,9 +35,85 @@ class CreateEveUniverseTestData(TestCase):
             ModelSpec(
                 "EveType",
                 ids=[
-                    19540,
-                    19551,
-                    19553,
+                    519,  # Gyrostabilizer II
+                    2048,  # Damage Control II
+                    1999,  # Tracking Enhancer II
+                    1952,  # Sensor Booster II
+                    3244,  # Warp Disruptor II
+                    5973,  # 5MN Y-T8 Compact Microwarpdrive
+                    2977,  # 280mm Howitzer Artillery II
+                    21924,  # Republic Fleet Phased Plasma S
+                    31328,  # Small Targeting System Subcontroller II
+                    31740,  # Small Thermal Shield Reinforcer I
+                    31752,  # Small Kinetic Shield Reinforcer I
+                    34562,  # Svipul
+                    19540,  # High-grade Snake Alpha
+                    19551,  # High-grade Snake Beta
+                    19553,  # High-grade Snake Gamma
+                    4405,
+                    23757,
+                    15729,
+                    16273,
+                    21096,
+                    23059,
+                    24283,
+                    24395,
+                    28999,
+                    29001,
+                    29009,
+                    30993,
+                    31013,
+                    31025,
+                    31942,
+                    40351,
+                    41155,
+                    41411,
+                    41489,
+                    41491,
+                    185,
+                    31716,
+                    31177,
+                    31370,
+                    3244,
+                    2605,
+                    593,
+                    8433,
+                    5971,
+                    4405,
+                    2488,
+                    2873,
+                    2205,
+                    3328,
+                    3425,
+                    3394,
+                    3300,
+                    12485,
+                    3302,
+                    12484,
+                    3435,
+                    3436,
+                    11084,
+                    24241,
+                    3318,
+                    3454,
+                    3436,
+                    12484,
+                    24241,
+                    45999,
+                    2048,
+                    2281,
+                    2301,
+                    3082,
+                    3841,
+                    10190,
+                    12058,
+                    12805,
+                    29984,
+                    31796,
+                    45626,  # TENGU start
+                    45590,
+                    45602,
+                    45615,
                 ],
                 enabled_sections=[EveUniverseEntityModel.LOAD_DOGMAS],
             ),

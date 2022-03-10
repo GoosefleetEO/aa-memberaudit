@@ -1,7 +1,6 @@
 """Factories for creating test objects with defaults."""
 import datetime as dt
 from itertools import count
-from random import randint
 from typing import Iterable
 
 from django.contrib.auth.models import Group
@@ -178,11 +177,3 @@ def next_number(key=None) -> int:
         pass
     next_number._counter[key] = count(start=1)
     return next_number._counter[key].__next__()
-
-
-def _generate_unique_id(Model: object, field_name: str):
-    while True:
-        id = randint(1, 2_000_000_000)
-        params = {field_name: id}
-        if not Model.objects.filter(**params).exists():
-            return id
