@@ -13,8 +13,8 @@ from ..core.eft_parser import (
     _EveTypes,
     create_fitting_from_eft,
 )
+from .testdata.factories import create_fitting_text
 from .testdata.load_eveuniverse import load_eveuniverse
-from .utils import read_fitting_file
 
 MODULE_PATH = "memberaudit.core.eft_parser"
 
@@ -27,7 +27,7 @@ class TestEftParser(NoSocketsTestCase):
 
     def test_should_create_fitting(self):
         # given
-        fitting_text = read_fitting_file("fitting_tristan.txt")
+        fitting_text = create_fitting_text("fitting_tristan.txt")
         # when
         fitting, errors = create_fitting_from_eft(fitting_text)
         # then
@@ -82,7 +82,7 @@ class TestEftParser(NoSocketsTestCase):
 
     def test_should_raise_error_when_title_is_missing(self):
         # given
-        fitting_text = read_fitting_file("fitting_tristan_no_title.txt")
+        fitting_text = create_fitting_text("fitting_tristan_no_title.txt")
         # when
         with self.assertRaises(MissingTitleError):
             create_fitting_from_eft(fitting_text)
@@ -94,14 +94,14 @@ class TestEftParser(NoSocketsTestCase):
 
     def test_should_raise_error_when_slots_are_missing(self):
         # given
-        fitting_text = read_fitting_file("fitting_tristan_missing_rigs.txt")
+        fitting_text = create_fitting_text("fitting_tristan_missing_rigs.txt")
         # when
         with self.assertRaises(MissingSectionsError):
             create_fitting_from_eft(fitting_text)
 
     def test_should_report_unknown_types(self):
         # given
-        fitting_text = read_fitting_file("fitting_tristan_unknown_types.txt")
+        fitting_text = create_fitting_text("fitting_tristan_unknown_types.txt")
         # when
         with patch(MODULE_PATH + ".EveEntity.objects.fetch_by_names_esi") as mock:
             mock.return_value = EveEntity.objects.none()

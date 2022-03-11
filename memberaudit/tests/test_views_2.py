@@ -43,6 +43,7 @@ from .testdata.factories import (
     create_character_mail,
     create_character_mail_label,
     create_compliance_group,
+    create_fitting_text,
     create_mail_entity_from_eve_entity,
     create_mailing_list,
 )
@@ -53,7 +54,6 @@ from .utils import (
     add_memberaudit_character_to_user,
     create_memberaudit_character,
     create_user_from_evecharacter_with_access,
-    read_fitting_file,
 )
 
 MODULE_PATH = "memberaudit.views"
@@ -797,6 +797,8 @@ class TestSkillSetReportData(TestCase):
     #     self.assertEqual(len(data), 4)
 
 
+@patch(MODULE_PATH + ".messages")
+@patch(MODULE_PATH + ".tasks")
 class TestCreateSkillSetFromFitting(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -805,9 +807,9 @@ class TestCreateSkillSetFromFitting(TestCase):
         load_eveuniverse()
         load_entities()
         cls.superuser = User.objects.create_superuser("Superman")
-        cls.fitting_text = read_fitting_file("fitting_tristan.txt")
+        cls.fitting_text = create_fitting_text("fitting_tristan.txt")
 
-    def test_should_open_page(self):
+    def test_should_open_page(self, mock_tasks, mock_messages):
         # given
         request = self.factory.get(
             reverse("memberaudit:admin_create_skillset_from_fitting")
@@ -818,8 +820,6 @@ class TestCreateSkillSetFromFitting(TestCase):
         # then
         self.assertEqual(response.status_code, 200)
 
-    @patch(MODULE_PATH + ".messages")
-    @patch(MODULE_PATH + ".tasks")
     def test_should_create_new_skillset(self, mock_tasks, mock_messages):
         # given
         request = self.factory.post(
@@ -831,11 +831,10 @@ class TestCreateSkillSetFromFitting(TestCase):
         response = admin_create_skillset_from_fitting(request)
         # then
         self.assertEqual(response.status_code, 302)
+        self.assertTrue(mock_tasks.update_characters_skill_checks.delay.called)
         self.assertTrue(mock_messages.info.called)
         self.assertEqual(SkillSet.objects.count(), 1)
 
-    @patch(MODULE_PATH + ".messages")
-    @patch(MODULE_PATH + ".tasks")
     def test_should_not_overwrite_existing_skillset(self, mock_tasks, mock_messages):
         # given
         skill_set = SkillSet.objects.create(name="Tristan - Standard Kite (cap stable)")
@@ -849,11 +848,10 @@ class TestCreateSkillSetFromFitting(TestCase):
         # then
         self.assertEqual(response.status_code, 302)
         self.assertTrue(mock_messages.warning.called)
+        self.assertFalse(mock_tasks.update_characters_skill_checks.delay.called)
         skill_set.refresh_from_db()
         self.assertEqual(skill_set.skills.count(), 0)
 
-    @patch(MODULE_PATH + ".messages")
-    @patch(MODULE_PATH + ".tasks")
     def test_should_overwrite_existing_skillset(self, mock_tasks, mock_messages):
         # given
         skill_set = SkillSet.objects.create(name="Tristan - Standard Kite (cap stable)")
@@ -871,8 +869,6 @@ class TestCreateSkillSetFromFitting(TestCase):
         skill_set.refresh_from_db()
         self.assertGreater(skill_set.skills.count(), 0)
 
-    @patch(MODULE_PATH + ".messages")
-    @patch(MODULE_PATH + ".tasks")
     def test_should_create_new_skillset_and_assign_group(
         self, mock_tasks, mock_messages
     ):
@@ -891,5 +887,24 @@ class TestCreateSkillSetFromFitting(TestCase):
         # then
         self.assertEqual(response.status_code, 302)
         self.assertTrue(mock_messages.info.called)
+        self.assertTrue(mock_tasks.update_characters_skill_checks.delay.called)
         skill_set = SkillSet.objects.first()
         self.assertIn(skill_set, skill_set_group.skill_sets.all())
+
+    def test_should_create_new_skillset_with_custom_name(
+        self, mock_tasks, mock_messages
+    ):
+        # given
+        request = self.factory.post(
+            reverse("memberaudit:admin_create_skillset_from_fitting"),
+            data={"fitting_text": self.fitting_text, "skill_set_name": "My-Name"},
+        )
+        request.user = self.superuser
+        # when
+        response = admin_create_skillset_from_fitting(request)
+        # then
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(mock_tasks.update_characters_skill_checks.delay.called)
+        self.assertTrue(mock_messages.info.called)
+        skill_set = SkillSet.objects.first()
+        self.assertEqual(skill_set.name, "My-Name")

@@ -25,14 +25,15 @@ django.setup()
 import cProfile
 
 from memberaudit.core.fittings import Fitting
-from memberaudit.tests.test_core_fittings import read_fitting_file
+
+from .factories import create_fitting_text
 
 
 def main():
     fitting.required_skills()
 
 
-fitting_text = read_fitting_file("fitting_tristan.txt")
+fitting_text = create_fitting_text("fitting_tristan.txt")
 fitting = Fitting.create_from_eft(fitting_text)
 
 cProfile.run("main()", sort="cumtime")

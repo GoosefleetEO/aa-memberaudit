@@ -1,14 +1,17 @@
 """Factories for creating test objects with defaults."""
 import datetime as dt
 from itertools import count
+from pathlib import Path
 from typing import Iterable
 
 from django.contrib.auth.models import Group
 from django.utils.timezone import now
+from eveuniverse.models import EveType
 
 from allianceauth.authentication.models import State
 from app_utils.testing import create_authgroup
 
+from ...core.fittings import Fitting, Item, Module
 from ...models import (
     Character,
     CharacterContract,
@@ -128,6 +131,40 @@ def create_compliance_group_designation(
     params = {"group": group}
     params.update(kwargs)
     return ComplianceGroupDesignation.objects.create(**params)
+
+
+def create_fitting(**kwargs):
+    """Requires eveuniverse to be loaded."""
+    params = {
+        "name": "Test fitting",
+        "ship_type": EveType.objects.get(name="Svipul"),
+        "high_slots": [
+            Module(
+                EveType.objects.get(name="280mm Howitzer Artillery II"),
+                charge_type=EveType.objects.get(name="Republic Fleet Phased Plasma S"),
+            ),
+            None,
+        ],
+        "medium_slots": [Module(EveType.objects.get(name="Sensor Booster II")), None],
+        "low_slots": [Module(EveType.objects.get(name="Damage Control II")), None],
+        "rig_slots": [
+            Module(
+                EveType.objects.get(name="Small Kinetic Shield Reinforcer I"),
+            ),
+            None,
+        ],
+        "drone_bay": [Item(EveType.objects.get(name="Damage Control II"), quantity=5)],
+        "cargo_bay": [Item(EveType.objects.get(name="Damage Control II"), quantity=3)],
+    }
+    params.update(kwargs)
+    return Fitting(**params)
+
+
+def create_fitting_text(file_name: str) -> str:
+    testdata_folder = Path(__file__).parent / "fittings"
+    fitting_file = testdata_folder / file_name
+    with fitting_file.open("r") as fp:
+        return fp.read()
 
 
 def create_mail_entity_from_eve_entity(id: int) -> MailEntity:

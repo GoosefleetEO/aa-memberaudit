@@ -10,6 +10,8 @@ from app_utils.testing import (
 from ..models import ComplianceGroupDesignation
 from .testdata.factories import create_compliance_group
 from .testdata.load_entities import load_entities
+
+# from .testdata.load_eveuniverse import load_eveuniverse
 from .utils import add_auth_character_to_user, add_memberaudit_character_to_user
 
 MANAGER_PATH = "memberaudit.managers.general"
@@ -171,3 +173,16 @@ class TestComplianceGroupDesignation(NoSocketsTestCase):
         self.assertIn(compliance_group_2, user.groups.all())
         self.assertNotIn(other_group, user.groups.all())
         self.assertEqual(user.notification_set.count(), 0)
+
+
+# class TestSkillSetManager(NoSocketsTestCase):
+#     @classmethod
+#     def setUpClass(cls) -> None:
+#         super().setUpClass()
+#         load_eveuniverse()
+#         load_entities()
+#         cls.fitting_text = create_fitting_text("fitting_tristan.txt")
+
+#     def test_should_create_new_skill_set(self):
+#         # when
+#         obj, created = SkillSet.objects.update_or_create_from_fitting(self.fitting_text)
