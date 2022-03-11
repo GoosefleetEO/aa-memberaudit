@@ -40,12 +40,6 @@ class TestFitting(NoSocketsTestCase):
         super().setUpClass()
         load_eveuniverse()
 
-    # def test_should_read_fitting_with_drones(self):
-    #     svipul_fitting = read_fitting_file("fitting_tristan.txt")
-    #     result = Fitting.create_from_eft(svipul_fitting)
-    #     print(result)
-    #     print([obj.name for obj in result.main_types()])
-
     def test_should_return_eve_types(self):
         # given
         fit = create_fitting()
@@ -101,9 +95,9 @@ class TestFitting(NoSocketsTestCase):
         self.maxDiff = None
         fitting_text_original = read_fitting_file("fitting_tengu.txt")
         fitting, _ = Fitting.create_from_eft(fitting_text_original)
-        print(
-            ", ".join(map(str, sorted(list([obj.id for obj in fitting.eve_types()]))))
-        )
+        # print(
+        #     ", ".join(map(str, sorted(list([obj.id for obj in fitting.eve_types()]))))
+        # )
         # when
         fitting_text_generated = fitting.to_eft()
         # then

@@ -16,9 +16,8 @@ from ..admin import (
     ComplianceGroupDesignationAdmin,
     ComplianceGroupDesignationForm,
     SkillSetAdmin,
-    SkillSetShipTypeFilter,
 )
-from ..models import Character, ComplianceGroupDesignation, EveShipType, SkillSet
+from ..models import Character, ComplianceGroupDesignation, SkillSet
 from .testdata.factories import create_character_update_status, create_compliance_group
 from .testdata.load_entities import load_entities
 from .testdata.load_eveuniverse import load_eveuniverse
@@ -256,38 +255,38 @@ class TestSkillSetAdmin(TestCase):
 
         self.assertTrue(mock_update_characters_skill_checks.delay.called)
 
-    def test_ship_type_filter(self):
-        class SkillSetAdminTest(SkillSetAdmin):
-            list_filter = (SkillSetShipTypeFilter,)
+    # def test_ship_type_filter(self):
+    #     class SkillSetAdminTest(SkillSetAdmin):
+    #         list_filter = (SkillSetShipTypeFilter,)
 
-        my_modeladmin = SkillSetAdminTest(SkillSet, AdminSite())
+    #     my_modeladmin = SkillSetAdminTest(SkillSet, AdminSite())
 
-        ss_1 = SkillSet.objects.create(name="Set 1")
-        ss_2 = SkillSet.objects.create(
-            name="Set 2", ship_type=EveShipType.objects.get(id=603)
-        )
+    #     ss_1 = SkillSet.objects.create(name="Set 1")
+    #     ss_2 = SkillSet.objects.create(
+    #         name="Set 2", ship_type=EveShipType.objects.get(id=603)
+    #     )
 
-        # Make sure the lookups are correct
-        request = self.factory.get("/")
-        request.user = self.user
-        changelist = my_modeladmin.get_changelist_instance(request)
-        filters = changelist.get_filters(request)
-        filterspec = filters[0][0]
-        expected = [("yes", "yes"), ("no", "no")]
-        self.assertEqual(filterspec.lookup_choices, expected)
+    #     # Make sure the lookups are correct
+    #     request = self.factory.get("/")
+    #     request.user = self.user
+    #     changelist = my_modeladmin.get_changelist_instance(request)
+    #     filters = changelist.get_filters(request)
+    #     filterspec = filters[0][0]
+    #     expected = [("yes", "yes"), ("no", "no")]
+    #     self.assertEqual(filterspec.lookup_choices, expected)
 
-        # Make sure the correct queryset is returned
-        request = self.factory.get("/", {"is_ship_type": "yes"})
-        request.user = self.user
-        changelist = my_modeladmin.get_changelist_instance(request)
-        queryset = changelist.get_queryset(request)
-        expected = {ss_2}
-        self.assertSetEqual(set(queryset), expected)
+    #     # Make sure the correct queryset is returned
+    #     request = self.factory.get("/", {"is_ship_type": "yes"})
+    #     request.user = self.user
+    #     changelist = my_modeladmin.get_changelist_instance(request)
+    #     queryset = changelist.get_queryset(request)
+    #     expected = {ss_2}
+    #     self.assertSetEqual(set(queryset), expected)
 
-        # Make sure the correct queryset is returned
-        request = self.factory.get("/", {"is_ship_type": "no"})
-        request.user = self.user
-        changelist = my_modeladmin.get_changelist_instance(request)
-        queryset = changelist.get_queryset(request)
-        expected = {ss_1}
-        self.assertSetEqual(set(queryset), expected)
+    #     # Make sure the correct queryset is returned
+    #     request = self.factory.get("/", {"is_ship_type": "no"})
+    #     request.user = self.user
+    #     changelist = my_modeladmin.get_changelist_instance(request)
+    #     queryset = changelist.get_queryset(request)
+    #     expected = {ss_1}
+    #     self.assertSetEqual(set(queryset), expected)

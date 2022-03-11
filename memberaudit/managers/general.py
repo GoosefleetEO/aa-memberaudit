@@ -99,7 +99,6 @@ class EveSkillTypeManger(models.Manager):
         return (
             super()
             .get_queryset()
-            .select_related("eve_group")
             .filter(published=True)
             .filter(eve_group__eve_category_id=EveCategoryId.SKILL)
         )

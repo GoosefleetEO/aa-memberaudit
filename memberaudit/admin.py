@@ -423,6 +423,17 @@ class SkillSetSkillAdminInline(MinValidatedInlineMixIn, admin.TabularInline):
     formset = SkillSetSkillAdminFormSet
     autocomplete_fields = ("eve_type",)
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related("eve_type", "skill_set__ship_type")
+
+    # def get_formset(self, *args, **kwargs):
+    #     formset = super().get_formset(*args, **kwargs)
+    #     qs = formset.form.base_fields["skill_set"].queryset
+    #     qs = qs.select_related("skill_set__ship_type__eve_group")
+    #     formset.form.base_fields["skill_set"].queryset = qs
+    #     return formset
+
 
 # class SkillSetShipTypeFilter(admin.SimpleListFilter):
 #     title = "is ship type"
