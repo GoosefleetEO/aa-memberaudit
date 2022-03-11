@@ -2,6 +2,7 @@ from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
+from django.db.models import Prefetch
 from django.forms.models import BaseInlineFormSet
 from django.shortcuts import redirect, render
 from django.utils.html import format_html
@@ -371,8 +372,18 @@ class SkillSetGroupAdmin(admin.ModelAdmin):
     ordering = ["name"]
     filter_horizontal = ("skill_sets",)
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.prefetch_related(
+            Prefetch(
+                "skill_sets",
+                queryset=SkillSet.objects.order_by("name"),
+                to_attr="skill_sets_ordered",
+            )
+        )
+
     def _skill_sets(self, obj):
-        return [x.name for x in obj.skill_sets.all().order_by("name")]
+        return format_html("<br>".join([x.name for x in obj.skill_sets_ordered]))
 
 
 class MinValidatedInlineMixIn:
