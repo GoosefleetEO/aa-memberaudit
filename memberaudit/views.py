@@ -2011,8 +2011,11 @@ def admin_create_skillset_from_fitting(request):
                         ),
                     )
                 else:
+                    params = {"fitting": fitting, "user": request.user}
+                    if form.cleaned_data["skill_set_group"]:
+                        params["skill_set_group"] = form.cleaned_data["skill_set_group"]
                     obj, created = SkillSet.objects.update_or_create_from_fitting(
-                        fitting=fitting, user=request.user
+                        **params
                     )
                     logger.info(
                         "Skill Set created from fitting with name: %s", fitting.name

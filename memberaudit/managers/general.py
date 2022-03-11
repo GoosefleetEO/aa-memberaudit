@@ -491,7 +491,7 @@ class MailEntityManager(models.Manager):
 
 class SkillSetManager(models.Manager):
     def update_or_create_from_fitting(
-        self, fitting: Fitting, user: User = None
+        self, fitting: Fitting, user: User = None, skill_set_group=None
     ) -> models.Model:
         from ..models import SkillSetSkill
 
@@ -509,7 +509,7 @@ class SkillSetManager(models.Manager):
                     "description": description,
                 },
             )
-            SkillSetSkill.objects.filter(skill_set=skill_set).delete()
+            skill_set.skills.all().delete()
             skills = [
                 SkillSetSkill(
                     skill_set=skill_set,
@@ -519,5 +519,7 @@ class SkillSetManager(models.Manager):
                 for skill in required_skills
             ]
             SkillSetSkill.objects.bulk_create(skills)
+            if skill_set_group:
+                skill_set_group.skill_sets.add(skill_set)
 
         return skill_set, created

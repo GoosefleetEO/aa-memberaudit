@@ -819,7 +819,8 @@ class TestCreateSkillSetFromFitting(TestCase):
         self.assertEqual(response.status_code, 200)
 
     @patch(MODULE_PATH + ".messages")
-    def test_should_create_new_skillset(self, mock_messages):
+    @patch(MODULE_PATH + ".tasks")
+    def test_should_create_new_skillset(self, mock_tasks, mock_messages):
         # given
         request = self.factory.post(
             reverse("memberaudit:admin_create_skillset_from_fitting"),
@@ -834,7 +835,8 @@ class TestCreateSkillSetFromFitting(TestCase):
         self.assertEqual(SkillSet.objects.count(), 1)
 
     @patch(MODULE_PATH + ".messages")
-    def test_should_not_overwrite_existing_skillset(self, mock_messages):
+    @patch(MODULE_PATH + ".tasks")
+    def test_should_not_overwrite_existing_skillset(self, mock_tasks, mock_messages):
         # given
         skill_set = SkillSet.objects.create(name="Tristan - Standard Kite (cap stable)")
         request = self.factory.post(
@@ -868,3 +870,26 @@ class TestCreateSkillSetFromFitting(TestCase):
         self.assertTrue(mock_messages.warning.info)
         skill_set.refresh_from_db()
         self.assertGreater(skill_set.skills.count(), 0)
+
+    @patch(MODULE_PATH + ".messages")
+    @patch(MODULE_PATH + ".tasks")
+    def test_should_create_new_skillset_and_assign_group(
+        self, mock_tasks, mock_messages
+    ):
+        # given
+        skill_set_group = SkillSetGroup.objects.create(name="Dummy Group")
+        request = self.factory.post(
+            reverse("memberaudit:admin_create_skillset_from_fitting"),
+            data={
+                "fitting_text": self.fitting_text,
+                "skill_set_group": skill_set_group.id,
+            },
+        )
+        request.user = self.superuser
+        # when
+        response = admin_create_skillset_from_fitting(request)
+        # then
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(mock_messages.info.called)
+        skill_set = SkillSet.objects.first()
+        self.assertIn(skill_set, skill_set_group.skill_sets.all())
