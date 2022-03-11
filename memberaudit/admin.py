@@ -424,22 +424,22 @@ class SkillSetSkillAdminInline(MinValidatedInlineMixIn, admin.TabularInline):
     autocomplete_fields = ("eve_type",)
 
 
-class SkillSetShipTypeFilter(admin.SimpleListFilter):
-    title = "is ship type"
-    parameter_name = "is_ship_type"
+# class SkillSetShipTypeFilter(admin.SimpleListFilter):
+#     title = "is ship type"
+#     parameter_name = "is_ship_type"
 
-    def lookups(self, request, model_admin):
-        return (
-            ("yes", "yes"),
-            ("no", "no"),
-        )
+#     def lookups(self, request, model_admin):
+#         return (
+#             ("yes", "yes"),
+#             ("no", "no"),
+#         )
 
-    def queryset(self, request, queryset):
-        if self.value() == "yes":
-            return SkillSet.objects.filter(ship_type__isnull=False)
-        if self.value() == "no":
-            return SkillSet.objects.filter(ship_type__isnull=True)
-        return SkillSet.objects.all()
+#     def queryset(self, request, queryset):
+#         if self.value() == "yes":
+#             return SkillSet.objects.filter(ship_type__isnull=False)
+#         if self.value() == "no":
+#             return SkillSet.objects.filter(ship_type__isnull=True)
+#         return SkillSet.objects.all()
 
 
 @admin.register(SkillSet)
@@ -453,28 +453,43 @@ class SkillSetAdmin(admin.ModelAdmin):
         "is_visible",
     )
     list_filter = (
-        SkillSetShipTypeFilter,
-        "is_visible",
+        # SkillSetShipTypeFilter,  # this filter disables the prefetch in get_queryset
         ("groups", admin.RelatedOnlyFieldListFilter),
+        "is_visible",
     )
-    list_select_related = ("ship_type",)
+    # list_select_related = ("ship_type",)
     ordering = ["name"]
     search_fields = ["name"]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related("ship_type").prefetch_related(
+            Prefetch(
+                "skills",
+                queryset=SkillSetSkill.objects.select_related("eve_type").order_by(
+                    "eve_type__name"
+                ),
+                to_attr="skills_ordered",
+            ),
+            Prefetch(
+                "groups",
+                queryset=SkillSetGroup.objects.order_by("name"),
+                to_attr="groups_ordered",
+            ),
+        )
 
     def _skills(self, obj):
         return [
             "{} {} {}".format(
-                x.eve_type.name,
-                x.required_level if x.required_level else "",
-                f"[{x.recommended_level}]" if x.recommended_level else "",
+                skill.eve_type.name,
+                skill.required_level if skill.required_level else "",
+                f"[{skill.recommended_level}]" if skill.recommended_level else "",
             )
-            for x in obj.skills.select_related("eve_type")
-            .all()
-            .order_by("eve_type__name")
+            for skill in obj.skills_ordered
         ]
 
     def _groups(self, obj) -> list:
-        groups = [f"{x.name}" for x in obj.groups.all().order_by("name")]
+        groups = [f"{group.name}" for group in obj.groups_ordered]
         return groups if groups else None
 
     inlines = (SkillSetSkillAdminInline,)
