@@ -20,7 +20,7 @@ class TestFitting(NoSocketsTestCase):
         types = fit.eve_types()
         # then
         self.assertSetEqual(
-            {obj.id for obj in types}, {1952, 2977, 34562, 2048, 21924, 31740}
+            {obj.id for obj in types}, {185, 31716, 3244, 593, 4405, 2873, 2205}
         )
 
     def test_eft_parser_rountrip_archon_normal(self):

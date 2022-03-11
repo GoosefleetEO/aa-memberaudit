@@ -18,14 +18,7 @@ from app_utils.testing import (
     multi_assert_not_in,
 )
 
-from ..models import (
-    Character,
-    CharacterMail,
-    CharacterSkill,
-    SkillSet,
-    SkillSetGroup,
-    SkillSetSkill,
-)
+from ..models import Character, CharacterMail, CharacterSkill, SkillSet, SkillSetGroup
 from ..views import (
     add_character,
     admin_create_skillset_from_fitting,
@@ -46,6 +39,9 @@ from .testdata.factories import (
     create_fitting_text,
     create_mail_entity_from_eve_entity,
     create_mailing_list,
+    create_skill_set,
+    create_skill_set_group,
+    create_skill_set_skill,
 )
 from .testdata.load_entities import load_entities
 from .testdata.load_eveuniverse import load_eveuniverse
@@ -671,29 +667,29 @@ class TestSkillSetReportData(TestCase):
             return f"{doctrine_pk}_{character.pk}"
 
         # define doctrines
-        ship_1 = SkillSet.objects.create(name="Ship 1")
-        SkillSetSkill.objects.create(
+        ship_1 = create_skill_set(name="Ship 1")
+        create_skill_set_skill(
             skill_set=ship_1, eve_type=self.skill_type_1, required_level=3
         )
 
-        ship_2 = SkillSet.objects.create(name="Ship 2")
-        SkillSetSkill.objects.create(
+        ship_2 = create_skill_set(name="Ship 2")
+        create_skill_set_skill(
             skill_set=ship_2, eve_type=self.skill_type_1, required_level=5
         )
-        SkillSetSkill.objects.create(
+        create_skill_set_skill(
             skill_set=ship_2, eve_type=self.skill_type_2, required_level=3
         )
 
-        ship_3 = SkillSet.objects.create(name="Ship 3")
-        SkillSetSkill.objects.create(
+        ship_3 = create_skill_set(name="Ship 3")
+        create_skill_set_skill(
             skill_set=ship_3, eve_type=self.skill_type_1, required_level=1
         )
 
-        doctrine_1 = SkillSetGroup.objects.create(name="Alpha")
+        doctrine_1 = create_skill_set_group(name="Alpha")
         doctrine_1.skill_sets.add(ship_1)
         doctrine_1.skill_sets.add(ship_2)
 
-        doctrine_2 = SkillSetGroup.objects.create(name="Bravo", is_doctrine=True)
+        doctrine_2 = create_skill_set_group(name="Bravo", is_doctrine=True)
         doctrine_2.skill_sets.add(ship_1)
 
         # character 1002
@@ -783,11 +779,11 @@ class TestSkillSetReportData(TestCase):
     #     user.profile.main_character = None
     #     user.profile.save()
 
-    #     ship_1 = SkillSet.objects.create(name="Ship 1")
-    #     SkillSetSkill.objects.create(
+    #     ship_1 = create_skill_set(name="Ship 1")
+    #     create_skill_set_skill(
     #         skill_set=ship_1, eve_type=self.skill_type_1, required_level=3
     #     )
-    #     doctrine_1 = SkillSetGroup.objects.create(name="Alpha")
+    #     doctrine_1 = create_skill_set_group(name="Alpha")
     #     doctrine_1.skill_sets.add(ship_1)
 
     #     request = self.factory.get(reverse("memberaudit:skill_sets_report_data"))
@@ -837,7 +833,7 @@ class TestCreateSkillSetFromFitting(TestCase):
 
     def test_should_not_overwrite_existing_skillset(self, mock_tasks, mock_messages):
         # given
-        skill_set = SkillSet.objects.create(name="Tristan - Standard Kite (cap stable)")
+        skill_set = create_skill_set(name="Tristan - Standard Kite (cap stable)")
         request = self.factory.post(
             reverse("memberaudit:admin_create_skillset_from_fitting"),
             data={"fitting_text": self.fitting_text},
@@ -854,7 +850,7 @@ class TestCreateSkillSetFromFitting(TestCase):
 
     def test_should_overwrite_existing_skillset(self, mock_tasks, mock_messages):
         # given
-        skill_set = SkillSet.objects.create(name="Tristan - Standard Kite (cap stable)")
+        skill_set = create_skill_set(name="Tristan - Standard Kite (cap stable)")
         request = self.factory.post(
             reverse("memberaudit:admin_create_skillset_from_fitting"),
             data={"fitting_text": self.fitting_text, "can_overwrite": True},
@@ -873,7 +869,7 @@ class TestCreateSkillSetFromFitting(TestCase):
         self, mock_tasks, mock_messages
     ):
         # given
-        skill_set_group = SkillSetGroup.objects.create(name="Dummy Group")
+        skill_set_group = create_skill_set_group()
         request = self.factory.post(
             reverse("memberaudit:admin_create_skillset_from_fitting"),
             data={

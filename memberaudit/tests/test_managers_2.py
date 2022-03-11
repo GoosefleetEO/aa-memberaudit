@@ -7,11 +7,14 @@ from app_utils.testing import (
     create_user_from_evecharacter,
 )
 
-from ..models import ComplianceGroupDesignation
-from .testdata.factories import create_compliance_group
+from ..models import ComplianceGroupDesignation, SkillSet
+from .testdata.factories import (
+    create_compliance_group,
+    create_fitting,
+    create_skill_set_group,
+)
 from .testdata.load_entities import load_entities
-
-# from .testdata.load_eveuniverse import load_eveuniverse
+from .testdata.load_eveuniverse import load_eveuniverse
 from .utils import add_auth_character_to_user, add_memberaudit_character_to_user
 
 MANAGER_PATH = "memberaudit.managers.general"
@@ -175,14 +178,46 @@ class TestComplianceGroupDesignation(NoSocketsTestCase):
         self.assertEqual(user.notification_set.count(), 0)
 
 
-# class TestSkillSetManager(NoSocketsTestCase):
-#     @classmethod
-#     def setUpClass(cls) -> None:
-#         super().setUpClass()
-#         load_eveuniverse()
-#         load_entities()
-#         cls.fitting_text = create_fitting_text("fitting_tristan.txt")
+class TestSkillSetManager(NoSocketsTestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        load_eveuniverse()
+        load_entities()
+        cls.fitting = create_fitting(name="My fitting")
 
-#     def test_should_create_new_skill_set(self):
-#         # when
-#         obj, created = SkillSet.objects.update_or_create_from_fitting(self.fitting_text)
+    def test_should_create_new_skill_set(self):
+        # when
+        skill_set, created = SkillSet.objects.update_or_create_from_fitting(
+            fitting=self.fitting
+        )
+        # then
+        self.assertTrue(created)
+        self.assertEqual(skill_set.name, "My fitting")
+        self.assertEqual(skill_set.ship_type.name, "Tristan")
+        skills_str = {skill.required_skill_str for skill in skill_set.skills.all()}
+        self.assertSetEqual(
+            skills_str,
+            {
+                "Small Autocannon Specialization I",
+                "Gunnery II",
+                "Weapon Upgrades IV",
+                "Light Drone Operation V",
+                "Small Projectile Turret V",
+                "Gallente Frigate I",
+                "Propulsion Jamming II",
+                "Drones V",
+                "Amarr Drone Specialization I",
+            },
+        )
+
+    def test_should_create_new_skill_set_and_assign_to_group(self):
+        # given
+        skill_set_group = create_skill_set_group()
+        # when
+        skill_set, created = SkillSet.objects.update_or_create_from_fitting(
+            fitting=self.fitting, skill_set_group=skill_set_group
+        )
+        # then
+        self.assertTrue(created)
+        self.assertIn(skill_set, skill_set_group.skill_sets.all())

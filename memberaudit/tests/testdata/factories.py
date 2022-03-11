@@ -22,6 +22,9 @@ from ...models import (
     CharacterWalletJournalEntry,
     ComplianceGroupDesignation,
     MailEntity,
+    SkillSet,
+    SkillSetGroup,
+    SkillSetSkill,
 )
 
 
@@ -137,24 +140,25 @@ def create_fitting(**kwargs):
     """Requires eveuniverse to be loaded."""
     params = {
         "name": "Test fitting",
-        "ship_type": EveType.objects.get(name="Svipul"),
+        "ship_type": EveType.objects.get(name="Tristan"),
         "high_slots": [
             Module(
-                EveType.objects.get(name="280mm Howitzer Artillery II"),
-                charge_type=EveType.objects.get(name="Republic Fleet Phased Plasma S"),
+                EveType.objects.get(name="125mm Gatling AutoCannon II"),
+                charge_type=EveType.objects.get(name="EMP S"),
             ),
             None,
         ],
-        "medium_slots": [Module(EveType.objects.get(name="Sensor Booster II")), None],
-        "low_slots": [Module(EveType.objects.get(name="Damage Control II")), None],
+        "medium_slots": [Module(EveType.objects.get(name="Warp Disruptor II")), None],
+        "low_slots": [
+            Module(EveType.objects.get(name="Drone Damage Amplifier II")),
+            None,
+        ],
         "rig_slots": [
-            Module(
-                EveType.objects.get(name="Small Kinetic Shield Reinforcer I"),
-            ),
+            Module(EveType.objects.get(name="Small EM Shield Reinforcer I")),
             None,
         ],
-        "drone_bay": [Item(EveType.objects.get(name="Damage Control II"), quantity=5)],
-        "cargo_bay": [Item(EveType.objects.get(name="Damage Control II"), quantity=3)],
+        "drone_bay": [Item(EveType.objects.get(name="Acolyte II"), quantity=5)],
+        "cargo_bay": [Item(EveType.objects.get(name="EMP S"), quantity=3)],
     }
     params.update(kwargs)
     return Fitting(**params)
@@ -181,6 +185,30 @@ def create_mailing_list(**kwargs) -> MailEntity:
     }
     params.update(kwargs)
     return MailEntity.objects.create(**params)
+
+
+def create_skill_set(**kwargs):
+    my_id = next_number("skill_set_id")
+    params = {"name": f"Test Set {my_id}", "description": "Generated test set"}
+    params.update(kwargs)
+    return SkillSet.objects.create(**params)
+
+
+def create_skill_set_group(**kwargs):
+    my_id = next_number("skill_set_group_id")
+    params = {"name": f"Test Group {my_id}", "description": "Generated test group"}
+    params.update(kwargs)
+    return SkillSetGroup.objects.create(**params)
+
+
+def create_skill_set_skill(skill_set, eve_type, required_level, **kwargs):
+    params = {
+        "skill_set": skill_set,
+        "eve_type": eve_type,
+        "required_level": required_level,
+    }
+    params.update(kwargs)
+    return SkillSetSkill.objects.create(**params)
 
 
 def create_wallet_journal_entry(
