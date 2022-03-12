@@ -1999,9 +1999,14 @@ def admin_create_skillset_from_fitting(request):
                     request, "The fitting does not appear to be a valid EFT format."
                 )
             else:
+                skill_set_name = (
+                    form.cleaned_data["skill_set_name"]
+                    if form.cleaned_data["skill_set_name"]
+                    else fitting.name
+                )
                 if (
                     not form.cleaned_data["can_overwrite"]
-                    and SkillSet.objects.filter(name=fitting.name).exists()
+                    and SkillSet.objects.filter(name=skill_set_name).exists()
                 ):
                     messages.warning(
                         request,

@@ -891,6 +891,7 @@ class TestCreateSkillSetFromFitting(TestCase):
         self, mock_tasks, mock_messages
     ):
         # given
+        skill_set = create_skill_set(name="Tristan - Standard Kite (cap stable)")
         request = self.factory.post(
             reverse("memberaudit:admin_create_skillset_from_fitting"),
             data={"fitting_text": self.fitting_text, "skill_set_name": "My-Name"},
@@ -902,5 +903,5 @@ class TestCreateSkillSetFromFitting(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(mock_tasks.update_characters_skill_checks.delay.called)
         self.assertTrue(mock_messages.info.called)
-        skill_set = SkillSet.objects.first()
+        skill_set = SkillSet.objects.last()
         self.assertEqual(skill_set.name, "My-Name")
