@@ -110,6 +110,85 @@ class TestEftParser(NoSocketsTestCase):
             fitting.low_slots[0].module_type.name, "Nanofiber Internal Structure II"
         )
 
+    def test_should_handle_eve_format_with_missing_high_slots(self):
+        # given
+        fitting_text = create_fitting_text("fitting_eve_tristian.txt")
+        # when
+        fitting, errors = create_fitting_from_eft(fitting_text)
+        # then
+        self.assertListEqual(errors, [])
+        self.assertListEqual(fitting.high_slots, [])
+        self.assertListEqual(
+            section_to_eft(fitting.low_slots),
+            [
+                "Nanofiber Internal Structure II",
+                "Drone Damage Amplifier II",
+                "Drone Damage Amplifier II",
+            ],
+        )
+        self.assertListEqual(
+            section_to_eft(fitting.medium_slots),
+            [
+                "5MN Cold-Gas Enduring Microwarpdrive",
+                "Medium Azeotropic Restrained Shield Extender",
+                "Warp Disruptor II",
+            ],
+        )
+        self.assertListEqual(
+            section_to_eft(fitting.rig_slots),
+            [
+                "Small Capacitor Control Circuit I",
+                "Small Polycarbon Engine Housing I",
+                "Small EM Shield Reinforcer I",
+            ],
+        )
+        self.assertListEqual(
+            section_to_eft(fitting.drone_bay),
+            ["Warrior II x3", "Acolyte II x5"],
+        )
+        self.assertListEqual(
+            section_to_eft(fitting.cargo_bay),
+            ["EMP S x400"],
+        )
+
+    def test_should_handle_eve_format_with_missing_high_and_low_slots(self):
+        # given
+        fitting_text = create_fitting_text("fitting_eve_tristian_2.txt")
+        # when
+        fitting, errors = create_fitting_from_eft(fitting_text)
+        # then
+        self.assertListEqual(errors, [])
+        self.assertListEqual(fitting.high_slots, [])
+        self.assertListEqual(fitting.low_slots, [])
+        self.assertListEqual(
+            section_to_eft(fitting.medium_slots),
+            [
+                "5MN Cold-Gas Enduring Microwarpdrive",
+                "Medium Azeotropic Restrained Shield Extender",
+                "Warp Disruptor II",
+            ],
+        )
+        self.assertListEqual(
+            section_to_eft(fitting.rig_slots),
+            [
+                "Small Capacitor Control Circuit I",
+                "Small Polycarbon Engine Housing I",
+                "Small EM Shield Reinforcer I",
+            ],
+        )
+        self.assertListEqual(
+            section_to_eft(fitting.drone_bay),
+            ["Warrior II x3", "Acolyte II x5"],
+        )
+        self.assertListEqual(
+            section_to_eft(fitting.cargo_bay),
+            ["EMP S x400"],
+        )
+
+
+def section_to_eft(items) -> list:
+    return [obj.to_eft() for obj in items]
+
 
 class TestEveTypes(NoSocketsTestCase):
     @classmethod

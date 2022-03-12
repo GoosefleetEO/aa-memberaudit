@@ -72,8 +72,12 @@ class _EveTypes:
 
     @classmethod
     def _fetch_types_from_db(cls, type_names: Iterable[str]) -> Dict[str, EveType]:
-        eve_types_query = EveType.objects.select_related("eve_group").filter(
-            enabled_sections=EveType.enabled_sections.dogmas, name__in=type_names
+        eve_types_query = (
+            EveType.objects.select_related("eve_group")
+            .prefetch_related("dogma_effects")
+            .filter(
+                enabled_sections=EveType.enabled_sections.dogmas, name__in=type_names
+            )
         )
         eve_types = {obj.name: obj for obj in eve_types_query}
         return eve_types
@@ -140,6 +144,16 @@ class _EveTypes:
 
 
 @dataclass
+class _EftSlotType(Enum):
+    NONE = auto()
+    LOW_SLOT = auto()
+    MEDIUM_SLOT = auto()
+    HIGH_SLOT = auto()
+    RIG_SLOT = auto()
+    SUBSYSTEM_SLOT = auto()
+
+
+@dataclass
 class _EftTextItem:
     """Text item of an EFT fitting used for parsing."""
 
@@ -147,6 +161,7 @@ class _EftTextItem:
     charge_type: str = None
     quantity: int = None
     is_offline: bool = False
+    slot_type: _EftSlotType = _EftSlotType.NONE
 
     def type_names(self) -> Set[str]:
         types = set()
@@ -159,7 +174,18 @@ class _EftTextItem:
     @classmethod
     def create_from_line(cls, line: str) -> "_EftItem":
         """Create new object from text line."""
-        if "empty" in line.strip("[]").lower():
+        empty_line_parsed = line.strip("[]").lower()
+        if "empty " in empty_line_parsed:
+            if " high " in empty_line_parsed:
+                return cls(slot_type=_EftSlotType.HIGH_SLOT)
+            if " med " in empty_line_parsed:
+                return cls(slot_type=_EftSlotType.MEDIUM_SLOT)
+            if " low " in empty_line_parsed:
+                return cls(slot_type=_EftSlotType.LOW_SLOT)
+            if " rig " in empty_line_parsed:
+                return cls(slot_type=_EftSlotType.RIG_SLOT)
+            if " subsystem " in empty_line_parsed:
+                return cls(slot_type=_EftSlotType.SUBSYSTEM_SLOT)
             return cls()
         part = line.split()[-1]
         if "x" in part and part[1:].isdigit():
@@ -206,6 +232,7 @@ class _EftItem:
     charge_type: EveType = None
     quantity: int = None
     is_offline: bool = False
+    slot_type: _EftSlotType = _EftSlotType.NONE
 
     @property
     def is_empty(self) -> bool:
@@ -236,7 +263,9 @@ class _EftItem:
         return self._item_category_id() == EveCategoryId.FIGHTER
 
     def is_high_slot(self) -> bool:
-        if self.is_empty:
+        if self.slot_type is _EftSlotType.HIGH_SLOT:
+            return True
+        elif self.is_empty:
             return False
         effect_ids = {
             obj.eve_dogma_effect_id for obj in self.item_type.dogma_effects.all()
@@ -244,7 +273,9 @@ class _EftItem:
         return EveDogmaEffectId.HI_POWER in effect_ids
 
     def is_med_slot(self) -> bool:
-        if self.is_empty:
+        if self.slot_type is _EftSlotType.MEDIUM_SLOT:
+            return True
+        elif self.is_empty:
             return False
         effect_ids = {
             obj.eve_dogma_effect_id for obj in self.item_type.dogma_effects.all()
@@ -252,7 +283,9 @@ class _EftItem:
         return EveDogmaEffectId.MED_POWER in effect_ids
 
     def is_low_slot(self) -> bool:
-        if self.is_empty:
+        if self.slot_type is _EftSlotType.LOW_SLOT:
+            return True
+        elif self.is_empty:
             return False
         effect_ids = {
             obj.eve_dogma_effect_id for obj in self.item_type.dogma_effects.all()
@@ -260,7 +293,9 @@ class _EftItem:
         return EveDogmaEffectId.LO_POWER in effect_ids
 
     def is_rig_slot(self) -> bool:
-        if self.is_empty:
+        if self.slot_type is _EftSlotType.RIG_SLOT:
+            return True
+        elif self.is_empty:
             return False
         effect_ids = {
             obj.eve_dogma_effect_id for obj in self.item_type.dogma_effects.all()
@@ -268,7 +303,9 @@ class _EftItem:
         return EveDogmaEffectId.RIG_SLOT in effect_ids
 
     def is_subsystem(self) -> bool:
-        if self.is_empty:
+        if self.slot_type is _EftSlotType.SUBSYSTEM_SLOT:
+            return True
+        elif self.is_empty:
             return False
         effect_ids = {
             obj.eve_dogma_effect_id for obj in self.item_type.dogma_effects.all()
@@ -294,6 +331,7 @@ class _EftItem:
             charge_type=eve_types.from_name(text_item.charge_type),
             quantity=text_item.quantity,
             is_offline=text_item.is_offline,
+            slot_type=text_item.slot_type,
         )
 
 
@@ -330,32 +368,29 @@ class _EftSection:
     def is_slots(self) -> bool:
         return any([item.is_slot for item in self.items])
 
-    def items_non_empty(self) -> List[_EftItem]:
-        return [item for item in self.items if not item.is_empty]
-
     def guess_category(self) -> Optional["_EftSection.Category"]:
         """Try to guess the category of this section based on it's items.
         Returns ``None`` if the guess fails.
         """
         if self.is_slots:
-            if any([item.is_booster() for item in self.items_non_empty()]):
+            if any([item.is_booster() for item in self.items]):
                 return self.Category.BOOSTERS
-            if any([item.is_cyberimplant() for item in self.items_non_empty()]):
+            if any([item.is_cyberimplant() for item in self.items]):
                 return self.Category.IMPLANTS
-            if any([item.is_low_slot() for item in self.items_non_empty()]):
+            if any([item.is_low_slot() for item in self.items]):
                 return self.Category.LOW_SLOTS
-            if any([item.is_med_slot() for item in self.items_non_empty()]):
+            if any([item.is_med_slot() for item in self.items]):
                 return self.Category.MEDIUM_SLOTS
-            if any([item.is_high_slot() for item in self.items_non_empty()]):
+            if any([item.is_high_slot() for item in self.items]):
                 return self.Category.HIGH_SLOTS
-            if any([item.is_rig_slot() for item in self.items_non_empty()]):
+            if any([item.is_rig_slot() for item in self.items]):
                 return self.Category.RIG_SLOTS
-            if any([item.is_subsystem() for item in self.items_non_empty()]):
+            if any([item.is_subsystem() for item in self.items]):
                 return self.Category.SUBSYSTEM_SLOTS
         else:
-            if any([item.is_drone() for item in self.items_non_empty()]):
+            if any([item.is_drone() for item in self.items]):
                 return self.Category.DRONES_BAY
-            if any([item.is_fighter() for item in self.items_non_empty()]):
+            if any([item.is_fighter() for item in self.items]):
                 return self.Category.FIGHTER_BAY
         return None
 
@@ -464,15 +499,13 @@ def _try_to_identify_sections(sections: List[_EftSection]) -> List[_EftSection]:
         category = section.guess_category()
         if category:
             section.category = category
-    # last unknown section (if any remain) must be the cargo bay
-    unknown_sections = [
-        section
-        for section in sections
-        if section.category == _EftSection.Category.UNKNOWN
-    ]
-    if unknown_sections:
-        last_section = unknown_sections.pop()
-        if not last_section.is_slots:
+    # last unknown section must be the cargo bay
+    if sections:
+        last_section = sections[len(sections) - 1]
+        if (
+            last_section.category == _EftSection.Category.UNKNOWN
+            and not last_section.is_slots
+        ):
             last_section.category = _EftSection.Category.CARGO_BAY
     return sections
 
