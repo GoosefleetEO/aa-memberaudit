@@ -12,6 +12,8 @@ from ..core.eft_parser import (
     MissingTitleError,
     _EftItem,
     _EftSection,
+    _EftTextItem,
+    _EftTextSection,
     _EveTypes,
     create_fitting_from_eft,
 )
@@ -184,51 +186,174 @@ class TestEveTypes(NoSocketsTestCase):
         self.assertIsNone(eve_types.from_name("Unknown-Type"))
 
 
-class TestEftItem(NoSocketsTestCase):
+class TestEftTextItem(NoSocketsTestCase):
     def test_should_create_slot_module(self):
         #  when
-        item = _EftItem.create_from_line("Warp Disruptor II")
+        item = _EftTextItem.create_from_line("Warp Disruptor II")
         # then
-        self.assertEqual(item, _EftItem(item_type="Warp Disruptor II"))
+        self.assertEqual(item, _EftTextItem(item_type="Warp Disruptor II"))
 
     def test_should_create_slot_module_with_charge(self):
         #  when
-        item = _EftItem.create_from_line("125mm Gatling AutoCannon II, EMP S")
+        item = _EftTextItem.create_from_line("125mm Gatling AutoCannon II, EMP S")
         # then
         self.assertEqual(
             item,
-            _EftItem(item_type="125mm Gatling AutoCannon II", charge_type="EMP S"),
+            _EftTextItem(item_type="125mm Gatling AutoCannon II", charge_type="EMP S"),
         )
 
     def test_should_create_slot_module_offline(self):
         #  when
-        item = _EftItem.create_from_line("Warp Disruptor II /OFFLINE")
+        item = _EftTextItem.create_from_line("Warp Disruptor II /OFFLINE")
         # then
-        self.assertEqual(item, _EftItem(item_type="Warp Disruptor II", is_offline=True))
+        self.assertEqual(
+            item, _EftTextItem(item_type="Warp Disruptor II", is_offline=True)
+        )
 
     def test_should_create_slot_module_empty(self):
         #  when
-        item = _EftItem.create_from_line("[Empty High slot]")
+        item = _EftTextItem.create_from_line("[Empty High slot]")
         # then
-        self.assertEqual(item, _EftItem(is_empty=True))
+        self.assertEqual(item, _EftTextItem(is_empty=True))
 
     def test_should_create_non_slot_item(self):
         #  when
-        item = _EftItem.create_from_line("Acolyte II x5")
+        item = _EftTextItem.create_from_line("Acolyte II x5")
         # then
-        self.assertEqual(item, _EftItem(item_type="Acolyte II", quantity=5))
+        self.assertEqual(item, _EftTextItem(item_type="Acolyte II", quantity=5))
+
+    def test_should_return_type_names_1(self):
+        #  when
+        item = _EftTextItem.create_from_line("125mm Gatling AutoCannon II")
+        # then
+        self.assertEqual(item.type_names(), {"125mm Gatling AutoCannon II"})
+
+    def test_should_return_type_names_2(self):
+        #  when
+        item = _EftTextItem.create_from_line("125mm Gatling AutoCannon II, EMP S")
+        # then
+        self.assertEqual(item.type_names(), {"125mm Gatling AutoCannon II", "EMP S"})
+
+    def test_should_return_type_names_3(self):
+        #  when
+        item = _EftTextItem.create_from_line("Acolyte II x5")
+        # then
+        self.assertEqual(item.type_names(), {"Acolyte II"})
+
+
+class TestEftTextSection(NoSocketsTestCase):
+    def test_should_create_section(self):
+        # given
+        lines = ["Acolyte II x5", "Warrior II x5"]
+        # when
+        section = _EftTextSection.create_from_lines(lines)
+        # then
+        self.assertEqual(
+            section.items[0], _EftTextItem(item_type="Acolyte II", quantity=5)
+        )
+        self.assertEqual(
+            section.items[1], _EftTextItem(item_type="Warrior II", quantity=5)
+        )
+
+    def test_should_return_type_names(self):
+        # given
+        section = _EftTextSection(
+            [
+                _EftTextItem(item_type="Acolyte II", quantity=5),
+                _EftTextItem(
+                    item_type="125mm Gatling AutoCannon II", charge_type="EMP S"
+                ),
+                _EftTextItem(item_type="Warp Disruptor II"),
+            ]
+        )
+        # when / then
+        self.assertSetEqual(
+            section.type_names(),
+            {"Acolyte II", "125mm Gatling AutoCannon II", "EMP S", "Warp Disruptor II"},
+        )
+
+
+class TestEftItem(NoSocketsTestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        load_eveuniverse()
+
+    def test_should_create_from_text_item_1(self):
+        # given
+        text_item = _EftTextItem(item_type="Warp Disruptor II")
+        eve_types = _EveTypes.create_from_names(["Warp Disruptor II"])
+        # when
+        item = _EftItem.create_from_text_item(text_item=text_item, eve_types=eve_types)
+        # then
+        self.assertEqual(
+            item, _EftItem(item_type=EveType.objects.get(name="Warp Disruptor II"))
+        )
+
+    def test_should_create_from_text_item_2(self):
+        # given
+        text_item = _EftTextItem(item_type="Warp Disruptor II", quantity=3)
+        eve_types = _EveTypes.create_from_names(["Warp Disruptor II"])
+        # when
+        item = _EftItem.create_from_text_item(text_item=text_item, eve_types=eve_types)
+        # then
+        self.assertEqual(
+            item,
+            _EftItem(
+                item_type=EveType.objects.get(name="Warp Disruptor II"), quantity=3
+            ),
+        )
+
+    def test_should_create_from_text_item_3(self):
+        # given
+        text_item = _EftTextItem(
+            item_type="125mm Gatling AutoCannon II", charge_type="EMP S"
+        )
+        eve_types = _EveTypes.create_from_names(
+            ["125mm Gatling AutoCannon II", "EMP S"]
+        )
+        # when
+        item = _EftItem.create_from_text_item(text_item=text_item, eve_types=eve_types)
+        # then
+        self.assertEqual(
+            item,
+            _EftItem(
+                item_type=EveType.objects.get(name="125mm Gatling AutoCannon II"),
+                charge_type=EveType.objects.get(name="EMP S"),
+            ),
+        )
 
     def test_should_be_slot(self):
         # given
-        item = _EftItem(item_type="Warp Disruptor II")
+        item = _EftItem(item_type=EveType.objects.get(name="Warp Disruptor II"))
         # when/then
         self.assertTrue(item.is_slot)
 
     def test_should_not_be_slot(self):
         # given
-        item = _EftItem(item_type="Warp Disruptor II", quantity=3)
+        item = _EftItem(
+            item_type=EveType.objects.get(name="Warp Disruptor II"), quantity=3
+        )
         # when/then
         self.assertFalse(item.is_slot)
+
+    def test_should_be_drone(self):
+        # given
+        item = _EftItem(item_type=EveType.objects.get(name="Acolyte II"))
+        # when/then
+        self.assertTrue(item.is_drone())
+
+    def test_should_be_fighter(self):
+        # given
+        item = _EftItem(item_type=EveType.objects.get(name="Firbolg I"))
+        # when/then
+        self.assertTrue(item.is_fighter())
+
+    def test_should_be_cyberimplant(self):
+        # given
+        item = _EftItem(item_type=EveType.objects.get(name="High-grade Snake Alpha"))
+        # when/then
+        self.assertTrue(item.is_cyberimplant())
 
 
 class TestEftSection(NoSocketsTestCase):
@@ -239,9 +364,8 @@ class TestEftSection(NoSocketsTestCase):
 
     def test_should_be_drones(self):
         # given
-        eve_types = _EveTypes.create_from_names(["Acolyte II"])
-        section = _EftSection([_EftItem(item_type="Acolyte II", quantity=5)])
-        # when/then
-        self.assertEqual(
-            section.guess_category(eve_types), _EftSection.Category.DRONES_BAY
+        section = _EftSection(
+            [_EftItem(item_type=EveType.objects.get(name="Acolyte II"), quantity=5)]
         )
+        # when/then
+        self.assertEqual(section.guess_category(), _EftSection.Category.DRONES_BAY)
