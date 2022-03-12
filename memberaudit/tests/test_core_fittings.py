@@ -1,37 +1,10 @@
 # from django.test import TestCase
-from eveuniverse.models import EveType
 
 from app_utils.testing import NoSocketsTestCase
 
-from ..core.fittings import Fitting, Item, Module
+from ..core.fittings import Fitting
+from .testdata.factories import create_fitting, create_fitting_text
 from .testdata.load_eveuniverse import load_eveuniverse
-from .utils import read_fitting_file
-
-
-def create_fitting(**kwargs):
-    params = {
-        "name": "Test fitting",
-        "ship_type": EveType.objects.get(name="Svipul"),
-        "high_slots": [
-            Module(
-                EveType.objects.get(name="280mm Howitzer Artillery II"),
-                charge_type=EveType.objects.get(name="Republic Fleet Phased Plasma S"),
-            ),
-            None,
-        ],
-        "medium_slots": [Module(EveType.objects.get(name="Sensor Booster II")), None],
-        "low_slots": [Module(EveType.objects.get(name="Damage Control II")), None],
-        "rig_slots": [
-            Module(
-                EveType.objects.get(name="Small Kinetic Shield Reinforcer I"),
-            ),
-            None,
-        ],
-        "drone_bay": [Item(EveType.objects.get(name="Damage Control II"), quantity=5)],
-        "cargo_bay": [Item(EveType.objects.get(name="Damage Control II"), quantity=3)],
-    }
-    params.update(kwargs)
-    return Fitting(**params)
 
 
 class TestFitting(NoSocketsTestCase):
@@ -40,12 +13,6 @@ class TestFitting(NoSocketsTestCase):
         super().setUpClass()
         load_eveuniverse()
 
-    # def test_should_read_fitting_with_drones(self):
-    #     svipul_fitting = read_fitting_file("fitting_tristan.txt")
-    #     result = Fitting.create_from_eft(svipul_fitting)
-    #     print(result)
-    #     print([obj.name for obj in result.main_types()])
-
     def test_should_return_eve_types(self):
         # given
         fit = create_fitting()
@@ -53,13 +20,13 @@ class TestFitting(NoSocketsTestCase):
         types = fit.eve_types()
         # then
         self.assertSetEqual(
-            {obj.id for obj in types}, {1952, 2977, 34562, 2048, 21924, 31740}
+            {obj.id for obj in types}, {185, 31716, 3244, 593, 4405, 2873, 2205}
         )
 
     def test_eft_parser_rountrip_archon_normal(self):
         # given
         self.maxDiff = None
-        fitting_text_original = read_fitting_file("fitting_archon.txt")
+        fitting_text_original = create_fitting_text("fitting_archon.txt")
         fitting, _ = Fitting.create_from_eft(fitting_text_original)
         # when
         fitting_text_generated = fitting.to_eft()
@@ -69,7 +36,7 @@ class TestFitting(NoSocketsTestCase):
     def test_eft_parser_rountrip_archon_max(self):
         # given
         self.maxDiff = None
-        fitting_text_original = read_fitting_file("fitting_archon_max.txt")
+        fitting_text_original = create_fitting_text("fitting_archon_max.txt")
         fitting, _ = Fitting.create_from_eft(fitting_text_original)
         # when
         fitting_text_generated = fitting.to_eft()
@@ -79,7 +46,7 @@ class TestFitting(NoSocketsTestCase):
     def test_eft_parser_rountrip_tristan(self):
         # given
         self.maxDiff = None
-        fitting_text_original = read_fitting_file("fitting_tristan.txt")
+        fitting_text_original = create_fitting_text("fitting_tristan.txt")
         fitting, _ = Fitting.create_from_eft(fitting_text_original)
         # when
         fitting_text_generated = fitting.to_eft()
@@ -89,7 +56,7 @@ class TestFitting(NoSocketsTestCase):
     def test_eft_parser_rountrip_svipul_empty_slots_and_offline(self):
         # given
         self.maxDiff = None
-        fitting_text_original = read_fitting_file("fitting_svipul_2.txt")
+        fitting_text_original = create_fitting_text("fitting_svipul_2.txt")
         fitting, _ = Fitting.create_from_eft(fitting_text_original)
         # when
         fitting_text_generated = fitting.to_eft()
@@ -99,11 +66,11 @@ class TestFitting(NoSocketsTestCase):
     def test_eft_parser_rountrip_tengu(self):
         # given
         self.maxDiff = None
-        fitting_text_original = read_fitting_file("fitting_tengu.txt")
+        fitting_text_original = create_fitting_text("fitting_tengu.txt")
         fitting, _ = Fitting.create_from_eft(fitting_text_original)
-        print(
-            ", ".join(map(str, sorted(list([obj.id for obj in fitting.eve_types()]))))
-        )
+        # print(
+        #     ", ".join(map(str, sorted(list([obj.id for obj in fitting.eve_types()]))))
+        # )
         # when
         fitting_text_generated = fitting.to_eft()
         # then
@@ -112,7 +79,7 @@ class TestFitting(NoSocketsTestCase):
     def test_eft_parser_rountrip_empty(self):
         # given
         self.maxDiff = None
-        fitting_text_original = read_fitting_file("fitting_empty.txt")
+        fitting_text_original = create_fitting_text("fitting_empty.txt")
         fitting, _ = Fitting.create_from_eft(fitting_text_original)
         # when
         fitting_text_generated = fitting.to_eft()
@@ -121,7 +88,7 @@ class TestFitting(NoSocketsTestCase):
 
     def test_required_skills(self):
         # given
-        fitting_text = read_fitting_file("fitting_tristan.txt")
+        fitting_text = create_fitting_text("fitting_tristan.txt")
         fitting, _ = Fitting.create_from_eft(fitting_text)
         # when
         skills = fitting.required_skills()

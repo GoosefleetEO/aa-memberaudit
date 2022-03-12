@@ -99,7 +99,6 @@ class EveSkillTypeManger(models.Manager):
         return (
             super()
             .get_queryset()
-            .select_related("eve_group")
             .filter(published=True)
             .filter(eve_group__eve_category_id=EveCategoryId.SKILL)
         )
@@ -492,8 +491,12 @@ class MailEntityManager(models.Manager):
 
 class SkillSetManager(models.Manager):
     def update_or_create_from_fitting(
-        self, fitting: Fitting, user: User = None
-    ) -> models.Model:
+        self,
+        fitting: Fitting,
+        user: User = None,
+        skill_set_group=None,
+        skill_set_name=None,
+    ) -> Tuple[models.Model, bool]:
         from ..models import SkillSetSkill
 
         required_skills = fitting.required_skills()
@@ -502,15 +505,17 @@ class SkillSetManager(models.Manager):
             f"by {user if user else '?'} "
             f"at {now().strftime(DATETIME_FORMAT)}"
         )
+        if not skill_set_name:
+            skill_set_name = fitting.name
         with transaction.atomic():
             skill_set, created = self.get_or_create(
-                name=fitting.name,
+                name=str(skill_set_name),
                 defaults={
                     "ship_type": fitting.ship_type,
                     "description": description,
                 },
             )
-            SkillSetSkill.objects.filter(skill_set=skill_set).delete()
+            skill_set.skills.all().delete()
             skills = [
                 SkillSetSkill(
                     skill_set=skill_set,
@@ -520,5 +525,7 @@ class SkillSetManager(models.Manager):
                 for skill in required_skills
             ]
             SkillSetSkill.objects.bulk_create(skills)
+            if skill_set_group:
+                skill_set_group.skill_sets.add(skill_set)
 
         return skill_set, created

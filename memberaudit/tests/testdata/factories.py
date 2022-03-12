@@ -1,14 +1,17 @@
 """Factories for creating test objects with defaults."""
 import datetime as dt
 from itertools import count
+from pathlib import Path
 from typing import Iterable
 
 from django.contrib.auth.models import Group
 from django.utils.timezone import now
+from eveuniverse.models import EveType
 
 from allianceauth.authentication.models import State
 from app_utils.testing import create_authgroup
 
+from ...core.fittings import Fitting, Item, Module
 from ...models import (
     Character,
     CharacterContract,
@@ -19,6 +22,9 @@ from ...models import (
     CharacterWalletJournalEntry,
     ComplianceGroupDesignation,
     MailEntity,
+    SkillSet,
+    SkillSetGroup,
+    SkillSetSkill,
 )
 
 
@@ -130,6 +136,41 @@ def create_compliance_group_designation(
     return ComplianceGroupDesignation.objects.create(**params)
 
 
+def create_fitting(**kwargs):
+    """Requires eveuniverse to be loaded."""
+    params = {
+        "name": "Test fitting",
+        "ship_type": EveType.objects.get(name="Tristan"),
+        "high_slots": [
+            Module(
+                EveType.objects.get(name="125mm Gatling AutoCannon II"),
+                charge_type=EveType.objects.get(name="EMP S"),
+            ),
+            None,
+        ],
+        "medium_slots": [Module(EveType.objects.get(name="Warp Disruptor II")), None],
+        "low_slots": [
+            Module(EveType.objects.get(name="Drone Damage Amplifier II")),
+            None,
+        ],
+        "rig_slots": [
+            Module(EveType.objects.get(name="Small EM Shield Reinforcer I")),
+            None,
+        ],
+        "drone_bay": [Item(EveType.objects.get(name="Acolyte II"), quantity=5)],
+        "cargo_bay": [Item(EveType.objects.get(name="EMP S"), quantity=3)],
+    }
+    params.update(kwargs)
+    return Fitting(**params)
+
+
+def create_fitting_text(file_name: str) -> str:
+    testdata_folder = Path(__file__).parent / "fittings"
+    fitting_file = testdata_folder / file_name
+    with fitting_file.open("r") as fp:
+        return fp.read()
+
+
 def create_mail_entity_from_eve_entity(id: int) -> MailEntity:
     obj, _ = MailEntity.objects.update_or_create_from_eve_entity_id(id=id)
     return obj
@@ -144,6 +185,30 @@ def create_mailing_list(**kwargs) -> MailEntity:
     }
     params.update(kwargs)
     return MailEntity.objects.create(**params)
+
+
+def create_skill_set(**kwargs):
+    my_id = next_number("skill_set_id")
+    params = {"name": f"Test Set {my_id}", "description": "Generated test set"}
+    params.update(kwargs)
+    return SkillSet.objects.create(**params)
+
+
+def create_skill_set_group(**kwargs):
+    my_id = next_number("skill_set_group_id")
+    params = {"name": f"Test Group {my_id}", "description": "Generated test group"}
+    params.update(kwargs)
+    return SkillSetGroup.objects.create(**params)
+
+
+def create_skill_set_skill(skill_set, eve_type, required_level, **kwargs):
+    params = {
+        "skill_set": skill_set,
+        "eve_type": eve_type,
+        "required_level": required_level,
+    }
+    params.update(kwargs)
+    return SkillSetSkill.objects.create(**params)
 
 
 def create_wallet_journal_entry(

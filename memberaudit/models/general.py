@@ -15,6 +15,7 @@ from app_utils.django import users_with_permission
 from app_utils.logging import LoggerAddTag
 
 from .. import __title__
+from ..constants import MAP_ARABIC_TO_ROMAN_NUMBERS
 from ..managers.general import (
     ComplianceGroupDesignationManager,
     EveShipTypeManger,
@@ -339,7 +340,25 @@ class SkillSetSkill(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f"{self.skill_set}-{self.eve_type}"
+        if self.recommended_level:
+            recommended_level_str = (
+                " / " + MAP_ARABIC_TO_ROMAN_NUMBERS[self.recommended_level]
+            )
+        else:
+            recommended_level_str = ""
+        return f"{self.skill_set}: {self.required_skill_str}{recommended_level_str}"
+
+    @property
+    def required_skill_str(self) -> str:
+        return self._skill_str(self.required_level)
+
+    @property
+    def recommened_skill_str(self) -> str:
+        return self._skill_str(self.recommended_level) if self.recommended_level else ""
+
+    def _skill_str(self, level) -> str:
+        level_str = MAP_ARABIC_TO_ROMAN_NUMBERS[level]
+        return f"{self.eve_type.name} {level_str}"
 
 
 class MailEntity(models.Model):

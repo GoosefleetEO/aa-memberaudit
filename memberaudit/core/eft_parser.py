@@ -11,7 +11,7 @@ from allianceauth.services.hooks import get_extension_logger
 from app_utils.logging import LoggerAddTag
 
 from .. import __title__
-from ..constants import EveCategoryId, EveGroupId
+from ..constants import EveCategoryId, EveDogmaEffectId, EveGroupId
 from .fittings import Fitting, Item, Module
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
@@ -40,6 +40,8 @@ class _EveTypes:
 
         Returns ``None`` if it can not be resolved.
         """
+        if type_name is None:
+            return None
         return self.objs_by_name.get(str(type_name))
 
     @classmethod
@@ -54,17 +56,28 @@ class _EveTypes:
         Returns:
             created object, list of type names that could not be resolved
         """
+        if not isinstance(type_names, (set, list, tuple)):
+            raise TypeError("type_name must be of type list, set or tuple.")
         type_names = set(type_names)
         eve_types = cls._fetch_types_from_db(type_names)
         missing_type_names = type_names - set(eve_types.keys())
         if missing_type_names:
-            eve_types.update(cls._fetch_missing_types_from_esi(missing_type_names))
-        return cls(eve_types)
+            added_eve_types, missing_type_names_2 = cls._fetch_missing_types_from_esi(
+                missing_type_names
+            )
+            eve_types.update(added_eve_types)
+        else:
+            missing_type_names_2 = set()
+        return cls(eve_types), missing_type_names_2
 
     @classmethod
     def _fetch_types_from_db(cls, type_names: Iterable[str]) -> Dict[str, EveType]:
-        eve_types_query = EveType.objects.select_related("eve_group").filter(
-            enabled_sections=EveType.enabled_sections.dogmas, name__in=type_names
+        eve_types_query = (
+            EveType.objects.select_related("eve_group")
+            .prefetch_related("dogma_effects")
+            .filter(
+                enabled_sections=EveType.enabled_sections.dogmas, name__in=type_names
+            )
         )
         eve_types = {obj.name: obj for obj in eve_types_query}
         return eve_types
@@ -73,7 +86,7 @@ class _EveTypes:
     def _fetch_missing_types_from_esi(
         cls,
         missing_type_names: Set[str],
-    ) -> Dict[str, EveType]:
+    ) -> Tuple[Dict[str, EveType], Set[str]]:
         def type_names_str(type_names: Iterable) -> str:
             return ", ".join(sorted(list(type_names)))
 
@@ -93,7 +106,7 @@ class _EveTypes:
                 "EFT parser: failed to identify types: %s",
                 type_names_str(missing_type_names_2),
             )
-        return eve_types
+        return eve_types, missing_type_names_2
 
     @staticmethod
     def _fetch_types_from_esi(entity_ids) -> Dict[str, EveType]:
@@ -131,14 +144,24 @@ class _EveTypes:
 
 
 @dataclass
-class _EftItem:
-    """Item of an EFT fitting used for parsing."""
+class _EftSlotType(Enum):
+    NONE = auto()
+    LOW_SLOT = auto()
+    MEDIUM_SLOT = auto()
+    HIGH_SLOT = auto()
+    RIG_SLOT = auto()
+    SUBSYSTEM_SLOT = auto()
+
+
+@dataclass
+class _EftTextItem:
+    """Text item of an EFT fitting used for parsing."""
 
     item_type: str = None
     charge_type: str = None
     quantity: int = None
     is_offline: bool = False
-    is_empty: bool = False
+    slot_type: _EftSlotType = _EftSlotType.NONE
 
     def type_names(self) -> Set[str]:
         types = set()
@@ -148,24 +171,27 @@ class _EftItem:
             types.add(self.charge_type)
         return types
 
-    def category_id(self, eve_types: _EveTypes) -> Optional[int]:
-        """Category ID of this item or None"""
-        if self.item_type:
-            eve_type = eve_types.from_name(self.item_type)
-            return eve_type.eve_group.eve_category_id if eve_type else None
-        return None
-
-    def group_id(self, eve_types: _EveTypes) -> Optional[int]:
-        """Category ID of this item or None"""
-        if self.item_type:
-            eve_type = eve_types.from_name(self.item_type)
-            return eve_type.eve_group_id if eve_type else None
-        return None
-
     @classmethod
-    def create_from_slots(cls, line: str) -> "_EftItem":
-        if "empty" in line.strip("[]").lower():
-            return cls(is_empty=True)
+    def create_from_line(cls, line: str) -> "_EftItem":
+        """Create new object from text line."""
+        empty_line_parsed = line.strip("[]").lower()
+        if "empty " in empty_line_parsed:
+            if " high " in empty_line_parsed:
+                return cls(slot_type=_EftSlotType.HIGH_SLOT)
+            if " med " in empty_line_parsed:
+                return cls(slot_type=_EftSlotType.MEDIUM_SLOT)
+            if " low " in empty_line_parsed:
+                return cls(slot_type=_EftSlotType.LOW_SLOT)
+            if " rig " in empty_line_parsed:
+                return cls(slot_type=_EftSlotType.RIG_SLOT)
+            if " subsystem " in empty_line_parsed:
+                return cls(slot_type=_EftSlotType.SUBSYSTEM_SLOT)
+            return cls()
+        part = line.split()[-1]
+        if "x" in part and part[1:].isdigit():
+            item_type = line.split(part)[0].strip()
+            quantity = part[1:]
+            return cls(item_type=item_type, quantity=int(quantity))
         if "/OFFLINE" in line:
             is_offline = True
             line = line.replace(" /OFFLINE", "")
@@ -179,16 +205,134 @@ class _EftItem:
             )
         return cls(item_type=line.strip(), is_offline=is_offline)
 
+
+@dataclass
+class _EftTextSection:
+    """Text section of an EFT fitting used for parsing."""
+
+    items: List[_EftTextItem] = field(default_factory=list)
+
+    def type_names(self) -> Set[str]:
+        types = set()
+        for item in self.items:
+            types |= item.type_names()
+        return types
+
     @classmethod
-    def create_from_non_slots(cls, line: str) -> "_EftItem":
-        if "empty" in line.strip("[]").lower():  # for structure services
-            return cls(is_empty=True)
-        part = line.split()[-1]
-        if "x" in part and part[1:].isdigit():
-            item_type = line.split(part)[0].strip()
-            quantity = part[1:]
-            return cls(item_type=item_type, quantity=int(quantity))
-        return cls(item_type=line.strip())
+    def create_from_lines(cls, lines):
+        items = [_EftTextItem.create_from_line(line) for line in lines]
+        return cls(items=items)
+
+
+@dataclass
+class _EftItem:
+    """Item of an EFT fitting used for parsing."""
+
+    item_type: EveType = None
+    charge_type: EveType = None
+    quantity: int = None
+    is_offline: bool = False
+    slot_type: _EftSlotType = _EftSlotType.NONE
+
+    @property
+    def is_empty(self) -> bool:
+        return self.item_type is None
+
+    @property
+    def is_slot(self) -> bool:
+        return self.quantity is None
+
+    def is_booster(self) -> bool:
+        if self.is_empty:
+            return False
+        return self._item_group_id() == EveGroupId.BOOSTER
+
+    def is_cyberimplant(self) -> bool:
+        if self.is_empty:
+            return False
+        return self._item_group_id() == EveGroupId.CYBERIMPLANT
+
+    def is_drone(self) -> bool:
+        if self.is_empty:
+            return False
+        return self._item_category_id() == EveCategoryId.DRONE
+
+    def is_fighter(self) -> bool:
+        if self.is_empty:
+            return False
+        return self._item_category_id() == EveCategoryId.FIGHTER
+
+    def is_high_slot(self) -> bool:
+        if self.slot_type is _EftSlotType.HIGH_SLOT:
+            return True
+        elif self.is_empty:
+            return False
+        effect_ids = {
+            obj.eve_dogma_effect_id for obj in self.item_type.dogma_effects.all()
+        }
+        return EveDogmaEffectId.HI_POWER in effect_ids
+
+    def is_med_slot(self) -> bool:
+        if self.slot_type is _EftSlotType.MEDIUM_SLOT:
+            return True
+        elif self.is_empty:
+            return False
+        effect_ids = {
+            obj.eve_dogma_effect_id for obj in self.item_type.dogma_effects.all()
+        }
+        return EveDogmaEffectId.MED_POWER in effect_ids
+
+    def is_low_slot(self) -> bool:
+        if self.slot_type is _EftSlotType.LOW_SLOT:
+            return True
+        elif self.is_empty:
+            return False
+        effect_ids = {
+            obj.eve_dogma_effect_id for obj in self.item_type.dogma_effects.all()
+        }
+        return EveDogmaEffectId.LO_POWER in effect_ids
+
+    def is_rig_slot(self) -> bool:
+        if self.slot_type is _EftSlotType.RIG_SLOT:
+            return True
+        elif self.is_empty:
+            return False
+        effect_ids = {
+            obj.eve_dogma_effect_id for obj in self.item_type.dogma_effects.all()
+        }
+        return EveDogmaEffectId.RIG_SLOT in effect_ids
+
+    def is_subsystem(self) -> bool:
+        if self.slot_type is _EftSlotType.SUBSYSTEM_SLOT:
+            return True
+        elif self.is_empty:
+            return False
+        effect_ids = {
+            obj.eve_dogma_effect_id for obj in self.item_type.dogma_effects.all()
+        }
+        return EveDogmaEffectId.SUB_SYSTEM in effect_ids
+
+    def _item_category_id(self) -> Optional[int]:
+        if self.is_empty:
+            return None
+        return self.item_type.eve_group.eve_category_id
+
+    def _item_group_id(self) -> Optional[int]:
+        if self.is_empty:
+            return None
+        return self.item_type.eve_group_id
+
+    @classmethod
+    def create_from_text_item(
+        cls, text_item: _EftTextItem, eve_types: _EveTypes
+    ) -> "_EftItem":
+        return cls(
+            item_type=eve_types.from_name(text_item.item_type),
+            charge_type=eve_types.from_name(text_item.charge_type),
+            quantity=text_item.quantity,
+            is_offline=text_item.is_offline,
+            slot_type=text_item.slot_type,
+        )
 
 
 @dataclass
@@ -220,113 +364,96 @@ class _EftSection:
     items: List[_EftItem] = field(default_factory=list)
     category: Category = Category.UNKNOWN
 
-    def type_names(self) -> Set[str]:
-        types = set()
-        for item in self.items:
-            types |= item.type_names()
-        return types
+    @property
+    def is_slots(self) -> bool:
+        return any([item.is_slot for item in self.items])
 
-    def category_ids(self, eve_types: _EveTypes) -> Set[Optional[int]]:
-        return {item.category_id(eve_types) for item in self.items}
-
-    def group_ids(self, eve_types: _EveTypes) -> Set[Optional[int]]:
-        return {item.group_id(eve_types) for item in self.items}
-
-    def guess_category(self, eve_types: _EveTypes) -> Optional["_EftSection.Category"]:
+    def guess_category(self) -> Optional["_EftSection.Category"]:
         """Try to guess the category of this section based on it's items.
         Returns ``None`` if the guess fails.
         """
-        ids = self.category_ids(eve_types)
-        if len(ids) != 1:
-            return None
-        category_id = ids.pop()
-        if category_id == EveCategoryId.DRONE:
-            return self.Category.DRONES_BAY
-        elif category_id == EveCategoryId.FIGHTER:
-            return self.Category.FIGHTER_BAY
-        elif category_id == EveCategoryId.SUBSYSTEM:
-            return self.Category.SUBSYSTEM_SLOTS
-        elif category_id == EveCategoryId.IMPLANT:
-            ids = self.group_ids(eve_types)
-            if len(ids) != 1:
-                return None
-            group_id = ids.pop()
-            if group_id == EveGroupId.BOOSTER:
+        if self.is_slots:
+            if any([item.is_booster() for item in self.items]):
                 return self.Category.BOOSTERS
-            elif group_id == EveGroupId.CYBERIMPLANT:
+            if any([item.is_cyberimplant() for item in self.items]):
                 return self.Category.IMPLANTS
+            if any([item.is_low_slot() for item in self.items]):
+                return self.Category.LOW_SLOTS
+            if any([item.is_med_slot() for item in self.items]):
+                return self.Category.MEDIUM_SLOTS
+            if any([item.is_high_slot() for item in self.items]):
+                return self.Category.HIGH_SLOTS
+            if any([item.is_rig_slot() for item in self.items]):
+                return self.Category.RIG_SLOTS
+            if any([item.is_subsystem() for item in self.items]):
+                return self.Category.SUBSYSTEM_SLOTS
+        else:
+            if any([item.is_drone() for item in self.items]):
+                return self.Category.DRONES_BAY
+            if any([item.is_fighter() for item in self.items]):
+                return self.Category.FIGHTER_BAY
         return None
 
-    def to_modules(self, eve_types: _EveTypes) -> Tuple[List[Module], Set[str]]:
+    def to_modules(self) -> List[Module]:
         """Convert eft items into fitting modules.
 
         Types from modules that can not be resolved will result in an empty slot.
         """
         objs = []
-        unknown_types = set()
         for item in self.items:
             if item.is_empty:
                 objs.append(None)
             else:
-                params = {"is_offline": item.is_offline}
-                module_type = eve_types.from_name(item.item_type)
-                if module_type:
-                    params["module_type"] = module_type
-                    if item.charge_type:
-                        charge_type = eve_types.from_name(item.charge_type)
-                        if charge_type:
-                            params["charge_type"] = charge_type
-                        else:
-                            unknown_types.add(item.charge_type)
-                    objs.append(Module(**params))
-                else:
-                    objs.append(None)
-                    unknown_types.add(item.item_type)
-        return objs, unknown_types
+                params = {"module_type": item.item_type, "is_offline": item.is_offline}
+                if item.charge_type:
+                    params["charge_type"] = item.charge_type
+                objs.append(Module(**params))
+        return objs
 
-    def to_items(self, eve_types: _EveTypes) -> Tuple[List[Module], Set[str]]:
+    def to_items(self) -> List[Module]:
         """Convert eft items into fitting items."""
         objs = []
-        unknown_types = set()
         for item in self.items:
             if item.is_empty:
                 continue
-            params = dict()
-            item_type = eve_types.from_name(item.item_type)
-            if item_type:
-                params["item_type"] = item_type
-                if item.quantity:
-                    params["quantity"] = item.quantity
-                objs.append(Item(**params))
-            else:
-                unknown_types.add(item.item_type)
-        return objs, unknown_types
+            params = {"item_type": item.item_type}
+            if item.quantity:
+                params["quantity"] = item.quantity
+            objs.append(Item(**params))
+        return objs
 
     @classmethod
-    def create_from_lines(cls, lines, category):
-        if category.is_slots:
-            items = [_EftItem.create_from_slots(line) for line in lines]
-        else:
-            items = [_EftItem.create_from_non_slots(line) for line in lines]
-        return cls(items=items, category=category)
+    def create_from_eft_text_section(
+        cls, text_section: _EftTextSection, eve_types: _EveTypes
+    ):
+        items = [
+            _EftItem.create_from_text_item(item, eve_types)
+            for item in text_section.items
+        ]
+        return cls(items=items)
 
 
 def create_fitting_from_eft(eft_text: str) -> Tuple[Fitting, List[str]]:
     """Create new object from fitting in EFT format."""
-    lines = _text_into_lines(eft_text)
+    lines = _text_to_lines(eft_text)
     text_sections = _lines_to_text_sections(lines)
-    sections = _text_sections_to_eft_sections(text_sections)
-    ship_type_name, fitting_name = _parse_title(lines[0])
-    eve_types = _load_eve_types(ship_type_name, sections)
-    sections = _try_to_identify_unknown_sections(sections, eve_types)
-    fitting, unknown_types = _create_fitting_from_sections(
-        sections, ship_type_name, fitting_name, eve_types
-    )
+    eft_sections = [
+        _EftTextSection.create_from_lines(lines=lines) for lines in text_sections
+    ]
+    ship_type_name, fitting_name = _parse_title(lines)
+    eve_types, unknown_types = _load_eve_types(ship_type_name, eft_sections)
+    sections = [
+        _EftSection.create_from_eft_text_section(section, eve_types)
+        for section in eft_sections
+    ]
+    sections = _try_to_identify_sections(sections)
+    ship_type = eve_types.from_name(ship_type_name)
+    fitting = _create_fitting_from_sections(fitting_name, ship_type, sections)
     errors = _unknown_types_to_errors(unknown_types)
     return fitting, errors
 
 
-def _text_into_lines(eft_text: str) -> List[str]:
+def _text_to_lines(eft_text: str) -> List[str]:
     """Convert text into lines."""
     lines = eft_text.strip().splitlines()
     if not lines:
@@ -350,102 +477,71 @@ def _lines_to_text_sections(lines: List[str]) -> List[List[str]]:
     return text_sections
 
 
-def _text_sections_to_eft_sections(
-    text_sections: List[List[str]],
-) -> List[_EftSection]:
-    """Create eft sections from text sections."""
-    if len(text_sections) < 4:
-        raise MissingSectionsError("Must contain at least 4 sections.")
-    slot_categories = [
-        _EftSection.Category.LOW_SLOTS,
-        _EftSection.Category.MEDIUM_SLOTS,
-        _EftSection.Category.HIGH_SLOTS,
-        _EftSection.Category.RIG_SLOTS,
-    ]
-    sections = []
-    for num, section_lines in enumerate(text_sections):
-        if num < 4:
-            category = slot_categories[num]
-        else:
-            category = _EftSection.Category.UNKNOWN
-        sections.append(
-            _EftSection.create_from_lines(lines=section_lines, category=category)
-        )
-    return sections
-
-
-def _parse_title(line: str) -> Tuple[str, str]:
+def _parse_title(lines: str) -> Tuple[str, str]:
     """Try to parse title from lines."""
+    if not lines:
+        raise MissingSectionsError("Text is empty")
+    line = lines[0]
     if line.startswith("[") and "," in line:
         ship_type_name, fitting_name = line[1:-1].split(",")
         return ship_type_name.strip(), fitting_name.strip()
     raise MissingTitleError("Title not found")
 
 
-def _load_eve_types(ship_type_name: str, sections: List[_EftSection]) -> _EveTypes:
+def _load_eve_types(
+    ship_type_name: str, sections: List[_EftTextSection]
+) -> Tuple["_EveTypes", Set[str]]:
     """Load all EveType objects used in this fitting."""
     type_names = {ship_type_name}
     for section in sections:
         type_names |= section.type_names()
-    eve_types = _EveTypes.create_from_names(type_names)
-    return eve_types
+    return _EveTypes.create_from_names(type_names)
 
 
-def _try_to_identify_unknown_sections(
-    sections: List[_EftSection], eve_types: _EveTypes
-) -> List[_EftSection]:
-    """Identify unknown section if possible."""
+def _try_to_identify_sections(sections: List[_EftSection]) -> List[_EftSection]:
+    """Identify sections if possible."""
     for section in sections:
-        if section.category == _EftSection.Category.UNKNOWN:
-            category = section.guess_category(eve_types)
-            if category:
-                section.category = category
-    # last unknown section (if any remain) must be the cargo bay
-    unknown_sections = [
-        section
-        for section in sections
-        if section.category == _EftSection.Category.UNKNOWN
-    ]
-    if unknown_sections:
-        unknown_sections.pop().category = _EftSection.Category.CARGO_BAY
+        category = section.guess_category()
+        if category:
+            section.category = category
+    # last unknown section must be the cargo bay
+    if sections:
+        last_section = sections[len(sections) - 1]
+        if (
+            last_section.category == _EftSection.Category.UNKNOWN
+            and not last_section.is_slots
+        ):
+            last_section.category = _EftSection.Category.CARGO_BAY
     return sections
 
 
 def _create_fitting_from_sections(
-    sections: List[_EftSection],
-    ship_type_name: str,
-    fitting_name: str,
-    eve_types: _EveTypes,
+    fitting_name: str, ship_type: EveType, sections: List[_EftSection]
 ) -> Tuple[Fitting, Set[str]]:
     """Create fitting object from input."""
-    params = {
-        "name": fitting_name,
-        "ship_type": eve_types.from_name(ship_type_name),
-    }
-    all_unknown_types = set()
+    params = {"name": fitting_name, "ship_type": ship_type}
     for section in sections:
         if section.category == _EftSection.Category.HIGH_SLOTS:
-            params["high_slots"], unknown_types = section.to_modules(eve_types)
+            params["high_slots"] = section.to_modules()
         elif section.category == _EftSection.Category.MEDIUM_SLOTS:
-            params["medium_slots"], unknown_types = section.to_modules(eve_types)
+            params["medium_slots"] = section.to_modules()
         elif section.category == _EftSection.Category.LOW_SLOTS:
-            params["low_slots"], unknown_types = section.to_modules(eve_types)
+            params["low_slots"] = section.to_modules()
         elif section.category == _EftSection.Category.RIG_SLOTS:
-            params["rig_slots"], unknown_types = section.to_modules(eve_types)
+            params["rig_slots"] = section.to_modules()
         elif section.category == _EftSection.Category.SUBSYSTEM_SLOTS:
-            params["subsystem_slots"], unknown_types = section.to_modules(eve_types)
+            params["subsystem_slots"] = section.to_modules()
         elif section.category == _EftSection.Category.DRONES_BAY:
-            params["drone_bay"], unknown_types = section.to_items(eve_types)
+            params["drone_bay"] = section.to_items()
         elif section.category == _EftSection.Category.FIGHTER_BAY:
-            params["fighter_bay"], unknown_types = section.to_items(eve_types)
+            params["fighter_bay"] = section.to_items()
         elif section.category == _EftSection.Category.IMPLANTS:
-            params["implants"], unknown_types = section.to_items(eve_types)
+            params["implants"] = section.to_items()
         elif section.category == _EftSection.Category.BOOSTERS:
-            params["boosters"], unknown_types = section.to_items(eve_types)
+            params["boosters"] = section.to_items()
         elif section.category == _EftSection.Category.CARGO_BAY:
-            params["cargo_bay"], unknown_types = section.to_items(eve_types)
-        all_unknown_types |= unknown_types
-    return Fitting(**params), all_unknown_types
+            params["cargo_bay"] = section.to_items()
+    return Fitting(**params)
 
 
 def _unknown_types_to_errors(unknown_types: Set[str]) -> List[str]:

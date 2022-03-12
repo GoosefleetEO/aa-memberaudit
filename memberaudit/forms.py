@@ -1,5 +1,8 @@
 from django import forms
 
+from .models import SkillSetGroup
+from .models.constants import NAMES_MAX_LENGTH
+
 
 class ImportFittingForm(forms.Form):
     fitting_text = forms.CharField(
@@ -14,4 +17,15 @@ class ImportFittingForm(forms.Form):
     )
     can_overwrite = forms.BooleanField(
         label="Overwrite skill sets with same name", required=False
+    )
+    skill_set_name = forms.CharField(
+        label="New Name",
+        max_length=NAMES_MAX_LENGTH,
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Instead of name from fitting."}),
+    )
+    skill_set_group = forms.ModelChoiceField(
+        label="Add to skill set group",
+        required=False,
+        queryset=SkillSetGroup.objects.order_by("name"),
     )
