@@ -10,6 +10,8 @@ from app_utils.testing import NoSocketsTestCase
 from ..core.eft_parser import (
     MissingSectionsError,
     MissingTitleError,
+    _EftItem,
+    _EftSection,
     _EveTypes,
     create_fitting_from_eft,
 )
@@ -180,3 +182,66 @@ class TestEveTypes(NoSocketsTestCase):
         # then
         self.assertEqual(eve_types.from_name("Drones"), drones)
         self.assertIsNone(eve_types.from_name("Unknown-Type"))
+
+
+class TestEftItem(NoSocketsTestCase):
+    def test_should_create_slot_module(self):
+        #  when
+        item = _EftItem.create_from_line("Warp Disruptor II")
+        # then
+        self.assertEqual(item, _EftItem(item_type="Warp Disruptor II"))
+
+    def test_should_create_slot_module_with_charge(self):
+        #  when
+        item = _EftItem.create_from_line("125mm Gatling AutoCannon II, EMP S")
+        # then
+        self.assertEqual(
+            item,
+            _EftItem(item_type="125mm Gatling AutoCannon II", charge_type="EMP S"),
+        )
+
+    def test_should_create_slot_module_offline(self):
+        #  when
+        item = _EftItem.create_from_line("Warp Disruptor II /OFFLINE")
+        # then
+        self.assertEqual(item, _EftItem(item_type="Warp Disruptor II", is_offline=True))
+
+    def test_should_create_slot_module_empty(self):
+        #  when
+        item = _EftItem.create_from_line("[Empty High slot]")
+        # then
+        self.assertEqual(item, _EftItem(is_empty=True))
+
+    def test_should_create_non_slot_item(self):
+        #  when
+        item = _EftItem.create_from_line("Acolyte II x5")
+        # then
+        self.assertEqual(item, _EftItem(item_type="Acolyte II", quantity=5))
+
+    def test_should_be_slot(self):
+        # given
+        item = _EftItem(item_type="Warp Disruptor II")
+        # when/then
+        self.assertTrue(item.is_slot)
+
+    def test_should_not_be_slot(self):
+        # given
+        item = _EftItem(item_type="Warp Disruptor II", quantity=3)
+        # when/then
+        self.assertFalse(item.is_slot)
+
+
+class TestEftSection(NoSocketsTestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        load_eveuniverse()
+
+    def test_should_be_drones(self):
+        # given
+        eve_types = _EveTypes.create_from_names(["Acolyte II"])
+        section = _EftSection([_EftItem(item_type="Acolyte II", quantity=5)])
+        # when/then
+        self.assertEqual(
+            section.guess_category(eve_types), _EftSection.Category.DRONES_BAY
+        )

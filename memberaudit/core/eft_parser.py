@@ -140,6 +140,10 @@ class _EftItem:
     is_offline: bool = False
     is_empty: bool = False
 
+    @property
+    def is_slot(self) -> bool:
+        return self.quantity is None
+
     def type_names(self) -> Set[str]:
         types = set()
         if self.item_type:
@@ -163,9 +167,15 @@ class _EftItem:
         return None
 
     @classmethod
-    def create_from_slots(cls, line: str) -> "_EftItem":
+    def create_from_line(cls, line: str) -> "_EftItem":
+        """Create new object from text line."""
         if "empty" in line.strip("[]").lower():
             return cls(is_empty=True)
+        part = line.split()[-1]
+        if "x" in part and part[1:].isdigit():
+            item_type = line.split(part)[0].strip()
+            quantity = part[1:]
+            return cls(item_type=item_type, quantity=int(quantity))
         if "/OFFLINE" in line:
             is_offline = True
             line = line.replace(" /OFFLINE", "")
@@ -178,17 +188,6 @@ class _EftItem:
                 item_type=item_type, charge_type=charge_type, is_offline=is_offline
             )
         return cls(item_type=line.strip(), is_offline=is_offline)
-
-    @classmethod
-    def create_from_non_slots(cls, line: str) -> "_EftItem":
-        if "empty" in line.strip("[]").lower():  # for structure services
-            return cls(is_empty=True)
-        part = line.split()[-1]
-        if "x" in part and part[1:].isdigit():
-            item_type = line.split(part)[0].strip()
-            quantity = part[1:]
-            return cls(item_type=item_type, quantity=int(quantity))
-        return cls(item_type=line.strip())
 
 
 @dataclass
@@ -220,14 +219,30 @@ class _EftSection:
     items: List[_EftItem] = field(default_factory=list)
     category: Category = Category.UNKNOWN
 
+    @property
+    def is_slots(self) -> bool:
+        return any([item.is_slot for item in self.items])
+
     def type_names(self) -> Set[str]:
         types = set()
         for item in self.items:
             types |= item.type_names()
         return types
 
+    def same_category_id(self, eve_types: _EveTypes) -> Optional[int]:
+        ids = self.category_ids(eve_types)
+        if len(ids) != 1:
+            return None
+        return ids.pop()
+
     def category_ids(self, eve_types: _EveTypes) -> Set[Optional[int]]:
         return {item.category_id(eve_types) for item in self.items}
+
+    def same_group_id(self, eve_types: _EveTypes) -> Optional[int]:
+        ids = self.category_ids(eve_types)
+        if len(ids) != 1:
+            return None
+        return ids.pop()
 
     def group_ids(self, eve_types: _EveTypes) -> Set[Optional[int]]:
         return {item.group_id(eve_types) for item in self.items}
@@ -236,25 +251,21 @@ class _EftSection:
         """Try to guess the category of this section based on it's items.
         Returns ``None`` if the guess fails.
         """
-        ids = self.category_ids(eve_types)
-        if len(ids) != 1:
-            return None
-        category_id = ids.pop()
-        if category_id == EveCategoryId.DRONE:
-            return self.Category.DRONES_BAY
-        elif category_id == EveCategoryId.FIGHTER:
-            return self.Category.FIGHTER_BAY
-        elif category_id == EveCategoryId.SUBSYSTEM:
-            return self.Category.SUBSYSTEM_SLOTS
-        elif category_id == EveCategoryId.IMPLANT:
-            ids = self.group_ids(eve_types)
-            if len(ids) != 1:
-                return None
-            group_id = ids.pop()
-            if group_id == EveGroupId.BOOSTER:
-                return self.Category.BOOSTERS
-            elif group_id == EveGroupId.CYBERIMPLANT:
-                return self.Category.IMPLANTS
+        category_id = self.same_category_id(eve_types)
+        if not self.is_slots:
+            if category_id == EveCategoryId.DRONE:
+                return self.Category.DRONES_BAY
+            elif category_id == EveCategoryId.FIGHTER:
+                return self.Category.FIGHTER_BAY
+        else:
+            if category_id == EveCategoryId.SUBSYSTEM:
+                return self.Category.SUBSYSTEM_SLOTS
+            elif category_id == EveCategoryId.IMPLANT:
+                group_id = self.same_group_id(eve_types)
+                if group_id == EveGroupId.BOOSTER:
+                    return self.Category.BOOSTERS
+                elif group_id == EveGroupId.CYBERIMPLANT:
+                    return self.Category.IMPLANTS
         return None
 
     def to_modules(self, eve_types: _EveTypes) -> Tuple[List[Module], Set[str]]:
@@ -303,12 +314,9 @@ class _EftSection:
         return objs, unknown_types
 
     @classmethod
-    def create_from_lines(cls, lines, category):
-        if category.is_slots:
-            items = [_EftItem.create_from_slots(line) for line in lines]
-        else:
-            items = [_EftItem.create_from_non_slots(line) for line in lines]
-        return cls(items=items, category=category)
+    def create_from_lines(cls, lines):
+        items = [_EftItem.create_from_line(line) for line in lines]
+        return cls(items=items)
 
 
 def create_fitting_from_eft(eft_text: str) -> Tuple[Fitting, List[str]]:
@@ -318,7 +326,7 @@ def create_fitting_from_eft(eft_text: str) -> Tuple[Fitting, List[str]]:
     sections = _text_sections_to_eft_sections(text_sections)
     ship_type_name, fitting_name = _parse_title(lines[0])
     eve_types = _load_eve_types(ship_type_name, sections)
-    sections = _try_to_identify_unknown_sections(sections, eve_types)
+    sections = _try_to_identify_sections(sections, eve_types)
     fitting, unknown_types = _create_fitting_from_sections(
         sections, ship_type_name, fitting_name, eve_types
     )
@@ -354,24 +362,7 @@ def _text_sections_to_eft_sections(
     text_sections: List[List[str]],
 ) -> List[_EftSection]:
     """Create eft sections from text sections."""
-    if len(text_sections) < 4:
-        raise MissingSectionsError("Must contain at least 4 sections.")
-    slot_categories = [
-        _EftSection.Category.LOW_SLOTS,
-        _EftSection.Category.MEDIUM_SLOTS,
-        _EftSection.Category.HIGH_SLOTS,
-        _EftSection.Category.RIG_SLOTS,
-    ]
-    sections = []
-    for num, section_lines in enumerate(text_sections):
-        if num < 4:
-            category = slot_categories[num]
-        else:
-            category = _EftSection.Category.UNKNOWN
-        sections.append(
-            _EftSection.create_from_lines(lines=section_lines, category=category)
-        )
-    return sections
+    return [_EftSection.create_from_lines(lines=lines) for lines in text_sections]
 
 
 def _parse_title(line: str) -> Tuple[str, str]:
@@ -391,7 +382,7 @@ def _load_eve_types(ship_type_name: str, sections: List[_EftSection]) -> _EveTyp
     return eve_types
 
 
-def _try_to_identify_unknown_sections(
+def _try_to_identify_sections(
     sections: List[_EftSection], eve_types: _EveTypes
 ) -> List[_EftSection]:
     """Identify unknown section if possible."""
@@ -407,7 +398,9 @@ def _try_to_identify_unknown_sections(
         if section.category == _EftSection.Category.UNKNOWN
     ]
     if unknown_sections:
-        unknown_sections.pop().category = _EftSection.Category.CARGO_BAY
+        last_section = unknown_sections.pop()
+        if not last_section.is_slots:
+            last_section.category = _EftSection.Category.CARGO_BAY
     return sections
 
 
