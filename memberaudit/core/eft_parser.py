@@ -435,12 +435,12 @@ class _EftSection:
 
 def create_fitting_from_eft(eft_text: str) -> Tuple[Fitting, List[str]]:
     """Create new object from fitting in EFT format."""
-    lines = _text_into_lines(eft_text)
+    lines = _text_to_lines(eft_text)
     text_sections = _lines_to_text_sections(lines)
     eft_sections = [
         _EftTextSection.create_from_lines(lines=lines) for lines in text_sections
     ]
-    ship_type_name, fitting_name = _parse_title(lines[0])
+    ship_type_name, fitting_name = _parse_title(lines)
     eve_types, unknown_types = _load_eve_types(ship_type_name, eft_sections)
     sections = [
         _EftSection.create_from_eft_text_section(section, eve_types)
@@ -453,7 +453,7 @@ def create_fitting_from_eft(eft_text: str) -> Tuple[Fitting, List[str]]:
     return fitting, errors
 
 
-def _text_into_lines(eft_text: str) -> List[str]:
+def _text_to_lines(eft_text: str) -> List[str]:
     """Convert text into lines."""
     lines = eft_text.strip().splitlines()
     if not lines:
@@ -477,15 +477,20 @@ def _lines_to_text_sections(lines: List[str]) -> List[List[str]]:
     return text_sections
 
 
-def _parse_title(line: str) -> Tuple[str, str]:
+def _parse_title(lines: str) -> Tuple[str, str]:
     """Try to parse title from lines."""
+    if not lines:
+        raise MissingSectionsError("Text is empty")
+    line = lines[0]
     if line.startswith("[") and "," in line:
         ship_type_name, fitting_name = line[1:-1].split(",")
         return ship_type_name.strip(), fitting_name.strip()
     raise MissingTitleError("Title not found")
 
 
-def _load_eve_types(ship_type_name: str, sections: List[_EftTextSection]) -> _EveTypes:
+def _load_eve_types(
+    ship_type_name: str, sections: List[_EftTextSection]
+) -> Tuple["_EveTypes", Set[str]]:
     """Load all EveType objects used in this fitting."""
     type_names = {ship_type_name}
     for section in sections:

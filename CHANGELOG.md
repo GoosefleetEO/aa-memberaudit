@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.11.0b2] - 2022-03-12
+
+### Added
+
+- Ability to define a different name when creating a skill set from a fitting
+- Ability to add new skill set to group when creating from fitting
+
+### Changed
+
+- Improved performance of admin site pages for skill sets and skill set groups
+
+### Fixed
+
+- Fail to parse fittings from Eve client with missing slots correctly (#111)
+
 ## [1.11.0b1] - 2022-03-10
 
 >**Update note**:<br>Please make sure to re-run the `memberaudit_load_eve` command, which will pre-load types needed to process fittings. Otherwise importing fittings can take a long time.
