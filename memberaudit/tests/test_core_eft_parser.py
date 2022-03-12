@@ -96,13 +96,6 @@ class TestEftParser(NoSocketsTestCase):
         with self.assertRaises(MissingSectionsError):
             create_fitting_from_eft("")
 
-    def test_should_raise_error_when_slots_are_missing(self):
-        # given
-        fitting_text = create_fitting_text("fitting_tristan_missing_rigs.txt")
-        # when
-        with self.assertRaises(MissingSectionsError):
-            create_fitting_from_eft(fitting_text)
-
     def test_should_report_unknown_types(self):
         # given
         fitting_text = create_fitting_text("fitting_tristan_unknown_types.txt")
@@ -129,7 +122,7 @@ class TestEveTypes(NoSocketsTestCase):
         drones = EveType.objects.get(name="Drones")
         gunnery = EveType.objects.get(name="Gunnery")
         # when
-        eve_types = _EveTypes.create_from_names(["Drones", "Gunnery"])
+        eve_types, _ = _EveTypes.create_from_names(["Drones", "Gunnery"])
         # then
         self.assertEqual(eve_types.from_name("Drones"), drones)
         self.assertEqual(eve_types.from_name("Gunnery"), gunnery)
@@ -147,7 +140,7 @@ class TestEveTypes(NoSocketsTestCase):
                 99
             ]
             mock_get_or_create_esi.return_value = (unknown_type, False)
-            eve_types = _EveTypes.create_from_names(["Unknown-Type"])
+            eve_types, _ = _EveTypes.create_from_names(["Unknown-Type"])
         # then
         self.assertEqual(eve_types.from_name("Unknown-Type"), unknown_type)
 
@@ -166,9 +159,10 @@ class TestEveTypes(NoSocketsTestCase):
                 99
             ]
             mock_get_or_create_esi.side_effect = http404
-            eve_types = _EveTypes.create_from_names(["Unknown-Type"])
+            eve_types, unknown_types = _EveTypes.create_from_names(["Unknown-Type"])
         # then
         self.assertIsNone(eve_types.from_name("Unknown-Type"))
+        self.assertIn("Unknown-Type", unknown_types)
 
     def test_should_handle_unknown_types(self):
         # given
@@ -180,10 +174,13 @@ class TestEveTypes(NoSocketsTestCase):
             mock_fetch_by_names_esi.return_value.filter.return_value.values_list.return_value = (
                 []
             )
-            eve_types = _EveTypes.create_from_names(["Drones", "Unknown-Type"])
+            eve_types, unknown_types = _EveTypes.create_from_names(
+                ["Drones", "Unknown-Type"]
+            )
         # then
         self.assertEqual(eve_types.from_name("Drones"), drones)
         self.assertIsNone(eve_types.from_name("Unknown-Type"))
+        self.assertIn("Unknown-Type", unknown_types)
 
 
 class TestEftTextItem(NoSocketsTestCase):
@@ -214,7 +211,7 @@ class TestEftTextItem(NoSocketsTestCase):
         #  when
         item = _EftTextItem.create_from_line("[Empty High slot]")
         # then
-        self.assertEqual(item, _EftTextItem(is_empty=True))
+        self.assertEqual(item, _EftTextItem())
 
     def test_should_create_non_slot_item(self):
         #  when
@@ -282,7 +279,7 @@ class TestEftItem(NoSocketsTestCase):
     def test_should_create_from_text_item_1(self):
         # given
         text_item = _EftTextItem(item_type="Warp Disruptor II")
-        eve_types = _EveTypes.create_from_names(["Warp Disruptor II"])
+        eve_types, _ = _EveTypes.create_from_names(["Warp Disruptor II"])
         # when
         item = _EftItem.create_from_text_item(text_item=text_item, eve_types=eve_types)
         # then
@@ -293,7 +290,7 @@ class TestEftItem(NoSocketsTestCase):
     def test_should_create_from_text_item_2(self):
         # given
         text_item = _EftTextItem(item_type="Warp Disruptor II", quantity=3)
-        eve_types = _EveTypes.create_from_names(["Warp Disruptor II"])
+        eve_types, _ = _EveTypes.create_from_names(["Warp Disruptor II"])
         # when
         item = _EftItem.create_from_text_item(text_item=text_item, eve_types=eve_types)
         # then
@@ -309,7 +306,7 @@ class TestEftItem(NoSocketsTestCase):
         text_item = _EftTextItem(
             item_type="125mm Gatling AutoCannon II", charge_type="EMP S"
         )
-        eve_types = _EveTypes.create_from_names(
+        eve_types, _ = _EveTypes.create_from_names(
             ["125mm Gatling AutoCannon II", "EMP S"]
         )
         # when
@@ -337,6 +334,20 @@ class TestEftItem(NoSocketsTestCase):
         # when/then
         self.assertFalse(item.is_slot)
 
+    def test_should_be_booster(self):
+        # given
+        item = _EftItem(
+            item_type=EveType.objects.get(name="Agency 'Pyrolancea' DB5 Dose II")
+        )
+        # when/then
+        self.assertTrue(item.is_booster())
+
+    def test_should_be_cyberimplant(self):
+        # given
+        item = _EftItem(item_type=EveType.objects.get(name="High-grade Snake Alpha"))
+        # when/then
+        self.assertTrue(item.is_cyberimplant())
+
     def test_should_be_drone(self):
         # given
         item = _EftItem(item_type=EveType.objects.get(name="Acolyte II"))
@@ -349,11 +360,55 @@ class TestEftItem(NoSocketsTestCase):
         # when/then
         self.assertTrue(item.is_fighter())
 
-    def test_should_be_cyberimplant(self):
+    def test_should_be_subsystem(self):
         # given
-        item = _EftItem(item_type=EveType.objects.get(name="High-grade Snake Alpha"))
+        item = _EftItem(
+            item_type=EveType.objects.get(
+                name="Tengu Core - Augmented Graviton Reactor"
+            )
+        )
         # when/then
-        self.assertTrue(item.is_cyberimplant())
+        self.assertTrue(item.is_subsystem())
+
+    def test_should_be_high_slot(self):
+        # given
+        item = _EftItem(
+            item_type=EveType.objects.get(name="125mm Gatling AutoCannon II")
+        )
+        # when/then
+        self.assertTrue(item.is_high_slot())
+        self.assertFalse(item.is_med_slot())
+        self.assertFalse(item.is_low_slot())
+        self.assertFalse(item.is_rig_slot())
+
+    def test_should_be_med_slot(self):
+        # given
+        item = _EftItem(item_type=EveType.objects.get(name="Warp Disruptor II"))
+        # when/then
+        self.assertFalse(item.is_high_slot())
+        self.assertTrue(item.is_med_slot())
+        self.assertFalse(item.is_low_slot())
+        self.assertFalse(item.is_rig_slot())
+
+    def test_should_be_low_slot(self):
+        # given
+        item = _EftItem(item_type=EveType.objects.get(name="Drone Damage Amplifier II"))
+        # when/then
+        self.assertFalse(item.is_high_slot())
+        self.assertFalse(item.is_med_slot())
+        self.assertTrue(item.is_low_slot())
+        self.assertFalse(item.is_rig_slot())
+
+    def test_should_be_rig_slot(self):
+        # given
+        item = _EftItem(
+            item_type=EveType.objects.get(name="Small EM Shield Reinforcer I")
+        )
+        # when/then
+        self.assertFalse(item.is_high_slot())
+        self.assertFalse(item.is_med_slot())
+        self.assertFalse(item.is_low_slot())
+        self.assertTrue(item.is_rig_slot())
 
 
 class TestEftSection(NoSocketsTestCase):
@@ -362,10 +417,94 @@ class TestEftSection(NoSocketsTestCase):
         super().setUpClass()
         load_eveuniverse()
 
-    def test_should_be_drones(self):
+    def test_should_be_boosters(self):
+        # given
+        section = _EftSection(
+            [
+                _EftItem(
+                    item_type=EveType.objects.get(
+                        name="Agency 'Pyrolancea' DB5 Dose II"
+                    )
+                )
+            ]
+        )
+        # when/then
+        self.assertEqual(section.guess_category(), _EftSection.Category.BOOSTERS)
+
+    def test_should_be_implants(self):
+        # given
+        section = _EftSection(
+            [_EftItem(item_type=EveType.objects.get(name="High-grade Snake Alpha"))]
+        )
+        # when/then
+        self.assertEqual(section.guess_category(), _EftSection.Category.IMPLANTS)
+
+    def test_should_be_drone_bay(self):
         # given
         section = _EftSection(
             [_EftItem(item_type=EveType.objects.get(name="Acolyte II"), quantity=5)]
         )
         # when/then
         self.assertEqual(section.guess_category(), _EftSection.Category.DRONES_BAY)
+
+    def test_should_be_figher_bay(self):
+        # given
+        section = _EftSection(
+            [_EftItem(item_type=EveType.objects.get(name="Firbolg I"), quantity=5)]
+        )
+        # when/then
+        self.assertEqual(section.guess_category(), _EftSection.Category.FIGHTER_BAY)
+
+    def test_should_be_subsystem_slots(self):
+        # given
+        section = _EftSection(
+            [
+                _EftItem(
+                    item_type=EveType.objects.get(
+                        name="Tengu Core - Augmented Graviton Reactor"
+                    )
+                )
+            ]
+        )
+        # when/then
+        self.assertEqual(section.guess_category(), _EftSection.Category.SUBSYSTEM_SLOTS)
+
+    def test_should_be_high_slots(self):
+        # given
+        section = _EftSection(
+            [
+                _EftItem(
+                    item_type=EveType.objects.get(name="125mm Gatling AutoCannon II")
+                )
+            ]
+        )
+        # when/then
+        self.assertEqual(section.guess_category(), _EftSection.Category.HIGH_SLOTS)
+
+    def test_should_be_med_slots(self):
+        # given
+        section = _EftSection(
+            [_EftItem(item_type=EveType.objects.get(name="Warp Disruptor II"))]
+        )
+        # when/then
+        self.assertEqual(section.guess_category(), _EftSection.Category.MEDIUM_SLOTS)
+
+    def test_should_be_low_slots(self):
+        # given
+        section = _EftSection(
+            [_EftItem(item_type=EveType.objects.get(name="Drone Damage Amplifier II"))]
+        )
+        # when/then
+        self.assertEqual(section.guess_category(), _EftSection.Category.LOW_SLOTS)
+
+    def test_should_be_rig_slots(self):
+        # given
+        section = _EftSection(
+            [
+                _EftItem(
+                    item_type=EveType.objects.get(name="Small EM Shield Reinforcer I")
+                )
+            ]
+        )
+        # when/then
+        self.assertEqual(section.guess_category(), _EftSection.Category.RIG_SLOTS)

@@ -33,6 +33,14 @@ class EveDogmaAttributeId(IntEnum):
     REQUIRED_SKILL_3_LEVEL = 279
 
 
+class EveDogmaEffectId(IntEnum):
+    LO_POWER = 11
+    HI_POWER = 12
+    MED_POWER = 13
+    RIG_SLOT = 2663
+    SUB_SYSTEM = 3772
+
+
 MAP_ARABIC_TO_ROMAN_NUMBERS = {0: "-", 1: "I", 2: "II", 3: "III", 4: "IV", 5: "V"}
 
 DATETIME_FORMAT = "%Y-%b-%d %H:%M"
