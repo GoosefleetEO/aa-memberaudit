@@ -2,13 +2,9 @@ from typing import Optional
 
 from django.contrib.auth.models import User
 from django.db import models
-from django.utils.html import format_html
-from eveuniverse.core import dotlan
-from eveuniverse.models import EveSolarSystem
 
 from allianceauth.services.hooks import get_extension_logger
 from app_utils.logging import LoggerAddTag
-from app_utils.views import link_html
 
 from . import __title__
 
@@ -50,26 +46,6 @@ def get_or_none(prop_name: str, dct: dict, Model: type) -> Optional[models.Model
         except Model.DoesNotExist:
             pass
     return None
-
-
-def eve_solar_system_to_html(solar_system: EveSolarSystem, show_region=True) -> str:
-    if solar_system.is_high_sec:
-        css_class = "text-high-sec"
-    elif solar_system.is_low_sec:
-        css_class = "text-low-sec"
-    else:
-        css_class = "text-null-sec"
-
-    region_html = (
-        f" / {solar_system.eve_constellation.eve_region.name}" if show_region else ""
-    )
-    return format_html(
-        '{} <span class="{}">{}</span>{}',
-        link_html(dotlan.solar_system_url(solar_system.name), solar_system.name),
-        css_class,
-        round(solar_system.security_status, 1),
-        region_html,
-    )
 
 
 def filter_groups_available_to_user(

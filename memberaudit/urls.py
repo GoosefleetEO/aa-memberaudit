@@ -1,10 +1,11 @@
 from django.urls import path
 
-from .views import character_viewer
+from .views import admin, character_viewer, data_export, reports
 
 app_name = "memberaudit"
 
 urlpatterns = [
+    # character viewer
     path("", character_viewer.index, name="index"),
     path("launcher", character_viewer.launcher, name="launcher"),
     path(
@@ -136,22 +137,6 @@ urlpatterns = [
         character_viewer.character_finder_data,
         name="character_finder_data",
     ),
-    path("reports", character_viewer.reports, name="reports"),
-    path(
-        "user_compliance_report_data",
-        character_viewer.user_compliance_report_data,
-        name="user_compliance_report_data",
-    ),
-    path(
-        "corporation_compliance_report_data",
-        character_viewer.corporation_compliance_report_data,
-        name="corporation_compliance_report_data",
-    ),
-    path(
-        "skill_sets_report_data",
-        character_viewer.skill_sets_report_data,
-        name="skill_sets_report_data",
-    ),
     path(
         "character_skill_set_details/<int:character_pk>/<int:skill_set_pk>",
         character_viewer.character_skill_set_details,
@@ -162,20 +147,39 @@ urlpatterns = [
         character_viewer.character_attribute_data,
         name="character_attribute_data",
     ),
-    path("data-export/", character_viewer.data_export, name="data_export"),
+    # reports
+    path("reports", reports.reports, name="reports"),
+    path(
+        "user_compliance_report_data",
+        reports.user_compliance_report_data,
+        name="user_compliance_report_data",
+    ),
+    path(
+        "corporation_compliance_report_data",
+        reports.corporation_compliance_report_data,
+        name="corporation_compliance_report_data",
+    ),
+    path(
+        "skill_sets_report_data",
+        reports.skill_sets_report_data,
+        name="skill_sets_report_data",
+    ),
+    # data export
+    path("data-export/", data_export.data_export, name="data_export"),
     path(
         "data-export/run-update/<str:topic>",
-        character_viewer.data_export_run_update,
+        data_export.data_export_run_update,
         name="data_export_run_update",
     ),
     path(
         "data-export/download/<str:topic>",
-        character_viewer.download_export_file,
+        data_export.download_export_file,
         name="download_export_file",
     ),
+    # admin
     path(
         "admin/create-skillset-from-fitting",
-        character_viewer.admin_create_skillset_from_fitting,
+        admin.admin_create_skillset_from_fitting,
         name="admin_create_skillset_from_fitting",
     ),
 ]

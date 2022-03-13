@@ -1,19 +1,15 @@
 import datetime as dt
-from pathlib import Path
-from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 import pytz
 
-from django.http import Http404
-from django.test import RequestFactory, TestCase
+from django.test import TestCase
 from django.urls import reverse
 from django.utils.timezone import now
-from eveuniverse.models import EveEntity, EveMarketPrice, EveSolarSystem, EveType
+from eveuniverse.models import EveEntity, EveMarketPrice, EveType
 
 from allianceauth.tests.auth_utils import AuthUtils
 from app_utils.testing import (
-    create_user_from_evecharacter,
     generate_invalid_pk,
     json_response_to_dict,
     json_response_to_python,
@@ -65,42 +61,12 @@ from ..views.character_viewer import (
     character_viewer,
     character_wallet_journal_data,
     character_wallet_transactions_data,
-    data_export,
-    data_export_run_update,
-    download_export_file,
     index,
     launcher,
-    reports,
 )
-from .testdata.load_entities import load_entities
-from .testdata.load_eveuniverse import load_eveuniverse
-from .testdata.load_locations import load_locations
-from .utils import add_memberaudit_character_to_user, create_memberaudit_character
+from .utils import LoadTestDataMixin, add_memberaudit_character_to_user
 
 MODULE_PATH = "memberaudit.views.character_viewer"
-
-
-class LoadTestDataMixin:
-    @classmethod
-    def setUpClass(cls) -> None:
-        super().setUpClass()
-        cls.factory = RequestFactory()
-        load_eveuniverse()
-        load_entities()
-        load_locations()
-        cls.character = create_memberaudit_character(1001)
-        cls.user = cls.character.character_ownership.user
-        cls.jita = EveSolarSystem.objects.get(id=30000142)
-        cls.jita_trade_hub = EveType.objects.get(id=52678)
-        cls.corporation_2001 = EveEntity.objects.get(id=2001)
-        cls.jita_44 = Location.objects.get(id=60003760)
-        cls.structure_1 = Location.objects.get(id=1000000000001)
-        cls.skill_type_1 = EveType.objects.get(id=24311)
-        cls.skill_type_2 = EveType.objects.get(id=24312)
-        cls.skill_type_3 = EveType.objects.get(id=24313)
-        cls.skill_type_4 = EveType.objects.get(id=24314)
-        cls.item_type_1 = EveType.objects.get(id=19540)
-        cls.item_type_2 = EveType.objects.get(id=19551)
 
 
 class TestCharacterAssets(LoadTestDataMixin, TestCase):
@@ -723,15 +689,6 @@ class TestViewsOther(LoadTestDataMixin, TestCase):
             {x["character_pk"] for x in data}, {self.character.pk, character_1002.pk}
         )
 
-    def test_can_open_reports_view(self):
-        self.user = AuthUtils.add_permission_to_user_by_name(
-            "memberaudit.reports_access", self.user
-        )
-        request = self.factory.get(reverse("memberaudit:reports"))
-        request.user = self.user
-        response = reports(request)
-        self.assertEqual(response.status_code, 200)
-
     def test_skill_sets_data(self):
         CharacterSkill.objects.create(
             character=self.character,
@@ -913,95 +870,6 @@ class TestViewsOther(LoadTestDataMixin, TestCase):
         request.user = self.user
         response = character_attribute_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
-
-
-class TestDataExport(LoadTestDataMixin, TestCase):
-    def test_should_open_exports_page_with_permission(self):
-        # given
-        user, _ = create_user_from_evecharacter(
-            1122, permissions=["memberaudit.basic_access", "memberaudit.exports_access"]
-        )
-        request = self.factory.get(reverse("memberaudit:data_export"))
-        request.user = user
-        # when
-        response = data_export(request)
-        # then
-        self.assertEqual(response.status_code, 200)
-
-    def test_should_not_open_exports_page_without_permission(self):
-        # given
-        user, _ = create_user_from_evecharacter(
-            1122, permissions=["memberaudit.basic_access"]
-        )
-        request = self.factory.get(reverse("memberaudit:data_export"))
-        request.user = user
-        # when
-        response = data_export(request)
-        # then
-        self.assertEqual(response.status_code, 302)
-
-    @patch(MODULE_PATH + ".data_exporters.default_destination")
-    def test_should_return_export_file(self, mock_default_destination):
-        with TemporaryDirectory() as tmpdirname:
-            # given
-            contract_item_file = Path(tmpdirname) / "memberaudit_contract-item.zip"
-            with contract_item_file.open(mode="w") as _:
-                pass
-            mock_default_destination.return_value = Path(tmpdirname)
-            user, _ = create_user_from_evecharacter(
-                1122,
-                permissions=["memberaudit.basic_access", "memberaudit.exports_access"],
-            )
-            request = self.factory.get(
-                reverse("memberaudit:download_export_file", args=["contract-item"])
-            )
-            request.user = user
-            # when
-            response = download_export_file(request, "contract-item")
-            # then
-            self.assertEqual(response.status_code, 200)
-
-    @patch(MODULE_PATH + ".data_exporters.default_destination")
-    def test_should_raise_404_when_export_file_not_found(
-        self, mock_default_destination
-    ):
-        with TemporaryDirectory() as tmpdirname:
-            # given
-            mock_default_destination.return_value = Path(tmpdirname)
-            user, _ = create_user_from_evecharacter(
-                1122,
-                permissions=["memberaudit.basic_access", "memberaudit.exports_access"],
-            )
-            request = self.factory.get(
-                reverse("memberaudit:download_export_file", args=["contract-item"])
-            )
-            request.user = user
-            # when/then
-            with self.assertRaises(Http404):
-                download_export_file(request, "contract-item")
-
-    @patch(MODULE_PATH + ".messages")
-    @patch(MODULE_PATH + ".tasks.export_data_for_topic")
-    def test_should_start_export_task(
-        self, mock_task_export_data_for_topic, mock_messages_plus
-    ):
-        # given
-        user, _ = create_user_from_evecharacter(
-            1122, permissions=["memberaudit.basic_access", "memberaudit.exports_access"]
-        )
-        request = self.factory.get(
-            reverse("memberaudit:data_export_run_update", args=["contract-item"])
-        )
-        request.user = user
-        # when
-        response = data_export_run_update(request, "contract-item")
-        # then
-        self.assertEqual(response.status_code, 302)
-        self.assertTrue(mock_task_export_data_for_topic.delay.called)
-        _, kwargs = mock_task_export_data_for_topic.delay.call_args
-        self.assertEqual(kwargs["topic"], "contract-item")
-        self.assertEqual(kwargs["user_pk"], user.pk)
-        self.assertTrue(mock_messages_plus.info.called)
 
 
 class TestCharacterDataViewsOther(LoadTestDataMixin, TestCase):

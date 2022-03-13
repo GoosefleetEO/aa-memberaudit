@@ -4,14 +4,11 @@ from typing import Optional, Tuple
 import humanize
 
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 from django.db.models import Count, F, Max, Q, Sum
 from django.http import (
-    FileResponse,
-    Http404,
     HttpResponse,
     HttpResponseForbidden,
     HttpResponseNotFound,
@@ -25,10 +22,10 @@ from django.utils.timesince import timeuntil
 from django.utils.timezone import now
 from django.utils.translation import gettext, gettext_lazy
 from esi.decorators import token_required
-from eveuniverse.core import eveimageserver
-from eveuniverse.models import EveType
+from eveuniverse.core import dotlan, eveimageserver
+from eveuniverse.models import EveSolarSystem, EveType
 
-from allianceauth.authentication.models import CharacterOwnership, get_guest_state_pk
+from allianceauth.authentication.models import CharacterOwnership
 from allianceauth.eveonline.models import EveCharacter
 from allianceauth.services.hooks import get_extension_logger
 from app_utils.logging import LoggerAddTag
@@ -43,14 +40,15 @@ from app_utils.views import (
 )
 
 from .. import __title__, tasks
-from ..app_settings import MEMBERAUDIT_APP_NAME, MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE
-from ..constants import DATETIME_FORMAT, MAP_ARABIC_TO_ROMAN_NUMBERS, EveCategoryId
-from ..core import data_exporters
-from ..core.eft_parser import EftParserError
-from ..core.fittings import Fitting
+from ..constants import (
+    DATETIME_FORMAT,
+    DEFAULT_ICON_SIZE,
+    MAP_ARABIC_TO_ROMAN_NUMBERS,
+    MY_DATETIME_FORMAT,
+    SKILL_SET_DEFAULT_ICON_TYPE_ID,
+    EveCategoryId,
+)
 from ..decorators import fetch_character_if_allowed
-from ..forms import ImportFittingForm
-from ..helpers import eve_solar_system_to_html
 from ..models import (
     Character,
     CharacterAsset,
@@ -58,27 +56,44 @@ from ..models import (
     CharacterContractItem,
     CharacterMail,
     ComplianceGroupDesignation,
-    General,
     Location,
     SkillSet,
-    SkillSetGroup,
     SkillSetSkill,
 )
+from .helpers import UNGROUPED_SKILL_SET, add_common_context
 
 # module constants
-MY_DATETIME_FORMAT = "Y-M-d H:i"
+
 MAIL_LABEL_ID_ALL_MAILS = 0
-UNGROUPED_SKILL_SET = gettext_lazy("[Ungrouped]")
-DEFAULT_ICON_SIZE = 32
+
 ICON_SIZE_64 = 64
 CHARACTER_VIEWER_DEFAULT_TAB = "mails"
-SKILL_SET_DEFAULT_ICON_TYPE_ID = 3327
 ICON_FAILED = "fas fa-times boolean-icon-false"
 ICON_PARTIAL = "fas fa-check text-warning"
 ICON_FULL = "fas fa-check-double text-success"
 ICON_MET_ALL_REQUIRED = "fas fa-check text-success"
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
+
+
+def eve_solar_system_to_html(solar_system: EveSolarSystem, show_region=True) -> str:
+    if solar_system.is_high_sec:
+        css_class = "text-high-sec"
+    elif solar_system.is_low_sec:
+        css_class = "text-low-sec"
+    else:
+        css_class = "text-null-sec"
+
+    region_html = (
+        f" / {solar_system.eve_constellation.eve_region.name}" if show_region else ""
+    )
+    return format_html(
+        '{} <span class="{}">{}</span>{}',
+        link_html(dotlan.solar_system_url(solar_system.name), solar_system.name),
+        css_class,
+        round(solar_system.security_status, 1),
+        region_html,
+    )
 
 
 def item_icon_plus_name_html(item, size=DEFAULT_ICON_SIZE) -> Tuple[str, str]:
@@ -95,30 +110,6 @@ def item_icon_plus_name_html(item, size=DEFAULT_ICON_SIZE) -> Tuple[str, str]:
         size=size,
     )
     return name_html, name
-
-
-def create_main_organization_html(main_character) -> str:
-    return format_html(
-        "{}{}",
-        main_character.corporation_name,
-        f" [{main_character.alliance_ticker}]" if main_character.alliance_name else "",
-    )
-
-
-def add_common_context(request, context: dict) -> dict:
-    """adds the common context used by all view"""
-    unregistered_count = Character.objects.unregistered_characters_of_user_count(
-        request.user
-    )
-    new_context = {
-        **{
-            "app_title": MEMBERAUDIT_APP_NAME,
-            "unregistered_count": unregistered_count,
-            "MY_DATETIME_FORMAT": MY_DATETIME_FORMAT,
-        },
-        **context,
-    }
-    return new_context
 
 
 @login_required
@@ -1636,416 +1627,3 @@ def character_finder_data(request) -> JsonResponse:
             }
         )
     return JsonResponse(character_list, safe=False)
-
-
-#############################
-# Section: Reports
-
-
-@login_required
-@permission_required("memberaudit.reports_access")
-def reports(request) -> HttpResponse:
-    context = {
-        "page_title": "Reports",
-    }
-    return render(
-        request,
-        "memberaudit/reports.html",
-        add_common_context(request, context),
-    )
-
-
-@login_required
-@permission_required("memberaudit.reports_access")
-def user_compliance_report_data(request) -> JsonResponse:
-    users_and_character_counts = (
-        General.accessible_users(request.user)
-        .exclude(profile__state__pk=get_guest_state_pk())
-        .annotate(total_chars=Count("character_ownerships__character", distinct=True))
-        .annotate(
-            unregistered_chars=Count(
-                "character_ownerships",
-                filter=Q(character_ownerships__memberaudit_character=None),
-                distinct=True,
-            )
-        )
-        .select_related("profile__main_character", "profile__state")
-    )
-    user_data = list()
-    for user in users_and_character_counts:
-        if user.profile.main_character:
-            main_character = user.profile.main_character
-            if user == request.user or request.user.has_perm(
-                "memberaudit.characters_access"
-            ):
-                try:
-                    character = main_character.character_ownership.memberaudit_character
-                except ObjectDoesNotExist:
-                    url = None
-                else:
-                    url = reverse("memberaudit:character_viewer", args=[character.pk])
-            else:
-                url = None
-            main_name = main_character.character_name
-            main_html = bootstrap_icon_plus_name_html(
-                main_character.portrait_url(),
-                main_character.character_name,
-                avatar=True,
-                url=url,
-            )
-            corporation_name = main_character.corporation_name
-            organization_html = create_main_organization_html(main_character)
-            alliance_name = (
-                main_character.alliance_name if main_character.alliance_name else ""
-            )
-            is_compliant = user.unregistered_chars == 0
-        else:
-            main_name = user.username
-            main_html = bootstrap_icon_plus_name_html(
-                eveimageserver.character_portrait_url(1, size=DEFAULT_ICON_SIZE),
-                main_name,
-                avatar=True,
-                url=url,
-            )
-            alliance_name = organization_html = corporation_name = ""
-            is_compliant = False
-
-        is_registered = user.unregistered_chars < user.total_chars
-        user_data.append(
-            {
-                "id": user.pk,
-                "main": {
-                    "display": main_html,
-                    "sort": main_name,
-                },
-                "organization": {
-                    "display": organization_html,
-                    "sort": corporation_name,
-                },
-                "state": user.profile.state.name,
-                "corporation_name": corporation_name,
-                "alliance_name": alliance_name,
-                "total_chars": user.total_chars,
-                "unregistered_chars": user.unregistered_chars,
-                "is_registered": is_registered,
-                "registered_str": yesno_str(is_registered),
-                "is_compliant": is_compliant,
-                "compliance_str": yesno_str(is_compliant),
-            }
-        )
-    return JsonResponse(user_data, safe=False)
-
-
-@login_required
-@permission_required("memberaudit.reports_access")
-def corporation_compliance_report_data(request) -> JsonResponse:
-    relevant_user_ids = list(
-        General.accessible_users(request.user)
-        .exclude(profile__state__pk=get_guest_state_pk())
-        .values_list("id", flat=True)
-    )
-    corporations = (
-        EveCharacter.objects.select_related(
-            "userprofile",
-            "userprofile__user__character_ownerships__character",
-            "userprofile__user__character_ownerships",
-        )
-        .filter(userprofile__in=relevant_user_ids)
-        .values(
-            "corporation_id",
-            "corporation_name",
-            "alliance_id",
-            "alliance_name",
-            "alliance_ticker",
-        )
-        .distinct()
-        .annotate(mains_count=Count("userprofile", distinct=True))
-        .annotate(
-            characters_count=Count(
-                "userprofile__user__character_ownerships__character", distinct=True
-            )
-        )
-        .annotate(
-            unregistered_count=Count(
-                "userprofile__user__character_ownerships",
-                filter=Q(
-                    userprofile__user__character_ownerships__memberaudit_character__isnull=True
-                ),
-                distinct=True,
-            )
-        )
-    )
-    data = list()
-    for corporation in corporations:
-        organization_name = "{}{}".format(
-            corporation["corporation_name"],
-            f" [{corporation['alliance_ticker']}]"
-            if corporation["alliance_ticker"]
-            else "",
-        )
-        alliance_name = (
-            corporation["alliance_name"] if corporation["alliance_name"] else ""
-        )
-        compliance_p = (
-            round(
-                (corporation["characters_count"] - corporation["unregistered_count"])
-                / corporation["characters_count"]
-                * 100
-            )
-            if corporation["characters_count"] > 0
-            else 0
-        )
-        is_compliant = compliance_p == 100
-        data.append(
-            {
-                "id": corporation["corporation_id"],
-                "organization_html": {
-                    "display": bootstrap_icon_plus_name_html(
-                        icon_url=eveimageserver.corporation_logo_url(
-                            corporation_id=corporation["corporation_id"],
-                            size=DEFAULT_ICON_SIZE,
-                        ),
-                        name=organization_name,
-                    ),
-                    "sort": corporation["corporation_name"],
-                },
-                "corporation_name": corporation["corporation_name"],
-                "alliance_name": alliance_name,
-                "mains_count": corporation["mains_count"],
-                "characters_count": corporation["characters_count"],
-                "unregistered_count": corporation["unregistered_count"],
-                "compliance_percent": compliance_p,
-                "is_compliant": is_compliant,
-                "is_partly_compliant": compliance_p >= 85,
-                "is_compliant_str": yesno_str(is_compliant),
-            }
-        )
-    return JsonResponse(data, safe=False)
-
-
-@login_required
-@permission_required("memberaudit.reports_access")
-def skill_sets_report_data(request) -> JsonResponse:
-    def create_data_row(group, character) -> dict:
-        user = character.character_ownership.user
-        auth_character = character.character_ownership.character
-        main_character = user.profile.main_character
-        if main_character:
-            main_name = main_character.character_name
-            main_html = bootstrap_icon_plus_name_html(
-                user.profile.main_character.portrait_url(), main_name, avatar=True
-            )
-            main_corporation = main_character.corporation_name
-            main_alliance = (
-                main_character.alliance_name if main_character.alliance_name else ""
-            )
-            organization_html = format_html(
-                "{}{}",
-                main_corporation,
-                f" [{main_character.alliance_ticker}]"
-                if main_character.alliance_name
-                else "",
-            )
-        else:
-            main_html = main_name = ""
-            main_corporation = main_alliance = organization_html = ""
-        character_viewer_url = "{}?tab=skill_sets".format(
-            reverse("memberaudit:character_viewer", args=[character.pk])
-        )
-        character_html = bootstrap_icon_plus_name_html(
-            auth_character.portrait_url(),
-            auth_character.character_name,
-            avatar=True,
-            url=character_viewer_url,
-        )
-        group_pk = group.pk if group else 0
-        has_required = [
-            bootstrap_icon_plus_name_html(
-                obj.skill_set.ship_type.icon_url(
-                    DEFAULT_ICON_SIZE, variant=EveType.IconVariant.REGULAR
-                )
-                if obj.skill_set.ship_type
-                else eveimageserver.type_icon_url(
-                    SKILL_SET_DEFAULT_ICON_TYPE_ID, size=DEFAULT_ICON_SIZE
-                ),
-                obj.skill_set.name,
-            )
-            for obj in skill_set_qs
-        ]
-        has_required_html = (
-            "<br>".join(has_required)
-            if has_required
-            else '<i class="fas fa-times boolean-icon-false"></i>'
-        )
-        return {
-            "id": f"{group_pk}_{character.pk}",
-            "group": group.name_plus if group else UNGROUPED_SKILL_SET,
-            "main": main_name,
-            "main_html": main_html,
-            "state": user.profile.state.name,
-            "organization_html": organization_html,
-            "corporation": main_corporation,
-            "alliance": main_alliance,
-            "character": character.character_ownership.character.character_name,
-            "character_html": character_html,
-            "has_required": has_required_html,
-            "has_required_str": yesno_str(bool(has_required)),
-            "is_doctrine_str": yesno_str(group.is_doctrine if group else False),
-        }
-
-    data = list()
-    relevant_user_ids = list(
-        General.accessible_users(request.user).exclude(
-            profile__state__pk=get_guest_state_pk()
-        )
-    )
-    character_qs = (
-        Character.objects.select_related(
-            "character_ownership__user",
-            "character_ownership__user__profile__main_character",
-            "character_ownership__character",
-        )
-        .prefetch_related("skill_set_checks")
-        .filter(character_ownership__user__in=relevant_user_ids)
-    )
-    my_select_related = (
-        "skill_set",
-        "skill_set__ship_type",
-        # "skill_set__ship_type__eve_group",
-    )
-    for group in SkillSetGroup.objects.all():
-        for character in character_qs:
-            skill_set_qs = (
-                character.skill_set_checks.select_related(*my_select_related)
-                .filter(skill_set__groups=group, failed_required_skills__isnull=True)
-                .order_by("skill_set__name")
-            )
-            data.append(create_data_row(group, character))
-
-    for character in character_qs:
-        if (
-            character.skill_set_checks.select_related("skill_set")
-            .filter(skill_set__groups__isnull=True)
-            .exists()
-        ):
-            skill_set_qs = (
-                character.skill_set_checks.select_related(*my_select_related)
-                .filter(
-                    skill_set__groups__isnull=True, failed_required_skills__isnull=True
-                )
-                .order_by("skill_set__name")
-            )
-            data.append(create_data_row(None, character))
-
-    return JsonResponse(data, safe=False)
-
-
-@login_required
-@permission_required("memberaudit.exports_access")
-def data_export(request):
-    topics = data_exporters.topics_and_export_files()
-    context = {
-        "page_title": "Data Export",
-        "topics": topics,
-        "character_count": Character.objects.count(),
-        "minutes_until_next_update": MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE,
-    }
-    return render(
-        request, "memberaudit/data_export.html", add_common_context(request, context)
-    )
-
-
-@login_required
-@permission_required("memberaudit.exports_access")
-def download_export_file(request, topic: str) -> FileResponse:
-    exporter = data_exporters.DataExporter.create_exporter(topic)
-    destination = data_exporters.default_destination()
-    zip_file = destination / exporter.output_basename.with_suffix(".zip")
-    if not zip_file.exists():
-        raise Http404(f"Could not find export file for {topic}")
-    logger.info("Returning file %s for download of topic %s", zip_file, topic)
-    return FileResponse(zip_file.open("rb"))
-
-
-@login_required
-@permission_required("memberaudit.exports_access")
-def data_export_run_update(request, topic: str):
-    tasks.export_data_for_topic.delay(topic=topic, user_pk=request.user.pk)
-    format_html
-    messages.info(
-        request,
-        format_html(
-            "Data export for topic <strong>{}</strong> has been started. "
-            "This can take a couple of minutes. "
-            "You will get a notification once it is completed.",
-            topic,
-        ),
-    )
-    return redirect("memberaudit:data_export")
-
-
-@login_required
-@staff_member_required
-def admin_create_skillset_from_fitting(request):
-    if request.method == "POST":
-        form = ImportFittingForm(request.POST)
-        if form.is_valid():
-            try:
-                fitting, errors = Fitting.create_from_eft(
-                    form.cleaned_data["fitting_text"]
-                )
-            except EftParserError:
-                messages.warning(
-                    request, "The fitting does not appear to be a valid EFT format."
-                )
-            else:
-                skill_set_name = (
-                    form.cleaned_data["skill_set_name"]
-                    if form.cleaned_data["skill_set_name"]
-                    else fitting.name
-                )
-                if (
-                    not form.cleaned_data["can_overwrite"]
-                    and SkillSet.objects.filter(name=skill_set_name).exists()
-                ):
-                    messages.warning(
-                        request,
-                        format_html(
-                            "A skill set with the name "
-                            f"<b>{fitting.name}</b> already exists."
-                        ),
-                    )
-                else:
-                    params = {"fitting": fitting, "user": request.user}
-                    if form.cleaned_data["skill_set_group"]:
-                        params["skill_set_group"] = form.cleaned_data["skill_set_group"]
-                    if form.cleaned_data["skill_set_name"]:
-                        params["skill_set_name"] = form.cleaned_data["skill_set_name"]
-                    obj, created = SkillSet.objects.update_or_create_from_fitting(
-                        **params
-                    )
-                    logger.info(
-                        "Skill Set created from fitting with name: %s", fitting.name
-                    )
-                    tasks.update_characters_skill_checks.delay(force_update=True)
-                    if created:
-                        msg = f"Skill Set <b>{obj.name}</b> has been created"
-                    else:
-                        msg = f"Skill Set <b>{obj.name}</b> has been updated"
-                    if errors:
-                        msg += f" with issues:<br>- {'<br>- '.join(errors)}"
-                        messages.warning(request, format_html(msg))
-                    else:
-                        messages.info(request, format_html(f"{msg}."))
-            return redirect("admin:memberaudit_skillset_changelist")
-    else:
-        form = ImportFittingForm()
-    return render(
-        request,
-        "admin/memberaudit/skillset/import_fitting.html",
-        {
-            "title": "Member Audit",
-            "subtitle": "Create skill set from fitting",
-            "form": form,
-        },
-    )

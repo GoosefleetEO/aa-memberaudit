@@ -44,3 +44,6 @@ class EveDogmaEffectId(IntEnum):
 MAP_ARABIC_TO_ROMAN_NUMBERS = {0: "-", 1: "I", 2: "II", 3: "III", 4: "IV", 5: "V"}
 
 DATETIME_FORMAT = "%Y-%b-%d %H:%M"
+MY_DATETIME_FORMAT = "Y-M-d H:i"
+DEFAULT_ICON_SIZE = 32
+SKILL_SET_DEFAULT_ICON_TYPE_ID = 3327
