@@ -7,6 +7,7 @@ from allianceauth.authentication.models import State
 from allianceauth.eveonline.models import EveAllianceInfo, EveCorporationInfo
 from allianceauth.tests.auth_utils import AuthUtils
 from app_utils.testing import (
+    create_user_from_evecharacter,
     json_response_to_dict,
     multi_assert_in,
     multi_assert_not_in,
@@ -43,9 +44,8 @@ class TestReports(TestCase):
 
     def test_can_open_reports_view(self):
         # given
-        user, _ = create_user_from_evecharacter_with_access(1001)
-        user = AuthUtils.add_permission_to_user_by_name(
-            "memberaudit.reports_access", user
+        user, _ = create_user_from_evecharacter(
+            1001, permissions=["memberaudit.basic_access", "memberaudit.reports_access"]
         )
         request = self.factory.get(reverse("memberaudit:reports"))
         request.user = user

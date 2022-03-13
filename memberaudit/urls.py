@@ -1,33 +1,34 @@
 from django.urls import path
 
-from .views import admin, character_viewer, data_export, reports
+from .views import admin, character_viewer, characters, data_export, reports
 
 app_name = "memberaudit"
 
 urlpatterns = [
-    # character viewer
-    path("", character_viewer.index, name="index"),
-    path("launcher", character_viewer.launcher, name="launcher"),
-    path(
-        "character_viewer/<int:character_pk>/",
-        character_viewer.character_viewer,
-        name="character_viewer",
-    ),
-    path("add_character", character_viewer.add_character, name="add_character"),
+    # characters
+    path("", characters.index, name="index"),
+    path("launcher", characters.launcher, name="launcher"),
+    path("add_character", characters.add_character, name="add_character"),
     path(
         "remove_character/<int:character_pk>/",
-        character_viewer.remove_character,
+        characters.remove_character,
         name="remove_character",
     ),
     path(
         "share_character/<int:character_pk>/",
-        character_viewer.share_character,
+        characters.share_character,
         name="share_character",
     ),
     path(
         "unshare_character/<int:character_pk>/",
-        character_viewer.unshare_character,
+        characters.unshare_character,
         name="unshare_character",
+    ),
+    # character viewer
+    path(
+        "character_viewer/<int:character_pk>/",
+        character_viewer.character_viewer,
+        name="character_viewer",
     ),
     path(
         "character_assets_data/<int:character_pk>/",

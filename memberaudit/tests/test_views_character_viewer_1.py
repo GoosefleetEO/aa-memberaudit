@@ -61,8 +61,6 @@ from ..views.character_viewer import (
     character_viewer,
     character_wallet_journal_data,
     character_wallet_transactions_data,
-    index,
-    launcher,
 )
 from .utils import LoadTestDataMixin, add_memberaudit_character_to_user
 
@@ -628,32 +626,6 @@ class TestCharacterContracts(LoadTestDataMixin, TestCase):
 
 
 class TestViewsOther(LoadTestDataMixin, TestCase):
-    def test_can_open_index_view(self):
-        request = self.factory.get(reverse("memberaudit:index"))
-        request.user = self.user
-        response = index(request)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse("memberaudit:launcher"))
-
-    def test_can_open_launcher_view_1(self):
-        """user with main"""
-        request = self.factory.get(reverse("memberaudit:launcher"))
-        request.user = self.user
-        response = launcher(request)
-        self.assertEqual(response.status_code, 200)
-
-    def test_can_open_launcher_view_2(self):
-        """user without main"""
-        user = AuthUtils.create_user("John Doe")
-        user = AuthUtils.add_permission_to_user_by_name(
-            "memberaudit.basic_access", user
-        )
-
-        request = self.factory.get(reverse("memberaudit:launcher"))
-        request.user = user
-        response = launcher(request)
-        self.assertEqual(response.status_code, 200)
-
     def test_can_open_character_main_view(self):
         request = self.factory.get(
             reverse("memberaudit:character_viewer", args=[self.character.pk])
