@@ -1,6 +1,13 @@
 from django.urls import path
 
-from .views import admin, character_viewer, characters, data_export, reports
+from .views import (
+    admin,
+    character_finder,
+    character_viewer,
+    characters,
+    data_export,
+    reports,
+)
 
 app_name = "memberaudit"
 
@@ -131,14 +138,6 @@ urlpatterns = [
         name="character_wallet_transactions_data",
     ),
     path(
-        "character_finder", character_viewer.character_finder, name="character_finder"
-    ),
-    path(
-        "character_finder_data",
-        character_viewer.character_finder_data,
-        name="character_finder_data",
-    ),
-    path(
         "character_skill_set_details/<int:character_pk>/<int:skill_set_pk>",
         character_viewer.character_skill_set_details,
         name="character_skill_set_details",
@@ -147,6 +146,15 @@ urlpatterns = [
         "character_attributes_data/<int:character_pk>",
         character_viewer.character_attribute_data,
         name="character_attribute_data",
+    ),
+    # character finder
+    path(
+        "character_finder", character_finder.character_finder, name="character_finder"
+    ),
+    path(
+        "character_finder_data",
+        character_finder.character_finder_data,
+        name="character_finder_data",
     ),
     # reports
     path("reports", reports.reports, name="reports"),

@@ -13,7 +13,7 @@ from app_utils.logging import LoggerAddTag
 
 from .. import __title__, tasks
 from ..models import Character, ComplianceGroupDesignation
-from .helpers import add_common_context
+from ._common import add_common_context
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 

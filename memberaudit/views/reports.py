@@ -17,7 +17,7 @@ from app_utils.views import bootstrap_icon_plus_name_html, yesno_str
 from .. import __title__
 from ..constants import DEFAULT_ICON_SIZE, SKILL_SET_DEFAULT_ICON_TYPE_ID
 from ..models import Character, General, SkillSetGroup
-from .helpers import UNGROUPED_SKILL_SET, add_common_context
+from ._common import UNGROUPED_SKILL_SET, add_common_context
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 

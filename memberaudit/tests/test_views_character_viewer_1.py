@@ -8,7 +8,6 @@ from django.urls import reverse
 from django.utils.timezone import now
 from eveuniverse.models import EveEntity, EveMarketPrice, EveType
 
-from allianceauth.tests.auth_utils import AuthUtils
 from app_utils.testing import (
     generate_invalid_pk,
     json_response_to_dict,
@@ -27,7 +26,6 @@ from ..models import (
     CharacterImplant,
     CharacterJumpClone,
     CharacterJumpCloneImplant,
-    CharacterLocation,
     CharacterLoyaltyEntry,
     CharacterSkill,
     CharacterSkillqueueEntry,
@@ -49,8 +47,6 @@ from ..views.character_viewer import (
     character_contract_items_requested_data,
     character_contracts_data,
     character_corporation_history,
-    character_finder,
-    character_finder_data,
     character_implants_data,
     character_jump_clones_data,
     character_loyalty_data,
@@ -62,7 +58,7 @@ from ..views.character_viewer import (
     character_wallet_journal_data,
     character_wallet_transactions_data,
 )
-from .utils import LoadTestDataMixin, add_memberaudit_character_to_user
+from .utils import LoadTestDataMixin
 
 MODULE_PATH = "memberaudit.views.character_viewer"
 
@@ -633,33 +629,6 @@ class TestViewsOther(LoadTestDataMixin, TestCase):
         request.user = self.user
         response = character_viewer(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
-
-    def test_can_open_character_finder_view(self):
-        self.user = AuthUtils.add_permission_to_user_by_name(
-            "memberaudit.finder_access", self.user
-        )
-        request = self.factory.get(reverse("memberaudit:character_finder"))
-        request.user = self.user
-        response = character_finder(request)
-        self.assertEqual(response.status_code, 200)
-
-    def test_character_finder_data(self):
-        self.user = AuthUtils.add_permission_to_user_by_name(
-            "memberaudit.finder_access", self.user
-        )
-        CharacterLocation.objects.create(
-            character=self.character, eve_solar_system=self.jita, location=self.jita_44
-        )
-        character_1002 = add_memberaudit_character_to_user(self.user, 1002)
-
-        request = self.factory.get(reverse("memberaudit:character_finder_data"))
-        request.user = self.user
-        response = character_finder_data(request)
-        self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
-        self.assertSetEqual(
-            {x["character_pk"] for x in data}, {self.character.pk, character_1002.pk}
-        )
 
     def test_skill_sets_data(self):
         CharacterSkill.objects.create(

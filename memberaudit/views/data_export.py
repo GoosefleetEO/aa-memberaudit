@@ -11,7 +11,7 @@ from .. import __title__, tasks
 from ..app_settings import MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE
 from ..core import data_exporters
 from ..models import Character
-from .helpers import add_common_context
+from ._common import add_common_context
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
