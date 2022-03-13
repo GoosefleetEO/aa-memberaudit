@@ -15,7 +15,7 @@ from app_utils.testing import (
     response_text,
 )
 
-from ..models import (
+from ...models import (
     CharacterAsset,
     CharacterAttributes,
     CharacterContact,
@@ -25,7 +25,7 @@ from ..models import (
     CharacterImplant,
     CharacterLoyaltyEntry,
 )
-from ..views.character_viewer_1 import (
+from ...views.character_viewer_1 import (
     character_asset_container,
     character_asset_container_data,
     character_assets_data,
@@ -40,7 +40,7 @@ from ..views.character_viewer_1 import (
     character_loyalty_data,
     character_viewer,
 )
-from .utils import LoadTestDataMixin
+from ..utils import LoadTestDataMixin
 
 MODULE_PATH = "memberaudit.views.character_viewer_1"
 

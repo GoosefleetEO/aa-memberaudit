@@ -13,7 +13,7 @@ from app_utils.testing import (
     response_text,
 )
 
-from ..models import (
+from ...models import (
     CharacterJumpClone,
     CharacterJumpCloneImplant,
     CharacterMail,
@@ -26,7 +26,7 @@ from ..models import (
     SkillSetGroup,
     SkillSetSkill,
 )
-from ..views.character_viewer_2 import (
+from ...views.character_viewer_2 import (
     character_jump_clones_data,
     character_mail,
     character_mail_headers_by_label_data,
@@ -38,15 +38,15 @@ from ..views.character_viewer_2 import (
     character_wallet_journal_data,
     character_wallet_transactions_data,
 )
-from .testdata.factories import (
+from ..testdata.factories import (
     create_character_mail,
     create_character_mail_label,
     create_mail_entity_from_eve_entity,
     create_mailing_list,
 )
-from .testdata.load_entities import load_entities
-from .testdata.load_eveuniverse import load_eveuniverse
-from .utils import LoadTestDataMixin, create_memberaudit_character
+from ..testdata.load_entities import load_entities
+from ..testdata.load_eveuniverse import load_eveuniverse
+from ..utils import LoadTestDataMixin, create_memberaudit_character
 
 MODULE_PATH = "memberaudit.views.character_viewer_2"
 

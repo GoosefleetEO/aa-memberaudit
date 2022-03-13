@@ -13,21 +13,21 @@ from app_utils.testing import (
     multi_assert_not_in,
 )
 
-from ..models import Character, CharacterSkill, SkillSetGroup
-from ..views.reports import (
+from ...models import Character, CharacterSkill, SkillSetGroup
+from ...views.reports import (
     corporation_compliance_report_data,
     reports,
     skill_sets_report_data,
     user_compliance_report_data,
 )
-from .testdata.factories import (
+from ..testdata.factories import (
     create_skill_set,
     create_skill_set_group,
     create_skill_set_skill,
 )
-from .testdata.load_entities import load_entities
-from .testdata.load_eveuniverse import load_eveuniverse
-from .utils import (
+from ..testdata.load_entities import load_entities
+from ..testdata.load_eveuniverse import load_eveuniverse
+from ..utils import (
     add_auth_character_to_user,
     add_memberaudit_character_to_user,
     create_memberaudit_character,

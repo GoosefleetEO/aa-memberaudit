@@ -4,15 +4,15 @@ from django.contrib.auth.models import User
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from ..models import SkillSet
-from ..views.admin import admin_create_skillset_from_fitting
-from .testdata.factories import (
+from ...models import SkillSet
+from ...views.admin import admin_create_skillset_from_fitting
+from ..testdata.factories import (
     create_fitting_text,
     create_skill_set,
     create_skill_set_group,
 )
-from .testdata.load_entities import load_entities
-from .testdata.load_eveuniverse import load_eveuniverse
+from ..testdata.load_entities import load_entities
+from ..testdata.load_eveuniverse import load_eveuniverse
 
 MODULE_PATH = "memberaudit.views.admin"
 
