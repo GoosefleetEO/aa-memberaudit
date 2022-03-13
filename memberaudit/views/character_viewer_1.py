@@ -18,28 +18,25 @@ from app_utils.logging import LoggerAddTag
 from app_utils.views import (
     bootstrap_icon_plus_name_html,
     bootstrap_label_html,
-    link_html,
-    no_wrap_html,
     yesno_str,
 )
 
 from .. import __title__
-from ..constants import DEFAULT_ICON_SIZE, MY_DATETIME_FORMAT, EveCategoryId
+from ..constants import (
+    DEFAULT_ICON_SIZE,
+    MAIL_LABEL_ID_ALL_MAILS,
+    MY_DATETIME_FORMAT,
+    EveCategoryId,
+)
 from ..decorators import fetch_character_if_allowed
 from ..models import (
     Character,
     CharacterAsset,
     CharacterContract,
     CharacterContractItem,
-    CharacterMail,
     Location,
 )
-from ._common import add_common_context, eve_solar_system_to_html
-
-# module constants
-
-MAIL_LABEL_ID_ALL_MAILS = 0
-
+from ._common import add_common_context
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
@@ -737,179 +734,3 @@ def character_loyalty_data(
         pass
 
     return JsonResponse(data, safe=False)
-
-
-@login_required
-@permission_required("memberaudit.basic_access")
-@fetch_character_if_allowed()
-def character_jump_clones_data(
-    request, character_pk: int, character: Character
-) -> HttpResponse:
-    data = list()
-    try:
-        for jump_clone in (
-            character.jump_clones.select_related(
-                "location",
-                "location__eve_solar_system",
-                "location__eve_solar_system__eve_constellation__eve_region",
-            )
-            .prefetch_related("implants", "implants__eve_type__dogma_attributes")
-            .all()
-        ):
-            if not jump_clone.location.is_empty:
-                eve_solar_system = jump_clone.location.eve_solar_system
-                solar_system = eve_solar_system_to_html(
-                    eve_solar_system, show_region=False
-                )
-                region = eve_solar_system.eve_constellation.eve_region.name
-            else:
-                solar_system = "-"
-                region = "-"
-
-            implants_data = list()
-            for obj in jump_clone.implants.all():
-                dogma_attributes = {
-                    attribute.eve_dogma_attribute_id: attribute.value
-                    for attribute in obj.eve_type.dogma_attributes.all()
-                }
-                try:
-                    slot_num = int(dogma_attributes[331])
-                except (KeyError, TypeError):
-                    slot_num = 0
-
-                implants_data.append(
-                    {
-                        "name": obj.eve_type.name,
-                        "icon_url": obj.eve_type.icon_url(
-                            DEFAULT_ICON_SIZE, variant=EveType.IconVariant.REGULAR
-                        ),
-                        "slot_num": slot_num,
-                    }
-                )
-            if implants_data:
-                implants = "<br>".join(
-                    bootstrap_icon_plus_name_html(
-                        x["icon_url"], no_wrap_html(x["name"]), size=24
-                    )
-                    for x in sorted(implants_data, key=lambda k: k["slot_num"])
-                )
-            else:
-                implants = "(none)"
-
-            data.append(
-                {
-                    "id": jump_clone.pk,
-                    "region": region,
-                    "solar_system": solar_system,
-                    "location": jump_clone.location.name_plus,
-                    "implants": implants,
-                }
-            )
-    except ObjectDoesNotExist:
-        pass
-
-    return JsonResponse(data, safe=False)
-
-
-def _character_mail_headers_data(request, character, mail_headers_qs) -> JsonResponse:
-    mails_data = list()
-    try:
-        for mail in mail_headers_qs.select_related("sender").prefetch_related(
-            "recipients"
-        ):
-            mail_ajax_url = reverse(
-                "memberaudit:character_mail", args=[character.pk, mail.pk]
-            )
-            if mail.body:
-                actions_html = (
-                    '<button type="button" class="btn btn-primary" '
-                    'data-toggle="modal" data-target="#modalCharacterMail" '
-                    f"data-ajax_url={mail_ajax_url}>"
-                    '<i class="fas fa-search"></i></button>'
-                )
-            else:
-                actions_html = ""
-
-            mails_data.append(
-                {
-                    "mail_id": mail.mail_id,
-                    "from": mail.sender.name_plus,
-                    "to": ", ".join(
-                        sorted([obj.name_plus for obj in mail.recipients.all()])
-                    ),
-                    "subject": mail.subject,
-                    "sent": mail.timestamp.isoformat(),
-                    "action": actions_html,
-                    "is_read": mail.is_read,
-                    "is_unread_str": yesno_str(mail.is_read is False),
-                }
-            )
-    except ObjectDoesNotExist:
-        pass
-
-    return JsonResponse(mails_data, safe=False)
-
-
-@login_required
-@permission_required("memberaudit.basic_access")
-@fetch_character_if_allowed()
-def character_mail_headers_by_label_data(
-    request, character_pk: int, character: Character, label_id: int
-) -> JsonResponse:
-    if label_id == MAIL_LABEL_ID_ALL_MAILS:
-        mail_headers_qs = character.mails.all()
-    else:
-        mail_headers_qs = character.mails.filter(labels__label_id=label_id)
-
-    return _character_mail_headers_data(request, character, mail_headers_qs)
-
-
-@login_required
-@permission_required("memberaudit.basic_access")
-@fetch_character_if_allowed()
-def character_mail_headers_by_list_data(
-    request, character_pk: int, character: Character, list_id: int
-) -> JsonResponse:
-    mail_headers_qs = character.mails.filter(recipients__id=list_id)
-    return _character_mail_headers_data(request, character, mail_headers_qs)
-
-
-@login_required
-@permission_required("memberaudit.basic_access")
-@fetch_character_if_allowed()
-def character_mail(
-    request, character_pk: int, character: Character, mail_pk: int
-) -> JsonResponse:
-    try:
-        mail = (
-            character.mails.select_related("sender")
-            .prefetch_related("recipients")
-            .get(pk=mail_pk)
-        )
-    except CharacterMail.DoesNotExist:
-        error_msg = f"Mail with pk {mail_pk} not found for character {character}"
-        logger.warning(error_msg)
-        return HttpResponseNotFound(error_msg)
-    recipients = sorted(
-        [
-            {
-                "name": obj.name_plus,
-                "link": link_html(obj.external_url(), obj.name_plus),
-            }
-            for obj in mail.recipients.all()
-        ],
-        key=lambda k: k["name"],
-    )
-    context = {
-        "mail_id": mail.mail_id,
-        "labels": list(mail.labels.values_list("label_id", flat=True)),
-        "sender": link_html(mail.sender.external_url(), mail.sender.name_plus),
-        "recipients": format_html(", ".join([obj["link"] for obj in recipients])),
-        "subject": mail.subject,
-        "timestamp": mail.timestamp,
-        "body": mail.body_html if mail.body else None,
-        "MY_DATETIME_FORMAT": MY_DATETIME_FORMAT,
-    }
-    return render(
-        request, "memberaudit/modals/character_viewer/mail_content.html", context
-    )
