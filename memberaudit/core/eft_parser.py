@@ -35,7 +35,7 @@ class _EveTypes:
 
     objs_by_name: Dict[str, EveType] = field(default_factory=dict)
 
-    def from_name(self, type_name: str) -> Optional[EveType]:
+    def from_name(self, type_name: Optional[str]) -> Optional[EveType]:
         """Resolve given type name into EveType object.
 
         Returns ``None`` if it can not be resolved.
@@ -157,9 +157,9 @@ class _EftSlotType(Enum):
 class _EftTextItem:
     """Text item of an EFT fitting used for parsing."""
 
-    item_type: str = None
-    charge_type: str = None
-    quantity: int = None
+    item_type: Optional[str] = None
+    charge_type: Optional[str] = None
+    quantity: Optional[int] = None
     is_offline: bool = False
     slot_type: _EftSlotType = _EftSlotType.NONE
 
@@ -172,7 +172,7 @@ class _EftTextItem:
         return types
 
     @classmethod
-    def create_from_line(cls, line: str) -> "_EftItem":
+    def create_from_line(cls, line: str) -> "_EftTextItem":
         """Create new object from text line."""
         empty_line_parsed = line.strip("[]").lower()
         if "empty " in empty_line_parsed:
@@ -228,9 +228,9 @@ class _EftTextSection:
 class _EftItem:
     """Item of an EFT fitting used for parsing."""
 
-    item_type: EveType = None
-    charge_type: EveType = None
-    quantity: int = None
+    item_type: Optional[EveType] = None
+    charge_type: Optional[EveType] = None
+    quantity: Optional[int] = None
     is_offline: bool = False
     slot_type: _EftSlotType = _EftSlotType.NONE
 
@@ -402,7 +402,7 @@ class _EftSection:
         objs = []
         for item in self.items:
             if item.is_empty:
-                objs.append(None)
+                objs.append(Module())
             else:
                 params = {"module_type": item.item_type, "is_offline": item.is_offline}
                 if item.charge_type:
@@ -410,12 +410,10 @@ class _EftSection:
                 objs.append(Module(**params))
         return objs
 
-    def to_items(self) -> List[Module]:
+    def to_items(self) -> List[Item]:
         """Convert eft items into fitting items."""
         objs = []
         for item in self.items:
-            if item.is_empty:
-                continue
             params = {"item_type": item.item_type}
             if item.quantity:
                 params["quantity"] = item.quantity
@@ -477,7 +475,7 @@ def _lines_to_text_sections(lines: List[str]) -> List[List[str]]:
     return text_sections
 
 
-def _parse_title(lines: str) -> Tuple[str, str]:
+def _parse_title(lines: List[str]) -> Tuple[str, str]:
     """Try to parse title from lines."""
     if not lines:
         raise MissingSectionsError("Text is empty")
@@ -517,7 +515,7 @@ def _try_to_identify_sections(sections: List[_EftSection]) -> List[_EftSection]:
 
 def _create_fitting_from_sections(
     fitting_name: str, ship_type: EveType, sections: List[_EftSection]
-) -> Tuple[Fitting, Set[str]]:
+) -> Fitting:
     """Create fitting object from input."""
     params = {"name": fitting_name, "ship_type": ship_type}
     for section in sections:

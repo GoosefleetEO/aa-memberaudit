@@ -67,7 +67,7 @@ class TestEftParser(NoSocketsTestCase):
             fitting.high_slots[1].module_type.name, "125mm Gatling AutoCannon II"
         )
         self.assertEqual(fitting.high_slots[1].charge_type.name, "EMP S")
-        self.assertIsNone(fitting.high_slots[2])
+        self.assertTrue(fitting.high_slots[2].is_empty)
 
         self.assertEqual(
             fitting.rig_slots[0].module_type.name, "Small Capacitor Control Circuit I"

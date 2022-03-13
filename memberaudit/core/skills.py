@@ -1,7 +1,7 @@
 """Eve Online Skills"""
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import DefaultDict, Dict, Iterable, List, Tuple
 
 from eveuniverse.models import EveType, EveTypeDogmaAttribute
 
@@ -51,7 +51,7 @@ def compress_skills(skills: List["Skill"]) -> List["Skill"]:
 
 def required_skills_from_eve_types(
     eve_types: Iterable[EveType],
-) -> Optional[List["Skill"]]:
+) -> List["Skill"]:
     """Create list of required skills from eve types.
 
     For best performance make sure that all types have been loaded with dogmas.
@@ -73,7 +73,7 @@ def _identify_skills_from_eve_types(
     return _create_skills_from_attributes(all_attributes_map)
 
 
-def _reload_eve_types_without_dogmas(eve_types: List[EveType]) -> List[EveType]:
+def _reload_eve_types_without_dogmas(eve_types: Iterable[EveType]) -> Iterable[EveType]:
     for eve_type in eve_types:
         if not eve_type.enabled_sections.dogmas:
             eve_type, _ = EveType.objects.update_or_create_esi(
@@ -82,7 +82,9 @@ def _reload_eve_types_without_dogmas(eve_types: List[EveType]) -> List[EveType]:
     return eve_types
 
 
-def _fetch_attributes_for_eve_types(eve_types: List[EveType]) -> dict:
+def _fetch_attributes_for_eve_types(
+    eve_types: Iterable[EveType],
+) -> Dict[int, Dict[int, int]]:
     eve_type_ids = {obj.id for obj in eve_types}
     all_attributes_raw = EveTypeDogmaAttribute.objects.filter(
         eve_dogma_attribute_id__in=[
@@ -95,13 +97,16 @@ def _fetch_attributes_for_eve_types(eve_types: List[EveType]) -> dict:
         ],
         eve_type_id__in=eve_type_ids,
     ).values_list("eve_type_id", "eve_dogma_attribute_id", "value")
+    all_attributes_map: DefaultDict[int, Dict[int, int]]
     all_attributes_map = defaultdict(dict)
     for eve_type_id, eve_dogma_attribute_id, value in all_attributes_raw:
         all_attributes_map[eve_type_id][eve_dogma_attribute_id] = int(value)
     return all_attributes_map
 
 
-def _create_skills_from_attributes(all_attributes_map: dict) -> List[Tuple[int, int]]:
+def _create_skills_from_attributes(
+    all_attributes_map: Dict[int, Dict[int, int]]
+) -> List[Tuple[int, int]]:
     skills = []
     for attributes in all_attributes_map.values():
         for skill_id, skill_level_id in {

@@ -12,6 +12,10 @@ class _BaseFittingItem:
     def eve_types(self) -> Set[EveType]:
         raise NotImplementedError()
 
+    @property
+    def is_empty(self) -> bool:
+        raise NotImplementedError()
+
     def to_eft(self) -> str:
         raise NotImplementedError()
 
@@ -23,12 +27,18 @@ class _BaseFittingItem:
 class Module(_BaseFittingItem):
     """A ship module used in a fitting."""
 
-    module_type: EveType
+    module_type: EveType = None
     charge_type: EveType = None
     is_offline: bool = False
 
+    @property
+    def is_empty(self) -> bool:
+        return self.module_type is None
+
     def eve_types(self) -> Set[EveType]:
         """Eve types used in this module."""
+        if self.is_empty:
+            return set()
         types = {self.module_type}
         if self.charge_type:
             types.add(self.charge_type)
@@ -49,7 +59,11 @@ class Item(_BaseFittingItem):
     """An item used in a fitting."""
 
     item_type: EveType
-    quantity: int = None
+    quantity: Optional[int] = None
+
+    @property
+    def is_empty(self) -> bool:
+        return False
 
     def eve_types(self) -> Set[EveType]:
         """Eve types used in this item."""
@@ -69,11 +83,11 @@ class Fitting:
 
     name: str
     ship_type: EveType
-    high_slots: List[Optional[Module]] = field(default_factory=list)
-    medium_slots: List[Optional[Module]] = field(default_factory=list)
-    low_slots: List[Optional[Module]] = field(default_factory=list)
-    rig_slots: List[Optional[Module]] = field(default_factory=list)
-    subsystem_slots: List[Optional[Module]] = field(default_factory=list)
+    high_slots: List[Module] = field(default_factory=list)
+    medium_slots: List[Module] = field(default_factory=list)
+    low_slots: List[Module] = field(default_factory=list)
+    rig_slots: List[Module] = field(default_factory=list)
+    subsystem_slots: List[Module] = field(default_factory=list)
     drone_bay: List[Item] = field(default_factory=list)
     fighter_bay: List[Item] = field(default_factory=list)
     implants: List[Item] = field(default_factory=list)
@@ -120,7 +134,9 @@ class Fitting:
         def add_section(objs, keyword: str = None) -> List[str]:
             lines = [""]
             for obj in objs:
-                lines.append(obj.to_eft() if obj else f"[Empty {keyword} slot]")
+                lines.append(
+                    obj.to_eft() if not obj.is_empty else f"[Empty {keyword} slot]"
+                )
             return lines
 
         lines = []
