@@ -19,7 +19,7 @@ from app_utils.testing import (
 )
 
 from ..models import Character, CharacterMail, CharacterSkill, SkillSet, SkillSetGroup
-from ..views import (
+from ..views.character_viewer import (
     add_character,
     admin_create_skillset_from_fitting,
     character_mail,
@@ -52,7 +52,7 @@ from .utils import (
     create_user_from_evecharacter_with_access,
 )
 
-MODULE_PATH = "memberaudit.views"
+MODULE_PATH = "memberaudit.views.character_viewer"
 
 
 class TestMailData(TestCase):

@@ -42,16 +42,16 @@ from app_utils.views import (
     yesnonone_str,
 )
 
-from . import __title__, tasks
-from .app_settings import MEMBERAUDIT_APP_NAME, MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE
-from .constants import DATETIME_FORMAT, MAP_ARABIC_TO_ROMAN_NUMBERS, EveCategoryId
-from .core import data_exporters
-from .core.eft_parser import EftParserError
-from .core.fittings import Fitting
-from .decorators import fetch_character_if_allowed
-from .forms import ImportFittingForm
-from .helpers import eve_solar_system_to_html
-from .models import (
+from .. import __title__, tasks
+from ..app_settings import MEMBERAUDIT_APP_NAME, MEMBERAUDIT_DATA_EXPORT_MIN_UPDATE_AGE
+from ..constants import DATETIME_FORMAT, MAP_ARABIC_TO_ROMAN_NUMBERS, EveCategoryId
+from ..core import data_exporters
+from ..core.eft_parser import EftParserError
+from ..core.fittings import Fitting
+from ..decorators import fetch_character_if_allowed
+from ..forms import ImportFittingForm
+from ..helpers import eve_solar_system_to_html
+from ..models import (
     Character,
     CharacterAsset,
     CharacterContract,

@@ -42,7 +42,7 @@ from ..models import (
     SkillSetGroup,
     SkillSetSkill,
 )
-from ..views import (
+from ..views.character_viewer import (
     character_asset_container,
     character_asset_container_data,
     character_assets_data,
@@ -77,7 +77,7 @@ from .testdata.load_eveuniverse import load_eveuniverse
 from .testdata.load_locations import load_locations
 from .utils import add_memberaudit_character_to_user, create_memberaudit_character
 
-MODULE_PATH = "memberaudit.views"
+MODULE_PATH = "memberaudit.views.character_viewer"
 
 
 class LoadTestDataMixin:
