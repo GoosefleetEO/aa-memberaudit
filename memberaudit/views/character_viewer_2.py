@@ -32,6 +32,7 @@ from ..constants import (
     MAP_ARABIC_TO_ROMAN_NUMBERS,
     MY_DATETIME_FORMAT,
     SKILL_SET_DEFAULT_ICON_TYPE_ID,
+    EveDogmaAttributeId,
 )
 from ..decorators import fetch_character_if_allowed
 from ..models import Character, CharacterMail, SkillSet, SkillSetSkill
@@ -76,20 +77,19 @@ def character_jump_clones_data(
                 region = "-"
 
             implants_data = list()
-            for obj in jump_clone.implants.all():
+            for implant in jump_clone.implants.all():
                 dogma_attributes = {
-                    attribute.eve_dogma_attribute_id: attribute.value
-                    for attribute in obj.eve_type.dogma_attributes.all()
+                    obj.eve_dogma_attribute_id: obj.value
+                    for obj in implant.eve_type.dogma_attributes.all()
                 }
                 try:
-                    slot_num = int(dogma_attributes[331])
-                except (KeyError, TypeError):
+                    slot_num = int(dogma_attributes[EveDogmaAttributeId.IMPLANT_SLOT])
+                except KeyError:
                     slot_num = 0
-
                 implants_data.append(
                     {
-                        "name": obj.eve_type.name,
-                        "icon_url": obj.eve_type.icon_url(
+                        "name": implant.eve_type.name,
+                        "icon_url": implant.eve_type.icon_url(
                             DEFAULT_ICON_SIZE, variant=EveType.IconVariant.REGULAR
                         ),
                         "slot_num": slot_num,
