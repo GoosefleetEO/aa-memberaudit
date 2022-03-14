@@ -62,15 +62,25 @@ def item_icon_plus_name_html(item, size=DEFAULT_ICON_SIZE) -> Tuple[str, str]:
 @permission_required("memberaudit.basic_access")
 @fetch_character_if_allowed(
     "details",
+    "details__alliance",
+    "details__corporation",
+    "details__eve_ancestry",
+    "details__eve_bloodline",
+    "details__eve_bloodline__eve_race",
+    "details__eve_faction",
+    "details__eve_race",
     "wallet_balance",
     "skillpoints",
     "character_ownership__user",
     "character_ownership__user__profile__main_character",
     "character_ownership__character",
     "location__location",
+    "location__location__eve_solar_system",
     "location__eve_solar_system",
     "location__eve_solar_system__eve_constellation__eve_region",
     "online_status",
+    "ship",
+    "ship__eve_type",
 )
 def character_viewer(request, character_pk: int, character: Character) -> HttpResponse:
     """main view for showing a character with all details
@@ -173,7 +183,7 @@ def character_viewer(request, character_pk: int, character: Character) -> HttpRe
 
     # implants
     try:
-        has_implants = character.implants.count() > 0
+        has_implants = character.implants.exists()
     except ObjectDoesNotExist:
         has_implants = False
 
