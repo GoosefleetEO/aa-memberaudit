@@ -7,15 +7,15 @@ from app_utils.testing import (
     create_user_from_evecharacter,
 )
 
-from ..models import ComplianceGroupDesignation, SkillSet
-from .testdata.factories import (
+from ...models import ComplianceGroupDesignation, SkillSet
+from ..testdata.factories import (
     create_compliance_group,
     create_fitting,
     create_skill_set_group,
 )
-from .testdata.load_entities import load_entities
-from .testdata.load_eveuniverse import load_eveuniverse
-from .utils import add_auth_character_to_user, add_memberaudit_character_to_user
+from ..testdata.load_entities import load_entities
+from ..testdata.load_eveuniverse import load_eveuniverse
+from ..utils import add_auth_character_to_user, add_memberaudit_character_to_user
 
 MANAGER_PATH = "memberaudit.managers.general"
 

@@ -14,13 +14,13 @@ from app_utils.testing import (
     queryset_pks,
 )
 
-from ..models import General, Location, MailEntity
-from ..models.character import data_retention_cutoff
-from .testdata.factories import create_compliance_group_designation
-from .testdata.load_entities import load_entities
-from .testdata.load_eveuniverse import load_eveuniverse
-from .testdata.load_locations import load_locations
-from .utils import (
+from ...models import General, Location, MailEntity
+from ...models.character import data_retention_cutoff
+from ..testdata.factories import create_compliance_group_designation
+from ..testdata.load_entities import load_entities
+from ..testdata.load_eveuniverse import load_eveuniverse
+from ..testdata.load_locations import load_locations
+from ..utils import (
     add_auth_character_to_user,
     add_memberaudit_character_to_user,
     create_memberaudit_character,

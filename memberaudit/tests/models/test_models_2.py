@@ -11,7 +11,7 @@ from eveuniverse.models import EveEntity, EveMarketPrice, EveSolarSystem, EveTyp
 
 from app_utils.testing import NoSocketsTestCase, create_user_from_evecharacter
 
-from ..models import (
+from ...models import (
     Character,
     CharacterContract,
     CharacterContractItem,
@@ -25,11 +25,11 @@ from ..models import (
     SkillSetGroup,
     SkillSetSkill,
 )
-from .testdata.factories import create_character, create_character_update_status
-from .testdata.load_entities import load_entities
-from .testdata.load_eveuniverse import load_eveuniverse
-from .testdata.load_locations import load_locations
-from .utils import (
+from ..testdata.factories import create_character, create_character_update_status
+from ..testdata.load_entities import load_entities
+from ..testdata.load_eveuniverse import load_eveuniverse
+from ..testdata.load_locations import load_locations
+from ..utils import (
     add_memberaudit_character_to_user,
     create_memberaudit_character,
     scope_names_set,

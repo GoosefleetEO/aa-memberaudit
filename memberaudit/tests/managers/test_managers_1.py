@@ -14,7 +14,7 @@ from app_utils.esi import EsiStatus
 from app_utils.esi_testing import BravadoResponseStub
 from app_utils.testing import NoSocketsTestCase
 
-from ..models import (
+from ...models import (
     Character,
     CharacterAsset,
     CharacterMailLabel,
@@ -22,11 +22,11 @@ from ..models import (
     Location,
     MailEntity,
 )
-from .testdata.esi_client_stub import esi_client_stub
-from .testdata.load_entities import load_entities
-from .testdata.load_eveuniverse import load_eveuniverse
-from .testdata.load_locations import load_locations
-from .utils import add_memberaudit_character_to_user, create_memberaudit_character
+from ..testdata.esi_client_stub import esi_client_stub
+from ..testdata.load_entities import load_entities
+from ..testdata.load_eveuniverse import load_eveuniverse
+from ..testdata.load_locations import load_locations
+from ..utils import add_memberaudit_character_to_user, create_memberaudit_character
 
 MODELS_PATH = "memberaudit.models"
 MANAGERS_PATH = "memberaudit.managers"
