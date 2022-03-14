@@ -5,6 +5,7 @@ import humanize
 
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Prefetch
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -21,7 +22,6 @@ from app_utils.views import (
     link_html,
     no_wrap_html,
     yesno_str,
-    yesnonone_str,
 )
 
 from .. import __title__
@@ -32,6 +32,7 @@ from ..constants import (
     MAP_ARABIC_TO_ROMAN_NUMBERS,
     MY_DATETIME_FORMAT,
     SKILL_SET_DEFAULT_ICON_TYPE_ID,
+    EveDogmaAttributeId,
 )
 from ..decorators import fetch_character_if_allowed
 from ..models import Character, CharacterMail, SkillSet, SkillSetSkill
@@ -76,20 +77,19 @@ def character_jump_clones_data(
                 region = "-"
 
             implants_data = list()
-            for obj in jump_clone.implants.all():
+            for implant in jump_clone.implants.all():
                 dogma_attributes = {
-                    attribute.eve_dogma_attribute_id: attribute.value
-                    for attribute in obj.eve_type.dogma_attributes.all()
+                    obj.eve_dogma_attribute_id: obj.value
+                    for obj in implant.eve_type.dogma_attributes.all()
                 }
                 try:
-                    slot_num = int(dogma_attributes[331])
-                except (KeyError, TypeError):
+                    slot_num = int(dogma_attributes[EveDogmaAttributeId.IMPLANT_SLOT])
+                except KeyError:
                     slot_num = 0
-
                 implants_data.append(
                     {
-                        "name": obj.eve_type.name,
-                        "icon_url": obj.eve_type.icon_url(
+                        "name": implant.eve_type.name,
+                        "icon_url": implant.eve_type.icon_url(
                             DEFAULT_ICON_SIZE, variant=EveType.IconVariant.REGULAR
                         ),
                         "slot_num": slot_num,
@@ -281,105 +281,129 @@ def character_skillqueue_data(
 def character_skill_sets_data(
     request, character_pk: int, character: Character
 ) -> JsonResponse:
-    def create_data_row(check, group) -> dict:
-        if group:
-            group_name = (
-                group.name_plus if group.is_active else group.name + " [Not active]"
-            )
-        else:
-            group_name = UNGROUPED_SKILL_SET
+    def _compile_groups_map():
+        def _add_skill_set(groups_map, skill_set, group=None):
+            group_id = group.id if group else 0
+            if group_id not in groups_map.keys():
+                groups_map[group_id] = {"group": group, "skill_sets": []}
+            groups_map[group_id]["skill_sets"].append(skill_set)
 
-        url = (
-            check.skill_set.ship_type.icon_url(
-                DEFAULT_ICON_SIZE, variant=EveType.IconVariant.REGULAR
-            )
-            if check.skill_set.ship_type
-            else eveimageserver.type_icon_url(
-                SKILL_SET_DEFAULT_ICON_TYPE_ID, size=DEFAULT_ICON_SIZE
-            )
-        )
-        ship_icon = f'<img width="24" heigh="24" src="{url}"/>'
-        failed_required_skills = compile_failed_skills(
-            check.failed_required_skills, "required_level"
-        )
-        has_required = (
-            not bool(failed_required_skills)
-            if failed_required_skills is not None
-            else None
-        )
-        failed_recommended_skills = compile_failed_skills(
-            check.failed_recommended_skills, "recommended_level"
-        )
-        has_recommended = (
-            not bool(failed_recommended_skills)
-            if failed_recommended_skills is not None
-            else None
-        )
-        ajax_children_url = reverse(
-            "memberaudit:character_skill_set_details",
-            args=[character.pk, check.skill_set_id],
-        )
+        groups_map = dict()
+        for skill_set in (
+            SkillSet.objects.select_related("ship_type")
+            .prefetch_related("groups")
+            .all()
+        ):
+            if skill_set.groups.exists():
+                for group in skill_set.groups.all():
+                    _add_skill_set(groups_map, skill_set, group)
+            else:
+                _add_skill_set(groups_map, skill_set, group=None)
+        return groups_map
 
-        actions_html = (
-            '<button type="button" class="btn btn-primary" '
-            'data-toggle="modal" data-target="#modalCharacterSkillSetDetails" '
-            f"data-ajax_skill_set_detail={ ajax_children_url }>"
-            '<i class="fas fa-search"></i></button>'
-        )
+    def _create_row(skill_check):
+        def _skill_set_name_html(skill_set):
+            url = (
+                skill_set.ship_type.icon_url(
+                    DEFAULT_ICON_SIZE, variant=EveType.IconVariant.REGULAR
+                )
+                if skill_set.ship_type
+                else eveimageserver.type_icon_url(
+                    SKILL_SET_DEFAULT_ICON_TYPE_ID, size=DEFAULT_ICON_SIZE
+                )
+            )
+            ship_icon = f'<img width="24" heigh="24" src="{url}"/>'
+            return ship_icon + "&nbsp;&nbsp;" + skill_set.name
 
+        def _group_name(group):
+            if group:
+                return (
+                    group.name_plus if group.is_active else group.name + " [Not active]"
+                )
+            return UNGROUPED_SKILL_SET
+
+        def _compile_failed_skills(skill_set_skills, level_name) -> Optional[list]:
+            skills2 = sorted(
+                [
+                    {
+                        "name": obj.eve_type.name,
+                        "required_level": obj.required_level,
+                        "recommended_level": obj.recommended_level,
+                    }
+                    for obj in skill_set_skills
+                ],
+                key=lambda k: k["name"].lower(),
+            )
+            return [
+                bootstrap_label_html(
+                    format_html(
+                        "{}&nbsp;{}",
+                        obj["name"],
+                        MAP_ARABIC_TO_ROMAN_NUMBERS[obj[level_name]],
+                    ),
+                    "default",
+                )
+                for obj in skills2
+            ]
+
+        def _format_failed_skills(skills) -> str:
+            return " ".join(skills) if skills else "-"
+
+        failed_required_skills = list(skill_check.failed_required_skills_prefetched)
+        has_required = not bool(failed_required_skills)
+        failed_required_skills_str = _format_failed_skills(
+            _compile_failed_skills(failed_required_skills, "required_level")
+        )
+        failed_recommended_skills = list(
+            skill_check.failed_recommended_skills_prefetched
+        )
+        has_recommended = not bool(failed_recommended_skills)
+        failed_recommended_skills_str = _format_failed_skills(
+            _compile_failed_skills(failed_recommended_skills, "recommended_level")
+        )
+        is_doctrine = group.is_doctrine if group else False
         return {
-            "id": check.id,
-            "group": group_name,
-            "skill_set": ship_icon + "&nbsp;&nbsp;" + check.skill_set.name,
-            "skill_set_name": check.skill_set.name,
-            "is_doctrine_str": yesnonone_str(group.is_doctrine if group else False),
-            "failed_required_skills": format_failed_skills(failed_required_skills),
+            "id": skill_check.id,
+            "group": _group_name(group),
+            "skill_set": _skill_set_name_html(skill_check.skill_set),
+            "skill_set_name": skill_set.name,
+            "is_doctrine_str": yesno_str(is_doctrine),
+            "failed_required_skills": failed_required_skills_str,
             "has_required": has_required,
-            "has_required_str": yesnonone_str(has_required),
-            "failed_recommended_skills": format_failed_skills(
-                failed_recommended_skills
-            ),
+            "has_required_str": yesno_str(has_required),
+            "failed_recommended_skills": failed_recommended_skills_str,
             "has_recommended": has_recommended,
-            "has_recommended_str": yesnonone_str(has_recommended),
-            "action": actions_html,
+            "has_recommended_str": yesno_str(has_recommended),
+            "action": "",
         }
 
-    def compile_failed_skills(failed_skills, level_name) -> Optional[list]:
-        failed_skills = sorted(
-            failed_skills.values("eve_type__name", level_name),
-            key=lambda k: k["eve_type__name"].lower(),
-        )
-        return [
-            bootstrap_label_html(
-                format_html(
-                    "{}&nbsp;{}",
-                    obj["eve_type__name"],
-                    MAP_ARABIC_TO_ROMAN_NUMBERS[obj[level_name]],
-                ),
-                "default",
+    groups_map = _compile_groups_map()
+    skill_checks_qs = (
+        character.skill_set_checks.select_related("skill_set", "skill_set__ship_type")
+        .prefetch_related(
+            Prefetch(
+                "failed_required_skills",
+                queryset=SkillSetSkill.objects.select_related("eve_type"),
+                to_attr="failed_required_skills_prefetched",
             )
-            for obj in failed_skills
-        ]
-
-    def format_failed_skills(skills) -> str:
-        return " ".join(skills) if skills else "-"
-
-    data = list()
-    try:
-        for check in character.skill_set_checks.filter(
-            skill_set__is_visible=True
-        ).select_related(
-            "skill_set", "skill_set__ship_type", "skill_set__ship_type__eve_group"
-        ):
-            if not check.skill_set.groups.exists():
-                data.append(create_data_row(check, None))
-            else:
-                for group in check.skill_set.groups.all():
-                    data.append(create_data_row(check, group))
-
-    except ObjectDoesNotExist:
-        pass
-
+        )
+        .prefetch_related(
+            Prefetch(
+                "failed_recommended_skills",
+                queryset=SkillSetSkill.objects.select_related("eve_type"),
+                to_attr="failed_recommended_skills_prefetched",
+            )
+        )
+        .all()
+    )
+    skill_checks = {obj.skill_set_id: obj for obj in skill_checks_qs}
+    data = []
+    for group_map in groups_map.values():
+        group = group_map["group"]
+        for skill_set in group_map["skill_sets"]:
+            skill_check = skill_checks[skill_set.id]
+            row = _create_row(skill_check)
+            data.append(row)
     data = sorted(data, key=lambda k: (k["group"].lower(), k["skill_set_name"].lower()))
     return JsonResponse(data, safe=False)
 

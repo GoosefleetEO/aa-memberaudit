@@ -31,6 +31,7 @@ class EveDogmaAttributeId(IntEnum):
     REQUIRED_SKILL_1_LEVEL = 277
     REQUIRED_SKILL_2_LEVEL = 278
     REQUIRED_SKILL_3_LEVEL = 279
+    IMPLANT_SLOT = 331
 
 
 class EveDogmaEffectId(IntEnum):

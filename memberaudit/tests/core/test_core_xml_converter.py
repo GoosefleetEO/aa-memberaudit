@@ -1,9 +1,9 @@
 from app_utils.testing import NoSocketsTestCase
 
-from ..core.xml_converter import eve_xml_to_html
-from .testdata.load_entities import load_entities
-from .testdata.load_eveuniverse import load_eveuniverse
-from .testdata.load_locations import load_locations
+from ...core.xml_converter import eve_xml_to_html
+from ..testdata.load_entities import load_entities
+from ..testdata.load_eveuniverse import load_eveuniverse
+from ..testdata.load_locations import load_locations
 
 MODULE_PATH = "memberaudit.core.xml_converter"
 

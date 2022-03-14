@@ -7,7 +7,7 @@ from eveuniverse.models import EveEntity, EveType
 from app_utils.esi_testing import BravadoResponseStub
 from app_utils.testing import NoSocketsTestCase
 
-from ..core.eft_parser import (
+from ...core.eft_parser import (
     MissingSectionsError,
     MissingTitleError,
     _EftItem,
@@ -17,8 +17,8 @@ from ..core.eft_parser import (
     _EveTypes,
     create_fitting_from_eft,
 )
-from .testdata.factories import create_fitting_text
-from .testdata.load_eveuniverse import load_eveuniverse
+from ..testdata.factories import create_fitting_text
+from ..testdata.load_eveuniverse import load_eveuniverse
 
 MODULE_PATH = "memberaudit.core.eft_parser"
 

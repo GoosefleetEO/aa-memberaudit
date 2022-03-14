@@ -2,8 +2,8 @@ from eveuniverse.models import EveType
 
 from app_utils.testing import NoSocketsTestCase
 
-from ..core.skills import Skill, compress_skills, required_skills_from_eve_types
-from .testdata.load_eveuniverse import load_eveuniverse
+from ...core.skills import Skill, compress_skills, required_skills_from_eve_types
+from ..testdata.load_eveuniverse import load_eveuniverse
 
 
 def create_skill(**kwargs):
