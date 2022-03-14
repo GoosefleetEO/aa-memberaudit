@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.11.0b4] - 2022-03-14
+
+### Changed
+
+- Improved performance of character skill sets tab, character implants tabs, character viewer main page
+
 ## [1.11.0b3] - 2022-03-13
 
 ### Changed
