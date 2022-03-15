@@ -1,6 +1,8 @@
+from collections import defaultdict
+
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Count, Q
+from django.db.models import Count, Exists, OuterRef, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -16,7 +18,7 @@ from app_utils.views import bootstrap_icon_plus_name_html, yesno_str
 
 from .. import __title__
 from ..constants import DEFAULT_ICON_SIZE, SKILL_SET_DEFAULT_ICON_TYPE_ID
-from ..models import Character, General, SkillSetGroup
+from ..models import CharacterSkillSetCheck, General, SkillSet, SkillSetSkill
 from ._common import UNGROUPED_SKILL_SET, add_common_context
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
@@ -214,7 +216,7 @@ def corporation_compliance_report_data(request) -> JsonResponse:
 @login_required
 @permission_required("memberaudit.reports_access")
 def skill_sets_report_data(request) -> JsonResponse:
-    def create_data_row(group, character) -> dict:
+    def _create_data_row(group, character, skill_sets) -> dict:
         user = character.character_ownership.user
         auth_character = character.character_ownership.character
         main_character = user.profile.main_character
@@ -249,16 +251,16 @@ def skill_sets_report_data(request) -> JsonResponse:
         group_pk = group.pk if group else 0
         has_required = [
             bootstrap_icon_plus_name_html(
-                obj.skill_set.ship_type.icon_url(
+                obj.ship_type.icon_url(
                     DEFAULT_ICON_SIZE, variant=EveType.IconVariant.REGULAR
                 )
-                if obj.skill_set.ship_type
+                if obj.ship_type
                 else eveimageserver.type_icon_url(
                     SKILL_SET_DEFAULT_ICON_TYPE_ID, size=DEFAULT_ICON_SIZE
                 ),
-                obj.skill_set.name,
+                obj.name,
             )
-            for obj in skill_set_qs
+            for obj in sorted(skill_sets, key=lambda x: x.name.lower())
         ]
         has_required_html = (
             "<br>".join(has_required)
@@ -281,48 +283,52 @@ def skill_sets_report_data(request) -> JsonResponse:
             "is_doctrine_str": yesno_str(group.is_doctrine if group else False),
         }
 
-    data = list()
-    relevant_user_ids = list(
-        General.accessible_users(request.user).exclude(
-            profile__state__pk=get_guest_state_pk()
+    failed_required_skills_qs = SkillSetSkill.objects.filter(
+        failed_required_skill_set_checks__pk=OuterRef("pk")
+    )
+    skill_set_checks_qs = (
+        CharacterSkillSetCheck.objects.select_related(
+            "character",
+            "character__character_ownership__character",
+            "character__character_ownership__user",
+            "character__character_ownership__user__profile__main_character",
+            "character__character_ownership__user__profile__state",
+            "skill_set",
+            "skill_set__ship_type",
         )
-    )
-    character_qs = (
-        Character.objects.select_related(
-            "character_ownership__user",
-            "character_ownership__user__profile__main_character",
-            "character_ownership__character",
-        )
-        .prefetch_related("skill_set_checks")
-        .filter(character_ownership__user__in=relevant_user_ids)
-    )
-    my_select_related = (
-        "skill_set",
-        "skill_set__ship_type",
-        # "skill_set__ship_type__eve_group",
-    )
-    for group in SkillSetGroup.objects.all():
-        for character in character_qs:
-            skill_set_qs = (
-                character.skill_set_checks.select_related(*my_select_related)
-                .filter(skill_set__groups=group, failed_required_skills__isnull=True)
-                .order_by("skill_set__name")
+        .exclude(
+            character__character_ownership__user__profile__state__pk=(
+                get_guest_state_pk()
             )
-            data.append(create_data_row(group, character))
+        )
+        .annotate(has_skills=~Exists(failed_required_skills_qs))
+    )
+    character_skill_checks = defaultdict(list)
+    for skill_set_check in skill_set_checks_qs:
+        character_skill_checks[skill_set_check.skill_set.pk].append(skill_set_check)
 
-    for character in character_qs:
-        if (
-            character.skill_set_checks.select_related("skill_set")
-            .filter(skill_set__groups__isnull=True)
-            .exists()
-        ):
-            skill_set_qs = (
-                character.skill_set_checks.select_related(*my_select_related)
-                .filter(
-                    skill_set__groups__isnull=True, failed_required_skills__isnull=True
+    data = []
+    groups_map = SkillSet.objects.compile_groups_map()
+    for group_map in groups_map.values():
+        group = group_map["group"]
+        characters_map = dict()
+        for skill_set in group_map["skill_sets"]:
+            for skill_check in character_skill_checks[skill_set.pk]:
+                character = skill_check.character
+                if character.pk not in characters_map:
+                    characters_map[character.pk] = {
+                        "character": character,
+                        "character_name": character,
+                        "skill_sets": [],
+                    }
+                if skill_check.has_skills:
+                    characters_map[character.pk]["skill_sets"].append(
+                        skill_check.skill_set
+                    )
+        for character_map in characters_map.values():
+            data.append(
+                _create_data_row(
+                    group, character_map["character"], character_map["skill_sets"]
                 )
-                .order_by("skill_set__name")
             )
-            data.append(create_data_row(None, character))
-
     return JsonResponse(data, safe=False)
