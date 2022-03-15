@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.11.0b5] - 2022-03-15
+
+### Changed
+
+- Improved performance of skill set reports page
+- Improved performance of character launcher page
+
 ## [1.11.0b4] - 2022-03-14
 
 ### Changed
