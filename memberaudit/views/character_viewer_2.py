@@ -281,26 +281,6 @@ def character_skillqueue_data(
 def character_skill_sets_data(
     request, character_pk: int, character: Character
 ) -> JsonResponse:
-    def _compile_groups_map():
-        def _add_skill_set(groups_map, skill_set, group=None):
-            group_id = group.id if group else 0
-            if group_id not in groups_map.keys():
-                groups_map[group_id] = {"group": group, "skill_sets": []}
-            groups_map[group_id]["skill_sets"].append(skill_set)
-
-        groups_map = dict()
-        for skill_set in (
-            SkillSet.objects.select_related("ship_type")
-            .prefetch_related("groups")
-            .all()
-        ):
-            if skill_set.groups.exists():
-                for group in skill_set.groups.all():
-                    _add_skill_set(groups_map, skill_set, group)
-            else:
-                _add_skill_set(groups_map, skill_set, group=None)
-        return groups_map
-
     def _create_row(skill_check):
         def _skill_set_name_html(skill_set):
             url = (
@@ -377,7 +357,7 @@ def character_skill_sets_data(
             "action": "",
         }
 
-    groups_map = _compile_groups_map()
+    groups_map = SkillSet.objects.compile_groups_map()
     skill_checks_qs = (
         character.skill_set_checks.select_related("skill_set", "skill_set__ship_type")
         .prefetch_related(

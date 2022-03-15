@@ -32,13 +32,16 @@ def launcher(request) -> HttpResponse:
         .select_related(
             "character",
             "memberaudit_character",
-            "memberaudit_character__wallet_balance",
+            "memberaudit_character__location",
+            "memberaudit_character__location__eve_solar_system",
+            "memberaudit_character__location__eve_solar_system__eve_constellation__eve_region",
             "memberaudit_character__skillpoints",
             "memberaudit_character__unread_mail_count",
+            "memberaudit_character__wallet_balance",
         )
-        .order_by()
+        .order_by("character__character_name")
     )
-    has_auth_characters = owned_chars_query.count() > 0
+    has_auth_characters = owned_chars_query.exists()
     auth_characters = list()
     unregistered_chars = list()
     for character_ownership in owned_chars_query:
@@ -88,9 +91,7 @@ def launcher(request) -> HttpResponse:
         )
     """
     return render(
-        request,
-        "memberaudit/launcher.html",
-        add_common_context(request, context),
+        request, "memberaudit/launcher.html", add_common_context(request, context)
     )
 
 

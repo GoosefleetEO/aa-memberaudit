@@ -529,3 +529,23 @@ class SkillSetManager(models.Manager):
                 skill_set_group.skill_sets.add(skill_set)
 
         return skill_set, created
+
+    def compile_groups_map(self) -> dict:
+        """Compiles map of all skill sets by groups."""
+
+        def _add_skill_set(groups_map, skill_set, group=None):
+            group_id = group.id if group else 0
+            if group_id not in groups_map.keys():
+                groups_map[group_id] = {"group": group, "skill_sets": []}
+            groups_map[group_id]["skill_sets"].append(skill_set)
+
+        groups_map = dict()
+        for skill_set in (
+            self.select_related("ship_type").prefetch_related("groups").all()
+        ):
+            if skill_set.groups.exists():
+                for group in skill_set.groups.all():
+                    _add_skill_set(groups_map, skill_set, group)
+            else:
+                _add_skill_set(groups_map, skill_set, group=None)
+        return groups_map
