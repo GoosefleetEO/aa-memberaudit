@@ -319,7 +319,7 @@
                 { data: 'status' },
                 {
                     data: 'date_issued',
-                    render: $.fn.dataTable.render.moment(moment.ISO_8601, DATETIME_FORMAT)
+                    render: $.fn.dataTable.render.momentUTC(moment.ISO_8601, DATETIME_FORMAT)
                 },
                 { data: 'time_left' },
                 { data: 'info' },
@@ -429,7 +429,7 @@
             columns: [
                 {
                     data: 'sent',
-                    render: $.fn.dataTable.render.moment(moment.ISO_8601, DATETIME_FORMAT)
+                    render: $.fn.dataTable.render.momentUTC(moment.ISO_8601, DATETIME_FORMAT)
                 },
                 { data: 'from' },
                 { data: 'to' },
@@ -645,7 +645,7 @@
             columns: [
                 {
                     data: 'date',
-                    render: $.fn.dataTable.render.moment(moment.ISO_8601, DATETIME_FORMAT)
+                    render: $.fn.dataTable.render.momentUTC(moment.ISO_8601, DATETIME_FORMAT)
                 },
                 { data: 'ref_type' },
                 { data: 'first_party' },
@@ -697,7 +697,7 @@
             columns: [
                 {
                     data: 'date',
-                    render: $.fn.dataTable.render.moment(moment.ISO_8601, DATETIME_FORMAT)
+                    render: $.fn.dataTable.render.momentUTC(moment.ISO_8601, DATETIME_FORMAT)
                 },
                 {
                     data: 'quantity',
