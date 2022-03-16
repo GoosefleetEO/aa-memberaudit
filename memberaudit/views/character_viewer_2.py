@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Prefetch
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import gettext, gettext_lazy
@@ -405,11 +405,16 @@ def character_skill_set_details(
     request, character_pk: int, character: Character, skill_set_pk: int
 ) -> HttpResponse:
 
-    skill_set = SkillSet.objects.get(id=skill_set_pk)
-    skill_set_skills = SkillSetSkill.objects.filter(skill_set_id=skill_set_pk)
-
+    skill_set = get_object_or_404(SkillSet, pk=skill_set_pk)
+    skill_set_skills_qs = SkillSetSkill.objects.select_related("eve_type").filter(
+        skill_set_id=skill_set_pk
+    )
+    skill_set_skills = {obj.eve_type_id: obj for obj in skill_set_skills_qs}
+    character_skills_qs = character.skills.select_related("eve_type").filter(
+        eve_type_id__in=skill_set_skills.keys()
+    )
+    character_skills = {obj.eve_type_id: obj for obj in character_skills_qs}
     out_data = list()
-
     url = (
         skill_set.ship_type.icon_url(ICON_SIZE_64, variant=EveType.IconVariant.REGULAR)
         if skill_set.ship_type
@@ -417,22 +422,18 @@ def character_skill_set_details(
             SKILL_SET_DEFAULT_ICON_TYPE_ID, size=ICON_SIZE_64
         )
     )
-
-    for skill in skill_set_skills:
-        cs = (
-            character.skills.select_related("eve_type")
-            .filter(eve_type_id=skill.eve_type_id)
-            .first()
-        )
-
+    for skill_id, skill in skill_set_skills.items():
+        character_skill = character_skills.get(skill_id)
         recommended_level_str = "-"
         required_level_str = "-"
         current_str = "-"
         result_icon = ICON_FAILED
         met_required = True
 
-        if cs:
-            current_str = MAP_ARABIC_TO_ROMAN_NUMBERS[cs.active_skill_level]
+        if character_skill:
+            current_str = MAP_ARABIC_TO_ROMAN_NUMBERS[
+                character_skill.active_skill_level
+            ]
 
         if skill.recommended_level:
             recommended_level_str = MAP_ARABIC_TO_ROMAN_NUMBERS[skill.recommended_level]
@@ -440,22 +441,25 @@ def character_skill_set_details(
         if skill.required_level:
             required_level_str = MAP_ARABIC_TO_ROMAN_NUMBERS[skill.required_level]
 
-        if not cs:
+        if not character_skill:
             result_icon = ICON_FAILED
             met_required = False
         else:
             if (
                 skill.required_level
                 and not skill.recommended_level
-                and cs.active_skill_level >= skill.required_level
+                and character_skill.active_skill_level >= skill.required_level
             ):
                 result_icon = ICON_FULL
             elif (
                 skill.recommended_level
-                and cs.active_skill_level >= skill.recommended_level
+                and character_skill.active_skill_level >= skill.recommended_level
             ):
                 result_icon = ICON_FULL
-            elif skill.required_level and cs.active_skill_level >= skill.required_level:
+            elif (
+                skill.required_level
+                and character_skill.active_skill_level >= skill.required_level
+            ):
                 result_icon = ICON_PARTIAL
             else:
                 met_required = False
