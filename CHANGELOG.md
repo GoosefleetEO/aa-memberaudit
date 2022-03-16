@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Fixed
+
+- Contract Times Should Not be Localized (#108)
+
 ## [1.11.0b5] - 2022-03-15
 
 ### Changed
