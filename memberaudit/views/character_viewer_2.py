@@ -342,6 +342,16 @@ def character_skill_sets_data(
             _compile_failed_skills(failed_recommended_skills, "recommended_level")
         )
         is_doctrine = group.is_doctrine if group else False
+        ajax_children_url = reverse(
+            "memberaudit:character_skill_set_details",
+            args=[character.pk, skill_check.skill_set_id],
+        )
+        actions_html = (
+            '<button type="button" class="btn btn-primary" '
+            'data-toggle="modal" data-target="#modalCharacterSkillSetDetails" '
+            f"data-ajax_skill_set_detail={ ajax_children_url }>"
+            '<i class="fas fa-search"></i></button>'
+        )
         return {
             "id": skill_check.id,
             "group": _group_name(group),
@@ -354,7 +364,7 @@ def character_skill_sets_data(
             "failed_recommended_skills": failed_recommended_skills_str,
             "has_recommended": has_recommended,
             "has_recommended_str": yesno_str(has_recommended),
-            "action": "",
+            "action": actions_html,
         }
 
     groups_map = SkillSet.objects.compile_groups_map()

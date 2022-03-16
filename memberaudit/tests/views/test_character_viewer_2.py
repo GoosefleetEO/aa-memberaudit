@@ -300,6 +300,11 @@ class TestSkillSets(LoadTestDataMixin, TestCase):
         self.assertEqual(row["skill_set_name"], "Ship 3")
         self.assertTrue(row["has_required"])
         self.assertEqual(row["failed_required_skills"], "-")
+        url = reverse(
+            "memberaudit:character_skill_set_details",
+            args=[self.character.pk, ship_3.id],
+        )
+        self.assertIn(url, row["action"])
 
         row = data[1]
         self.assertEqual(row["group"], "Alpha")
@@ -307,18 +312,33 @@ class TestSkillSets(LoadTestDataMixin, TestCase):
         self.assertTrue(row["has_required"])
         self.assertEqual(row["failed_required_skills"], "-")
         self.assertIn("Amarr Carrier&nbsp;V", row["failed_recommended_skills"])
+        url = reverse(
+            "memberaudit:character_skill_set_details",
+            args=[self.character.pk, ship_1.id],
+        )
+        self.assertIn(url, row["action"])
 
         row = data[2]
         self.assertEqual(row["group"], "Alpha")
         self.assertEqual(row["skill_set_name"], "Ship 2")
         self.assertFalse(row["has_required"])
         self.assertIn("Caldari Carrier&nbsp;III", row["failed_required_skills"])
+        url = reverse(
+            "memberaudit:character_skill_set_details",
+            args=[self.character.pk, ship_2.id],
+        )
+        self.assertIn(url, row["action"])
 
         row = data[3]
         self.assertEqual(row["group"], "Doctrine: Bravo")
         self.assertEqual(row["skill_set_name"], "Ship 1")
         self.assertTrue(row["has_required"])
         self.assertEqual(row["failed_required_skills"], "-")
+        url = reverse(
+            "memberaudit:character_skill_set_details",
+            args=[self.character.pk, ship_1.id],
+        )
+        self.assertIn(url, row["action"])
 
     def test_skill_set_details(self):
         CharacterSkill.objects.create(
