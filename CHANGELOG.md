@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.11.1] - 2022-03-16
+
+### Fixed
+
+- Re-enable modal for showing skill set skills for character
+
 ## [1.11.0] - 2022-03-16
 
 >**Update note**:<br>Please make sure to re-run the `memberaudit_load_eve` command, which will pre-load types needed to process fittings. Otherwise importing fittings can take a long time.
