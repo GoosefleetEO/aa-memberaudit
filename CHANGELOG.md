@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.12.0] - 2022-03-18
+
+### Added
+
+- Ability to copy missing required skills to the clipboard, so they can be imported into the skill queue in the Eve client.
+
 ## [1.11.1] - 2022-03-16
 
 ### Fixed

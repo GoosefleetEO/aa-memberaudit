@@ -391,9 +391,13 @@ def character_skill_sets_data(
     for group_map in groups_map.values():
         group = group_map["group"]
         for skill_set in group_map["skill_sets"]:
-            skill_check = skill_checks[skill_set.id]
-            row = _create_row(skill_check)
-            data.append(row)
+            try:
+                skill_check = skill_checks[skill_set.id]
+            except KeyError:
+                continue
+            else:
+                row = _create_row(skill_check)
+                data.append(row)
     data = sorted(data, key=lambda k: (k["group"].lower(), k["skill_set_name"].lower()))
     return JsonResponse(data, safe=False)
 
@@ -422,6 +426,7 @@ def character_skill_set_details(
             SKILL_SET_DEFAULT_ICON_TYPE_ID, size=ICON_SIZE_64
         )
     )
+    missing_skills = []
     for skill_id, skill in skill_set_skills.items():
         character_skill = character_skills.get(skill_id)
         recommended_level_str = "-"
@@ -464,6 +469,11 @@ def character_skill_set_details(
             else:
                 met_required = False
 
+        if not character_skill or (
+            character_skill and character_skill.active_skill_level < skill.maximum_level
+        ):
+            missing_skills.append(skill.maximum_skill_str)
+
         out_data.append(
             {
                 "name": skill.eve_type.name,
@@ -482,6 +492,7 @@ def character_skill_set_details(
             break
 
     out_data = sorted(out_data, key=lambda k: (k["name"].lower()))
+    missing_skills_str = "\n".join(missing_skills) if missing_skills else ""
     context = {
         "name": skill_set.name,
         "description": skill_set.description,
@@ -492,6 +503,7 @@ def character_skill_set_details(
         "icon_partial": ICON_PARTIAL,
         "icon_full": ICON_FULL,
         "icon_met_all_required": ICON_MET_ALL_REQUIRED,
+        "missing_skills_str": missing_skills_str,
     }
 
     return render(

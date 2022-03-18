@@ -349,12 +349,31 @@ class SkillSetSkill(models.Model):
         return f"{self.skill_set}: {self.required_skill_str}{recommended_level_str}"
 
     @property
+    def is_required(self) -> bool:
+        return bool(self.required_level)
+
+    @property
     def required_skill_str(self) -> str:
-        return self._skill_str(self.required_level)
+        return self._skill_str(self.required_level) if self.required_level else ""
 
     @property
     def recommened_skill_str(self) -> str:
         return self._skill_str(self.recommended_level) if self.recommended_level else ""
+
+    @property
+    def maximum_level(self) -> int:
+        """Maximum level of this skill."""
+        levels = [1]
+        if self.recommended_level:
+            levels.append(self.recommended_level)
+        if self.required_level:
+            levels.append(self.required_level)
+        return max(levels)
+
+    @property
+    def maximum_skill_str(self) -> str:
+        """Skill with maximum level as string."""
+        return self._skill_str(self.maximum_level)
 
     def _skill_str(self, level) -> str:
         level_str = MAP_ARABIC_TO_ROMAN_NUMBERS[level]
