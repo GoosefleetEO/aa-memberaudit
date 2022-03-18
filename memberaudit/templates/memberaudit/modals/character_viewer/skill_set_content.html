@@ -63,6 +63,11 @@
 
             </tbody>
         </table>
+        {% if missing_required_skills_str %}
+            <button type="button" id="btn-copy-missing-skills" class="btn btn-default pull-right" data-text="{{ missing_required_skills_str }}">
+                {% translate 'Copy missing skills to clipboard' %}
+            </button>
+        {% endif %}
         <div>
             <p class="text-muted">{% translate 'Legend:' %}</p>
             <p class="text-muted"><span class="{{ icon_failed }}"></span>&nbsp;
@@ -82,3 +87,12 @@
         </button>
     </div>
 </div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#btn-copy-missing-skills').click(function (event) {
+            const text = event.currentTarget.getAttribute("data-text");
+            navigator.clipboard.writeText(text);
+        });
+    });
+</script>

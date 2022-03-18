@@ -341,6 +341,7 @@ class TestSkillSets(LoadTestDataMixin, TestCase):
         self.assertIn(url, row["action"])
 
     def test_skill_set_details(self):
+        # given
         CharacterSkill.objects.create(
             character=self.character,
             eve_type=self.skill_type_1,
@@ -369,7 +370,6 @@ class TestSkillSets(LoadTestDataMixin, TestCase):
             skillpoints_in_skill=10,
             trained_skill_level=3,
         )
-
         skill_set_1 = SkillSet.objects.create(name="skill set")
         SkillSetSkill.objects.create(
             skill_set=skill_set_1,
@@ -395,22 +395,20 @@ class TestSkillSets(LoadTestDataMixin, TestCase):
             required_level=None,
             recommended_level=None,
         )
-
         request = self.factory.get(
             reverse(
                 "memberaudit:character_skill_set_details",
                 args=[self.character.pk, skill_set_1.pk],
             )
         )
-
         request.user = self.user
+        # when
         response = character_skill_set_details(
             request, self.character.pk, skill_set_1.pk
         )
+        # then
         self.assertEqual(response.status_code, 200)
-
         text = response_text(response)
-
         self.assertIn(skill_set_1.name, text)
         self.assertIn(self.skill_type_1.name, text)
         self.assertIn(self.skill_type_2.name, text)

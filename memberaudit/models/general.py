@@ -350,7 +350,7 @@ class SkillSetSkill(models.Model):
 
     @property
     def required_skill_str(self) -> str:
-        return self._skill_str(self.required_level)
+        return self._skill_str(self.required_level) if self.required_level else ""
 
     @property
     def recommened_skill_str(self) -> str:

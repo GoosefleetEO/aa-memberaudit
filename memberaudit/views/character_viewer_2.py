@@ -422,6 +422,7 @@ def character_skill_set_details(
             SKILL_SET_DEFAULT_ICON_TYPE_ID, size=ICON_SIZE_64
         )
     )
+    missing_required_skills = []
     for skill_id, skill in skill_set_skills.items():
         character_skill = character_skills.get(skill_id)
         recommended_level_str = "-"
@@ -464,6 +465,9 @@ def character_skill_set_details(
             else:
                 met_required = False
 
+        if not met_required:
+            missing_required_skills.append(skill.required_skill_str)
+
         out_data.append(
             {
                 "name": skill.eve_type.name,
@@ -482,6 +486,9 @@ def character_skill_set_details(
             break
 
     out_data = sorted(out_data, key=lambda k: (k["name"].lower()))
+    missing_required_skills_str = (
+        "\n".join(missing_required_skills) if missing_required_skills else ""
+    )
     context = {
         "name": skill_set.name,
         "description": skill_set.description,
@@ -492,6 +499,7 @@ def character_skill_set_details(
         "icon_partial": ICON_PARTIAL,
         "icon_full": ICON_FULL,
         "icon_met_all_required": ICON_MET_ALL_REQUIRED,
+        "missing_required_skills_str": missing_required_skills_str,
     }
 
     return render(
