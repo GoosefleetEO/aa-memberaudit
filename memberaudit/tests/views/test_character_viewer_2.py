@@ -1,5 +1,7 @@
 import datetime as dt
 
+from bs4 import BeautifulSoup
+
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from django.utils.timezone import now
@@ -237,7 +239,7 @@ class TestMailData(TestCase):
         self.assertEqual(response.status_code, 404)
 
 
-class TestSkillSets(LoadTestDataMixin, TestCase):
+class TestSkillSetsData(LoadTestDataMixin, TestCase):
     def test_skill_sets_data(self):
         CharacterSkill.objects.create(
             character=self.character,
@@ -340,80 +342,92 @@ class TestSkillSets(LoadTestDataMixin, TestCase):
         )
         self.assertIn(url, row["action"])
 
-    def test_skill_set_details(self):
+
+class TestSkillSetsDetails(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.factory = RequestFactory()
+        load_eveuniverse()
+        load_entities()
+        cls.character = create_memberaudit_character(1001)
+        cls.user = cls.character.character_ownership.user
+
+    def test_should_show_details(self):
         # given
+        amarr_carrier = EveType.objects.get(name="Amarr Carrier")
+        caldari_carrier = EveType.objects.get(name="Caldari Carrier")
+        gallente_carrier = EveType.objects.get(name="Gallente Carrier")
+        minmatar_carrier = EveType.objects.get(name="Minmatar Carrier")
         CharacterSkill.objects.create(
             character=self.character,
-            eve_type=self.skill_type_1,
+            eve_type=amarr_carrier,
             active_skill_level=4,
             skillpoints_in_skill=10,
             trained_skill_level=4,
         )
         CharacterSkill.objects.create(
             character=self.character,
-            eve_type=self.skill_type_2,
+            eve_type=caldari_carrier,
             active_skill_level=2,
             skillpoints_in_skill=10,
             trained_skill_level=2,
         )
         CharacterSkill.objects.create(
             character=self.character,
-            eve_type=self.skill_type_3,
+            eve_type=gallente_carrier,
             active_skill_level=4,
             skillpoints_in_skill=10,
             trained_skill_level=4,
         )
-        CharacterSkill.objects.create(
-            character=self.character,
-            eve_type=self.skill_type_4,
-            active_skill_level=3,
-            skillpoints_in_skill=10,
-            trained_skill_level=3,
-        )
-        skill_set_1 = SkillSet.objects.create(name="skill set")
+        skill_set = SkillSet.objects.create(name="skill set")
         SkillSetSkill.objects.create(
-            skill_set=skill_set_1,
-            eve_type=self.skill_type_1,
+            skill_set=skill_set,
+            eve_type=amarr_carrier,
             required_level=3,
             recommended_level=5,
         )
         SkillSetSkill.objects.create(
-            skill_set=skill_set_1,
-            eve_type=self.skill_type_2,
+            skill_set=skill_set,
+            eve_type=caldari_carrier,
             required_level=None,
             recommended_level=3,
         )
         SkillSetSkill.objects.create(
-            skill_set=skill_set_1,
-            eve_type=self.skill_type_3,
+            skill_set=skill_set,
+            eve_type=gallente_carrier,
             required_level=3,
             recommended_level=None,
         )
         SkillSetSkill.objects.create(
-            skill_set=skill_set_1,
-            eve_type=self.skill_type_4,
+            skill_set=skill_set,
+            eve_type=minmatar_carrier,
             required_level=None,
             recommended_level=None,
         )
         request = self.factory.get(
             reverse(
                 "memberaudit:character_skill_set_details",
-                args=[self.character.pk, skill_set_1.pk],
+                args=[self.character.pk, skill_set.pk],
             )
         )
         request.user = self.user
         # when
-        response = character_skill_set_details(
-            request, self.character.pk, skill_set_1.pk
-        )
+        response = character_skill_set_details(request, self.character.pk, skill_set.pk)
         # then
         self.assertEqual(response.status_code, 200)
         text = response_text(response)
-        self.assertIn(skill_set_1.name, text)
-        self.assertIn(self.skill_type_1.name, text)
-        self.assertIn(self.skill_type_2.name, text)
-        self.assertIn(self.skill_type_3.name, text)
-        self.assertIn(self.skill_type_4.name, text)
+        self.assertIn(skill_set.name, text)
+        self.assertIn(amarr_carrier.name, text)
+        self.assertIn(caldari_carrier.name, text)
+        self.assertIn(gallente_carrier.name, text)
+        self.assertIn(minmatar_carrier.name, text)
+        soup = BeautifulSoup(text, features="html.parser")
+        missing_skills_str = soup.find(id="div-missing-skills").get_text()
+        self.assertIn("Amarr Carrier V", missing_skills_str)
+        self.assertIn("Caldari Carrier III", missing_skills_str)
+        self.assertIn("Minmatar Carrier I", missing_skills_str)
+        self.assertNotIn("Gallente Carrier", missing_skills_str)
 
 
 class TestSkillAndSkillqueue(LoadTestDataMixin, TestCase):
