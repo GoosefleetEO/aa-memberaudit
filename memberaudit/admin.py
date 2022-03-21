@@ -169,9 +169,15 @@ class CharacterAdmin(admin.ModelAdmin):
                 )
             )
             .annotate(
+                num_sections_failed=Count(
+                    "update_status_set", filter=Q(update_status_set__is_success=False)
+                )
+            )
+            .annotate(
                 is_last_update_ok=Case(
+                    When(num_sections_failed__gt=0, then=False),
                     When(num_sections_ok=num_sections_total, then=True),
-                    default=Value(False),
+                    default=Value(None),
                 )
             )
         )
