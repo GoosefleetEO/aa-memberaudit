@@ -319,24 +319,24 @@ class CharacterAdmin(admin.ModelAdmin):
 
 @admin.register(Location)
 class LocationAdmin(admin.ModelAdmin):
-    list_display = ("_name", "_type", "_group", "_solar_system", "updated_at")
+    list_display = ("id", "_name", "_type", "_group", "_solar_system", "updated_at")
     list_filter = (
+        ("eve_type__eve_group__eve_category", admin.RelatedOnlyFieldListFilter),
         ("eve_type__eve_group", admin.RelatedOnlyFieldListFilter),
-        ("eve_type", admin.RelatedOnlyFieldListFilter),
-        (
-            "eve_solar_system__eve_constellation__eve_region",
-            admin.RelatedOnlyFieldListFilter,
-        ),
-        ("eve_solar_system", admin.RelatedOnlyFieldListFilter),
     )
-    search_fields = ["name"]
+    search_fields = [
+        "id",
+        "name",
+        "eve_solar_system__eve_constellation__eve_region__name",
+        "eve_type__name",
+    ]
     list_select_related = (
         "eve_type__eve_group",
         "eve_type",
         "eve_solar_system__eve_constellation__eve_region",
         "eve_solar_system",
     )
-    ordering = ["name"]
+    ordering = ["id"]
 
     @admin.display(ordering="name")
     def _name(self, obj):
