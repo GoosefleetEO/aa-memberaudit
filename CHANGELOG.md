@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.12.1] - 2022-03-21
+
+### Changed
+
+- Improved performance for admin sites: character, location
+- Characters with update issues can now be found by sorting the column "last_update_ok" instead of a filter
+
 ## [1.12.0] - 2022-03-18
 
 ### Added
