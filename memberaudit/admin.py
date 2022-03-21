@@ -2,7 +2,7 @@ from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
-from django.db.models import Prefetch
+from django.db.models import Case, Count, Max, Prefetch, Q, Value, When
 from django.forms.models import BaseInlineFormSet
 from django.shortcuts import redirect, render
 from django.utils.html import format_html
@@ -99,22 +99,6 @@ class EveSkillTypeAdmin(EveUniverseEntityModelAdmin):
     pass
 
 
-class UpdateStatusOkFilter(admin.SimpleListFilter):
-    title = "Update Status OK"
-    parameter_name = "update_status_ok"
-
-    def lookups(self, request, model_admin):
-        return (("Errors", "Has errors"),)
-
-    def queryset(self, request, queryset):
-        if self.value() == "Errors":
-            return Character.objects.filter(
-                update_status_set__is_success=False
-            ).distinct()
-        else:
-            return Character.objects.all()
-
-
 class SyncStatusAdminInline(admin.TabularInline):
     model = CharacterUpdateStatus
     fields = (
@@ -158,7 +142,6 @@ class CharacterAdmin(admin.ModelAdmin):
         "_character",
     )
     list_filter = (
-        UpdateStatusOkFilter,
         "created_at",
         "character_ownership__user__profile__state",
         "character_ownership__user__profile__main_character__corporation_name",
@@ -173,6 +156,25 @@ class CharacterAdmin(admin.ModelAdmin):
     ordering = ["character_ownership__character__character_name"]
     search_fields = ["character_ownership__character__character_name"]
     exclude = ("mailing_lists",)
+
+    def get_queryset(self, *args, **kwargs):
+        qs = super().get_queryset(*args, **kwargs)
+        num_sections_total = len(Character.UpdateSection.choices)
+        return (
+            qs.prefetch_related("update_status_set")
+            .annotate(last_update_at=Max("update_status_set__finished_at"))
+            .annotate(
+                num_sections_ok=Count(
+                    "update_status_set", filter=Q(update_status_set__is_success=True)
+                )
+            )
+            .annotate(
+                is_last_update_ok=Case(
+                    When(num_sections_ok=num_sections_total, then=True),
+                    default=Value(False),
+                )
+            )
+        )
 
     def get_actions(self, request):
         """Remove the default delete action from the drop-down."""
@@ -217,16 +219,16 @@ class CharacterAdmin(admin.ModelAdmin):
         except AttributeError:
             return None
 
-    @admin.display(boolean=True)
+    @admin.display(boolean=True, ordering="is_last_update_ok")
     def _last_update_ok(self, obj):
-        return obj.is_update_status_ok()
+        return obj.is_last_update_ok
 
+    @admin.display(ordering="last_update_at")
     def _last_update_at(self, obj):
-        latest_obj = obj.update_status_set.latest("finished_at")
-        return latest_obj.finished_at
+        return obj.last_update_at
 
     def _missing_sections(self, obj):
-        existing = set(obj.update_status_set.values_list("section", flat=True))
+        existing = {x.section for x in obj.update_status_set.all()}
         all_sections = set(Character.UpdateSection.values)
         missing = all_sections.difference(existing)
         if missing:
