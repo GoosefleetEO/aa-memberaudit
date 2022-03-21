@@ -144,7 +144,6 @@ class CharacterAdmin(admin.ModelAdmin):
     list_filter = (
         "created_at",
         "character_ownership__user__profile__state",
-        "character_ownership__user__profile__main_character__corporation_name",
         "character_ownership__user__profile__main_character__alliance_name",
     )
     list_select_related = (
@@ -154,7 +153,11 @@ class CharacterAdmin(admin.ModelAdmin):
         "character_ownership__character",
     )
     ordering = ["character_ownership__character__character_name"]
-    search_fields = ["character_ownership__character__character_name"]
+    search_fields = [
+        "character_ownership__character__character_name",
+        "character_ownership__user__profile__main_character__corporation_name",
+        "character_ownership__user__profile__main_character__alliance_name",
+    ]
     exclude = ("mailing_lists",)
 
     def get_queryset(self, *args, **kwargs):
