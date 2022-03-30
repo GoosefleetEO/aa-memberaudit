@@ -8,7 +8,6 @@ from allianceauth.eveonline.models import EveAllianceInfo, EveCorporationInfo
 from allianceauth.tests.auth_utils import AuthUtils
 from app_utils.testing import (
     create_user_from_evecharacter,
-    json_response_to_dict,
     multi_assert_in,
     multi_assert_not_in,
 )
@@ -32,6 +31,7 @@ from ..utils import (
     add_memberaudit_character_to_user,
     create_memberaudit_character,
     create_user_from_evecharacter_with_access,
+    json_response_to_dict_2,
 )
 
 
@@ -84,7 +84,7 @@ class TestUserComplianceReportTestData(TestCase):
         request.user = self.user
         response = user_compliance_report_data(request)
         self.assertEqual(response.status_code, 200)
-        return json_response_to_dict(response)
+        return json_response_to_dict_2(response)
 
     def test_should_show_own_user_only(self):
         # when
@@ -193,7 +193,7 @@ class TestCorporationComplianceReportTestData(TestCase):
         request.user = user
         response = corporation_compliance_report_data(request)
         self.assertEqual(response.status_code, 200)
-        return json_response_to_dict(response)
+        return json_response_to_dict_2(response)
 
     def test_should_return_full_list(self):
         # given
@@ -338,7 +338,7 @@ class TestSkillSetReportData(TestCase):
         response = skill_sets_report_data(request)
 
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_dict(response)
+        data = json_response_to_dict_2(response)
         self.assertEqual(len(data), 9)
 
         mains = {x["main"] for x in data.values()}
@@ -393,5 +393,5 @@ class TestSkillSetReportData(TestCase):
     #     request = self.factory.get(reverse("memberaudit:skill_sets_report_data"))
     #     request.user = self.user
     #     response = skill_sets_report_data(request)
-    #     data = json_response_to_dict(response)
+    #     data = json_response_to_dict_2(response)
     #     self.assertEqual(len(data), 4)

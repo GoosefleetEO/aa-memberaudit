@@ -8,12 +8,7 @@ from django.urls import reverse
 from django.utils.timezone import now
 from eveuniverse.models import EveEntity, EveMarketPrice, EveType
 
-from app_utils.testing import (
-    generate_invalid_pk,
-    json_response_to_dict,
-    json_response_to_python,
-    response_text,
-)
+from app_utils.testing import generate_invalid_pk, response_text
 
 from ...models import (
     CharacterAsset,
@@ -40,7 +35,11 @@ from ...views.character_viewer_1 import (
     character_loyalty_data,
     character_viewer,
 )
-from ..utils import LoadTestDataMixin
+from ..utils import (
+    LoadTestDataMixin,
+    json_response_to_dict_2,
+    json_response_to_python_2,
+)
 
 MODULE_PATH = "memberaudit.views.character_viewer_1"
 
@@ -104,7 +103,7 @@ class TestCharacterAssets(LoadTestDataMixin, TestCase):
         request.user = self.user
         response = character_assets_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
+        data = json_response_to_python_2(response)
         self.assertEqual(len(data), 1)
         row = data[0]
         self.assertEqual(row["item_id"], 1)
@@ -135,7 +134,7 @@ class TestCharacterAssets(LoadTestDataMixin, TestCase):
         request.user = self.user
         response = character_assets_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
+        data = json_response_to_python_2(response)
         self.assertEqual(len(data), 1)
         row = data[0]
         self.assertEqual(row["item_id"], 1)
@@ -232,7 +231,7 @@ class TestCharacterAssets(LoadTestDataMixin, TestCase):
             request, self.character.pk, parent_asset.pk
         )
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
+        data = json_response_to_python_2(response)
         self.assertEqual(len(data), 2)
 
         row = data[0]
@@ -270,7 +269,7 @@ class TestCharacterDataViewsOther(LoadTestDataMixin, TestCase):
         request.user = self.user
         response = character_contacts_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_dict(response)
+        data = json_response_to_dict_2(response)
 
         self.assertEqual(len(data), 2)
 
@@ -302,7 +301,7 @@ class TestCharacterDataViewsOther(LoadTestDataMixin, TestCase):
         request.user = self.user
         response = character_loyalty_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
+        data = json_response_to_python_2(response)
         self.assertEqual(len(data), 1)
         row = data[0]
         self.assertEqual(row["corporation"]["sort"], "Lexcorp")
@@ -360,7 +359,7 @@ class TestCharacterDataViewsOther(LoadTestDataMixin, TestCase):
         response = character_implants_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
 
-        data = json_response_to_dict(response)
+        data = json_response_to_dict_2(response)
         self.assertSetEqual(
             set(data.keys()), {implant_1.pk, implant_2.pk, implant_3.pk}
         )
@@ -411,7 +410,7 @@ class TestCharacterContracts(LoadTestDataMixin, TestCase):
         request.user = self.user
         response = character_contracts_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
+        data = json_response_to_python_2(response)
         self.assertEqual(len(data), 1)
         row = data[0]
         self.assertEqual(row["contract_id"], 42)
@@ -482,7 +481,7 @@ class TestCharacterContracts(LoadTestDataMixin, TestCase):
         request.user = self.user
         response = character_contracts_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
+        data = json_response_to_python_2(response)
         self.assertEqual(len(data), 1)
         row = data[0]
         self.assertEqual(row["contract_id"], 42)
@@ -535,7 +534,7 @@ class TestCharacterContracts(LoadTestDataMixin, TestCase):
         request.user = self.user
         response = character_contracts_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
+        data = json_response_to_python_2(response)
         self.assertEqual(len(data), 1)
         row = data[0]
         self.assertEqual(row["contract_id"], 42)
@@ -617,7 +616,7 @@ class TestCharacterContracts(LoadTestDataMixin, TestCase):
             request, self.character.pk, contract.pk
         )
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_dict(response)
+        data = json_response_to_dict_2(response)
 
         self.assertSetEqual(set(data.keys()), {1})
         obj = data[1]
@@ -681,7 +680,7 @@ class TestCharacterContracts(LoadTestDataMixin, TestCase):
             request, self.character.pk, contract.pk
         )
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_dict(response)
+        data = json_response_to_dict_2(response)
 
         self.assertSetEqual(set(data.keys()), {1, 2})
         obj = data[1]
@@ -744,7 +743,7 @@ class TestCharacterContracts(LoadTestDataMixin, TestCase):
             request, self.character.pk, contract.pk
         )
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_dict(response)
+        data = json_response_to_dict_2(response)
 
         self.assertSetEqual(set(data.keys()), {1})
         obj = data[1]

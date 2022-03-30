@@ -2,14 +2,14 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from eveuniverse.models import EveSolarSystem
 
-from app_utils.testing import create_user_from_evecharacter, json_response_to_python
+from app_utils.testing import create_user_from_evecharacter
 
 from ...models import CharacterLocation, Location
 from ...views.character_finder import character_finder, character_finder_data
 from ..testdata.load_entities import load_entities
 from ..testdata.load_eveuniverse import load_eveuniverse
 from ..testdata.load_locations import load_locations
-from ..utils import add_memberaudit_character_to_user
+from ..utils import add_memberaudit_character_to_user, json_response_to_python_2
 
 MODULE_PATH = "memberaudit.views.character_finder"
 
@@ -55,7 +55,7 @@ class TestCharacterFinderViews(TestCase):
         response = character_finder_data(request)
         # then
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
+        data = json_response_to_python_2(response)
         self.assertSetEqual(
             {x["character_pk"] for x in data}, {character_1001.pk, character_1002.pk}
         )

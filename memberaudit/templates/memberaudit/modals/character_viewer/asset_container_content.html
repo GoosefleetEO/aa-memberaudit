@@ -60,7 +60,7 @@
             $('#tab_asset_children').DataTable({
                 ajax: {
                     url: "{% url 'memberaudit:character_asset_container_data' character.pk parent_asset.pk %}",
-                    dataSrc: '',
+                    dataSrc: 'data',
                     cache: false
                 },
                 columns: [

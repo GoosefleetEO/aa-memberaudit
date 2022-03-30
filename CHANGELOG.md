@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Fixed
+
+- Show charactesr being currently updated with status unknown instead of issue
+
 ## [1.12.1] - 2022-03-21
 
 ### Changed

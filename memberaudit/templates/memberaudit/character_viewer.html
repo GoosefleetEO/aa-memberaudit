@@ -132,7 +132,7 @@
         $('#tab_assets').DataTable({
             ajax: {
                 url: "{% url 'memberaudit:character_assets_data' character.pk %}",
-                dataSrc: '',
+                dataSrc: 'data',
                 cache: false
             },
             columns: [
@@ -235,7 +235,7 @@
             "paging": true,
             ajax: {
                 url: "{% url 'memberaudit:character_contacts_data' character.pk %}",
-                dataSrc: '',
+                dataSrc: 'data',
                 cache: false
             },
             columns: [
@@ -309,7 +309,7 @@
         $('#tab_contracts').DataTable({
             ajax: {
                 url: "{% url 'memberaudit:character_contracts_data' character.pk %}",
-                dataSrc: ''
+                dataSrc: 'data'
             },
             columns: [
                 { data: 'summary' },
@@ -359,7 +359,7 @@
         $('#tab_jump_clones').DataTable({
             ajax: {
                 url: "{% url 'memberaudit:character_jump_clones_data' character.pk %}",
-                dataSrc: '',
+                dataSrc: 'data',
                 cache: false
             },
             columns: [
@@ -378,7 +378,7 @@
         $('#tab_implants').DataTable({
             ajax: {
                 url: "{% url 'memberaudit:character_implants_data' character.pk %}",
-                dataSrc: '',
+                dataSrc: 'data',
                 cache: false
             },
             columns: [
@@ -400,7 +400,7 @@
         $('#tab_loyalty').DataTable({
             ajax: {
                 url: "{% url 'memberaudit:character_loyalty_data' character.pk %}",
-                dataSrc: '',
+                dataSrc: 'data',
                 cache: false
             },
             columns: [
@@ -423,7 +423,7 @@
         var table = $('#tab_mails').DataTable({
             ajax: {
                 url: "{% url 'memberaudit:character_mail_headers_by_label_data' character.pk 1 %}",
-                dataSrc: '',
+                dataSrc: 'data',
                 cache: true
             },
             columns: [
@@ -512,7 +512,7 @@
         $('#tab_skillqueue').DataTable({
             ajax: {
                 url: "{% url 'memberaudit:character_skillqueue_data' character.pk %}",
-                dataSrc: '',
+                dataSrc: 'data',
                 cache: false
             },
             columns: [
@@ -541,7 +541,7 @@
         $('#tab_skill_sets').DataTable({
             ajax: {
                 url: "{% url 'memberaudit:character_skill_sets_data' character.pk %}",
-                dataSrc: '',
+                dataSrc: 'data',
                 cache: false
             },
             columns: [
@@ -607,7 +607,7 @@
         $('#tab_skills').DataTable({
             ajax: {
                 url: "{% url 'memberaudit:character_skills_data' character.pk %}",
-                dataSrc: '',
+                dataSrc: 'data',
                 cache: false
             },
             columns: [
@@ -639,7 +639,7 @@
         $('#tab_wallet_journal').DataTable({
             ajax: {
                 url: "{% url 'memberaudit:character_wallet_journal_data' character.pk %}",
-                dataSrc: '',
+                dataSrc: 'data',
                 cache: false
             },
             columns: [
@@ -691,7 +691,7 @@
         $('#tab_wallet_transactions').DataTable({
             ajax: {
                 url: "{% url 'memberaudit:character_wallet_transactions_data' character.pk %}",
-                dataSrc: '',
+                dataSrc: 'data',
                 cache: false
             },
             columns: [

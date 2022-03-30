@@ -143,4 +143,4 @@ def character_finder_data(request) -> JsonResponse:
                 "main_str": yesno_str(character.is_main),
             }
         )
-    return JsonResponse(character_list, safe=False)
+    return JsonResponse({"data": character_list})

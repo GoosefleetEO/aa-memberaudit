@@ -148,7 +148,7 @@
             $('#tab_contract_items_requested').DataTable({
                 ajax: {
                     url: "{% url 'memberaudit:character_contract_items_requested_data' character.pk contract.pk %}",
-                    dataSrc: '',
+                    dataSrc: 'data',
                     cache: false
                 },
                 columns: columns,
@@ -161,7 +161,7 @@
             $('#tab_contract_items_included').DataTable({
                 ajax: {
                     url: "{% url 'memberaudit:character_contract_items_included_data' character.pk contract.pk %}",
-                    dataSrc: '',
+                    dataSrc: 'data',
                     cache: false
                 },
                 columns: columns,

@@ -123,7 +123,7 @@ def user_compliance_report_data(request) -> JsonResponse:
                 "compliance_str": yesno_str(is_compliant),
             }
         )
-    return JsonResponse(user_data, safe=False)
+    return JsonResponse({"data": user_data})
 
 
 @login_required
@@ -210,7 +210,7 @@ def corporation_compliance_report_data(request) -> JsonResponse:
                 "is_compliant_str": yesno_str(is_compliant),
             }
         )
-    return JsonResponse(data, safe=False)
+    return JsonResponse({"data": data})
 
 
 @login_required
@@ -331,4 +331,4 @@ def skill_sets_report_data(request) -> JsonResponse:
                     group, character_map["character"], character_map["skill_sets"]
                 )
             )
-    return JsonResponse(data, safe=False)
+    return JsonResponse({"data": data})
