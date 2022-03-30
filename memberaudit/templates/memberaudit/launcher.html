@@ -112,8 +112,10 @@
             </div>
 
             {% if unregistered_chars|length > 0 %}
-                <p class="text-info">
-                    <strong>{% translate 'Unregistered character(s):' %}&nbsp;&nbsp;</strong>
+                <p class="text-warning">
+                    <strong>
+                    <i class="fas fa-exclamation-triangle"></i>
+                    {% translate 'Unregistered character(s):' %}&nbsp;&nbsp;</strong>
                     {{ unregistered_chars|join:", " }}
                 </p>
             {% endif %}
