@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.13.0] - 2022-03-30
+
 ### Added
 
 - Ability to see unregistered characters in character finder
@@ -17,7 +19,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-- Show charactesr being currently updated with status unknown instead of issue
+- Creating skill sets from fittings are missing skills (required skill 4, 5, 6 if any)
+- Show characters being currently updated with status unknown instead of issue
 
 ## [1.12.1] - 2022-03-21
 
