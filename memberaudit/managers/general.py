@@ -178,7 +178,15 @@ class LocationManager(models.Manager):
         self, id: int, token: Token, update_async: bool = True
     ) -> Tuple[models.Model, bool]:
         id = int(id)
-        if self.model.is_solar_system_id(id):
+        if self.model.is_asset_safety_id(id):
+            eve_type, _ = EveType.objects.get_or_create_esi(
+                id=EveTypeId.ASSET_SAFETY_WRAP
+            )
+            return self.update_or_create(
+                id=id,
+                defaults={"name": "ASSET SAFETY", "eve_type": eve_type},
+            )
+        elif self.model.is_solar_system_id(id):
             eve_solar_system, _ = EveSolarSystem.objects.get_or_create_esi(id=id)
             eve_type, _ = EveType.objects.get_or_create_esi(id=EveTypeId.SOLAR_SYSTEM)
             return self.update_or_create(

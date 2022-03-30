@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Removed location from character finder
+- Handle Asset Safety as special location
 
 ### Fixed
 

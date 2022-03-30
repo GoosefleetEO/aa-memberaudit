@@ -21,6 +21,7 @@ class EveGroupId(IntEnum):
 
 
 class EveTypeId(IntEnum):
+    ASSET_SAFETY_WRAP = 60
     SOLAR_SYSTEM = 5
 
 
