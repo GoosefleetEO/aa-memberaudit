@@ -1,6 +1,8 @@
+import json
 from typing import Tuple
 
 from django.contrib.auth.models import User
+from django.http import JsonResponse
 from django.test import RequestFactory
 from esi.models import Token
 from eveuniverse.models import EveEntity, EveSolarSystem, EveType
@@ -8,7 +10,7 @@ from eveuniverse.models import EveEntity, EveSolarSystem, EveType
 from allianceauth.authentication.models import CharacterOwnership
 from allianceauth.eveonline.models import EveCharacter
 from allianceauth.tests.auth_utils import AuthUtils
-from app_utils.testing import add_character_to_user
+from app_utils.testing import add_character_to_user, response_text
 
 from ..models import Character, Location
 from .testdata.load_entities import load_entities
@@ -73,3 +75,14 @@ class LoadTestDataMixin:
         cls.skill_type_4 = EveType.objects.get(id=24314)
         cls.item_type_1 = EveType.objects.get(id=19540)
         cls.item_type_2 = EveType.objects.get(id=19551)
+
+
+def json_response_to_python_2(response: JsonResponse, data_key="data") -> object:
+    """Convert JSON response into Python object."""
+    data = json.loads(response_text(response))
+    return data[data_key]
+
+
+def json_response_to_dict_2(response: JsonResponse, key="id", data_key="data") -> dict:
+    """Convert JSON response into dict by given key."""
+    return {x[key]: x for x in json_response_to_python_2(response, data_key)}

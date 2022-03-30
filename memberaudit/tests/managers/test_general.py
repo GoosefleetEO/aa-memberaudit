@@ -777,6 +777,21 @@ class TestLocationManager(NoSocketsTestCase):
         self.assertEqual(obj.eve_type, EveType.objects.get(id=5))
         self.assertIsNone(obj.owner)
 
+    # Asset Safety
+
+    def test_can_create_asset_safety(self, mock_esi):
+        # given
+        mock_esi.client = esi_client_stub
+        # when
+        obj, created = Location.objects.update_or_create_esi(id=2004, token=self.token)
+        # then
+        self.assertTrue(created)
+        self.assertEqual(obj.id, 2004)
+        self.assertEqual(obj.name, "ASSET SAFETY")
+        self.assertIsNone(obj.eve_solar_system)
+        self.assertIsNone(obj.owner)
+        self.assertEqual(obj.eve_type, EveType.objects.get(id=60))
+
 
 @patch(MANAGERS_PATH + ".esi")
 class TestLocationManagerAsync(TestCase):

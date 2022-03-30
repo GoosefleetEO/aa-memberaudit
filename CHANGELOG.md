@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.13.0] - tbd
+
+### Added
+
+- Ability to see unregistered characters in character finder
+
+### Changed
+
+- Removed location from character finder
+- Handle Asset Safety as special location
+
+### Fixed
+
+- Creating skill sets from fittings are missing skills (required skill 4, 5, 6 if any)
+- Show characters being currently updated with status unknown instead of issue
+
 ## [1.12.1] - 2022-03-21
 
 ### Changed

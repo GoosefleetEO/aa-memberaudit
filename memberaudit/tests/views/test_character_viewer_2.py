@@ -7,13 +7,7 @@ from django.urls import reverse
 from django.utils.timezone import now
 from eveuniverse.models import EveEntity, EveType
 
-from app_utils.testing import (
-    generate_invalid_pk,
-    json_response_to_dict,
-    json_response_to_python,
-    multi_assert_in,
-    response_text,
-)
+from app_utils.testing import generate_invalid_pk, multi_assert_in, response_text
 
 from ...models import (
     CharacterJumpClone,
@@ -48,7 +42,12 @@ from ..testdata.factories import (
 )
 from ..testdata.load_entities import load_entities
 from ..testdata.load_eveuniverse import load_eveuniverse
-from ..utils import LoadTestDataMixin, create_memberaudit_character
+from ..utils import (
+    LoadTestDataMixin,
+    create_memberaudit_character,
+    json_response_to_dict_2,
+    json_response_to_python_2,
+)
 
 MODULE_PATH = "memberaudit.views.character_viewer_2"
 
@@ -75,7 +74,7 @@ class TestJumpClones(LoadTestDataMixin, TestCase):
         request.user = self.user
         response = character_jump_clones_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_dict(response)
+        data = json_response_to_dict_2(response)
         self.assertEqual(len(data), 2)
 
         row = data[clone_1.pk]
@@ -144,7 +143,7 @@ class TestMailData(TestCase):
         )
         # then
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
+        data = json_response_to_python_2(response)
         self.assertSetEqual({x["mail_id"] for x in data}, {self.mail_1.mail_id})
         row = data[0]
         self.assertEqual(row["mail_id"], self.mail_1.mail_id)
@@ -166,7 +165,7 @@ class TestMailData(TestCase):
         response = character_mail_headers_by_label_data(request, self.character.pk, 0)
         # then
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
+        data = json_response_to_python_2(response)
         self.assertSetEqual(
             {x["mail_id"] for x in data},
             {
@@ -193,7 +192,7 @@ class TestMailData(TestCase):
         )
         # then
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
+        data = json_response_to_python_2(response)
         self.assertSetEqual(
             {x["mail_id"] for x in data}, {self.mail_1.mail_id, self.mail_4.mail_id}
         )
@@ -294,7 +293,7 @@ class TestSkillSetsData(LoadTestDataMixin, TestCase):
         request.user = self.user
         response = character_skill_sets_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
+        data = json_response_to_python_2(response)
         self.assertEqual(len(data), 4)
 
         row = data[0]
@@ -445,7 +444,7 @@ class TestSkillAndSkillqueue(LoadTestDataMixin, TestCase):
         request.user = self.user
         response = character_skills_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
+        data = json_response_to_python_2(response)
         self.assertEqual(len(data), 1)
         row = data[0]
         self.assertEqual(row["group"], "Spaceship Command")
@@ -478,7 +477,7 @@ class TestSkillAndSkillqueue(LoadTestDataMixin, TestCase):
         request.user = self.user
         response = character_skillqueue_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
+        data = json_response_to_python_2(response)
         self.assertEqual(len(data), 2)
 
         row = data[0]
@@ -505,7 +504,7 @@ class TestSkillAndSkillqueue(LoadTestDataMixin, TestCase):
         request.user = self.user
         response = character_skillqueue_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
+        data = json_response_to_python_2(response)
         self.assertEqual(len(data), 1)
         row = data[0]
         self.assertEqual(row["skill"], "Amarr Carrier&nbsp;V")
@@ -534,7 +533,7 @@ class TestWallet(LoadTestDataMixin, TestCase):
         request.user = self.user
         response = character_wallet_journal_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
+        data = json_response_to_python_2(response)
         self.assertEqual(len(data), 1)
         row = data[0]
         self.assertEqual(row["amount"], 1000000.00)
@@ -563,7 +562,7 @@ class TestWallet(LoadTestDataMixin, TestCase):
         request.user = self.user
         response = character_wallet_transactions_data(request, self.character.pk)
         self.assertEqual(response.status_code, 200)
-        data = json_response_to_python(response)
+        data = json_response_to_python_2(response)
         self.assertEqual(len(data), 1)
         row = data[0]
         self.assertEqual(row["date"], my_date.isoformat())

@@ -312,8 +312,7 @@ def character_assets_data(
                 "is_ship": is_ship,
             }
         )
-
-    return JsonResponse(data, safe=False)
+    return JsonResponse({"data": data})
 
 
 @login_required
@@ -387,8 +386,7 @@ def character_asset_container_data(
                 "total": asset.total,
             }
         )
-
-    return JsonResponse(data, safe=False)
+    return JsonResponse({"data": data})
 
 
 @login_required
@@ -452,7 +450,7 @@ def character_contacts_data(
     except ObjectDoesNotExist:
         pass
 
-    return JsonResponse(data, safe=False)
+    return JsonResponse({"data": data})
 
 
 @login_required
@@ -497,7 +495,7 @@ def character_contracts_data(
     except ObjectDoesNotExist:
         pass
 
-    return JsonResponse(data, safe=False)
+    return JsonResponse({"data": data})
 
 
 @login_required
@@ -636,7 +634,7 @@ def _character_contract_items_data(
             }
         )
 
-    return JsonResponse(data, safe=False)
+    return JsonResponse({"data": data})
 
 
 @login_required
@@ -715,7 +713,7 @@ def character_implants_data(
     except ObjectDoesNotExist:
         pass
 
-    return JsonResponse(data, safe=False)
+    return JsonResponse({"data": data})
 
 
 @login_required
@@ -743,4 +741,4 @@ def character_loyalty_data(
     except ObjectDoesNotExist:
         pass
 
-    return JsonResponse(data, safe=False)
+    return JsonResponse({"data": data})

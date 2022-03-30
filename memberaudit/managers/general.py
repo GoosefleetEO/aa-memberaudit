@@ -5,6 +5,7 @@ from bravado.exception import HTTPForbidden, HTTPUnauthorized
 
 from django.contrib.auth.models import Group, User
 from django.db import models, transaction
+from django.db.models import Q
 from django.utils.timezone import now
 from esi.models import Token
 from eveuniverse.models import EveEntity, EveSolarSystem, EveType
@@ -143,23 +144,16 @@ class LocationManager(models.Manager):
         empty_threshold = now() - dt.timedelta(minutes=self._UPDATE_EMPTY_GRACE_MINUTES)
         stale_threshold = now() - dt.timedelta(hours=MEMBERAUDIT_LOCATION_STALE_HOURS)
         try:
-            location = (
-                self.exclude(
-                    eve_type__isnull=True,
-                    eve_solar_system__isnull=True,
-                    updated_at__lt=empty_threshold,
-                )
-                .exclude(updated_at__lt=stale_threshold)
-                .get(id=id)
-            )
+            location = self.exclude(
+                (Q(eve_type__isnull=True) & Q(updated_at__lt=empty_threshold))
+                | Q(updated_at__lt=stale_threshold)
+            ).get(id=id)
             created = False
+            return location, created
         except self.model.DoesNotExist:
             if update_async:
-                location, created = self.update_or_create_esi_async(id=id, token=token)
-            else:
-                location, created = self.update_or_create_esi(id=id, token=token)
-
-        return location, created
+                return self.update_or_create_esi_async(id=id, token=token)
+            return self.update_or_create_esi(id=id, token=token)
 
     def update_or_create_esi_async(
         self, id: int, token: Token
@@ -180,10 +174,18 @@ class LocationManager(models.Manager):
         self, id: int, token: Token, update_async: bool = True
     ) -> Tuple[models.Model, bool]:
         id = int(id)
-        if self.model.is_solar_system_id(id):
+        if self.model.is_asset_safety_id(id):
+            eve_type, _ = EveType.objects.get_or_create_esi(
+                id=EveTypeId.ASSET_SAFETY_WRAP
+            )
+            return self.update_or_create(
+                id=id,
+                defaults={"name": "ASSET SAFETY", "eve_type": eve_type},
+            )
+        elif self.model.is_solar_system_id(id):
             eve_solar_system, _ = EveSolarSystem.objects.get_or_create_esi(id=id)
             eve_type, _ = EveType.objects.get_or_create_esi(id=EveTypeId.SOLAR_SYSTEM)
-            location, created = self.update_or_create(
+            return self.update_or_create(
                 id=id,
                 defaults={
                     "name": eve_solar_system.name,
@@ -196,26 +198,15 @@ class LocationManager(models.Manager):
             station = esi.client.Universe.get_universe_stations_station_id(
                 station_id=id
             ).results()
-            location, created = self._station_update_or_create_dict(
-                id=id, station=station
-            )
-
+            return self._station_update_or_create_dict(id=id, station=station)
         elif self.model.is_structure_id(id):
             if update_async:
-                location, created = self._structure_update_or_create_esi_async(
-                    id=id, token=token
-                )
-            else:
-                location, created = self.structure_update_or_create_esi(
-                    id=id, token=token
-                )
-        else:
-            logger.warning(
-                "%s: Creating empty location for ID not matching any known pattern:", id
-            )
-            location, created = self.get_or_create(id=id)
-
-        return location, created
+                return self._structure_update_or_create_esi_async(id=id, token=token)
+            return self.structure_update_or_create_esi(id=id, token=token)
+        logger.warning(
+            "%s: Creating empty location for ID not matching any known pattern:", id
+        )
+        return self.get_or_create(id=id)
 
     def _station_update_or_create_dict(
         self, id: int, station: dict
@@ -273,12 +264,9 @@ class LocationManager(models.Manager):
                 id,
                 http_error,
             )
-            location, created = self.get_or_create(id=id)
+            return self.get_or_create(id=id)
         else:
-            location, created = self._structure_update_or_create_dict(
-                id=id, structure=structure
-            )
-        return location, created
+            return self._structure_update_or_create_dict(id=id, structure=structure)
 
     def _structure_update_or_create_dict(
         self, id: int, structure: dict
@@ -332,8 +320,7 @@ class MailEntityManager(models.Manager):
         except self.model.DoesNotExist:
             if update_async:
                 return self.update_or_create_esi_async(id=id, category=category)
-            else:
-                return self.update_or_create_esi(id=id, category=category)
+            return self.update_or_create_esi(id=id, category=category)
 
     def update_or_create_esi(
         self, id: int, category: str = None
@@ -363,19 +350,17 @@ class MailEntityManager(models.Manager):
             eve_entity, _ = EveEntity.objects.get_or_create_esi(id=id)
             if eve_entity:
                 return self.update_or_create_from_eve_entity(eve_entity)
-            else:
-                return self.update_or_create(
-                    id=id,
-                    defaults={"category": self.model.Category.MAILING_LIST},
-                )
+            return self.update_or_create(
+                id=id,
+                defaults={"category": self.model.Category.MAILING_LIST},
+            )
         else:
             if category == self.model.Category.MAILING_LIST:
                 return self.update_or_create(
                     id=id,
                     defaults={"category": self.model.Category.MAILING_LIST},
                 )
-            else:
-                return self.update_or_create_from_eve_entity_id(id=id)
+            return self.update_or_create_from_eve_entity_id(id=id)
 
     def update_or_create_esi_async(
         self, id: int, category: str = None
@@ -396,8 +381,7 @@ class MailEntityManager(models.Manager):
 
         if category and category in self.model.Category.eve_entity_compatible():
             return self.update_or_create_esi(id=id, category=category)
-        else:
-            return self._update_or_create_esi_async(id=id)
+        return self._update_or_create_esi_async(id=id)
 
     def _update_or_create_esi_async(self, id: int) -> Tuple[models.Model, bool]:
         from ..tasks import DEFAULT_TASK_PRIORITY
@@ -477,16 +461,6 @@ class MailEntityManager(models.Manager):
             new_mailing_lists.append(mailing_list_obj)
 
         return new_mailing_lists
-
-    # def all_with_name_plus(self) -> models.QuerySet:
-    #     """return all mailing lists annotated with name_plus_2 attribute"""
-    #     return self.filter(category=self.model.Category.MAILING_LIST).annotate(
-    #         name_plus_2=Case(
-    #             When(name="", then=Concat(Value("Mailing List #"), "id")),
-    #             default=F("name"),
-    #             output_field=models.CharField(),
-    #         )
-    #     )
 
 
 class SkillSetManager(models.Manager):

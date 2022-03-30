@@ -17,7 +17,6 @@
                         <tr>
                             <th>{% translate 'Character<br>Name' %}</th>
                             <th>{% translate 'Character<br>Organization' %}</th>
-                            <th>{% translate 'Character<br>Location' %}</th>
                             <th>{% translate 'Main<br>Name' %}</th>
                             <th>{% translate 'Main<br>Organization' %}</th>
                             <th>{% translate 'Main<br>State' %}</th>
@@ -48,7 +47,7 @@
             $('#tab_characters').DataTable({
                 ajax: {
                     url: '{% url 'memberaudit:character_finder_data' %}',
-                    dataSrc: '',
+                    dataSrc: 'data',
                     cache: false
                 },
 
@@ -61,7 +60,6 @@
                         }
                     },
                     { data: 'character_organization' },
-                    { data: 'location' },
                     { data: 'main_character' },
                     { data: 'main_organization' },
                     { data: 'state_name' },
@@ -69,16 +67,15 @@
                     /* hidden columns */
                     { data: 'alliance_name' },
                     { data: 'corporation_name' },
-                    { data: 'region_name' },
-                    { data: 'solar_system_name' },
                     { data: 'main_alliance_name' },
                     { data: 'main_corporation_name' },
                     { data: 'main_str' },
+                    { data: 'unregistered_str' },
                 ],
 
                 columnDefs: [
-                    { "orderable": false, "targets": [ 6 ] },
-                    { "visible": false, "targets": [ 7, 8, 9, 10, 11, 12, 13 ] },
+                    { "orderable": false, "targets": [ 5 ] },
+                    { "visible": false, "targets": [ 6, 7, 8, 9, 10, 11 ] },
                 ],
 
                 order: [ [ 0, "asc" ] ],
@@ -86,37 +83,33 @@
                 filterDropDown: {
                     columns: [
                         {
-                            idx: 7,
+                            idx: 6,
                             title: "{% translate 'Char Alliance' %}"
                         },
                         {
-                            idx: 8,
+                            idx: 7,
                             title: "{% translate 'Char Corporation' %}"
                         },
                         {
-                            idx: 9,
-                            title: "{% translate 'Char Region' %}"
-                        },
-                        {
-                            idx: 10,
-                            title: "{% translate 'Char Solar System' %}"
-                        },
-                        {
-                            idx: 11,
+                            idx: 8,
                             title: "{% translate 'Main Alliance' %}"
                         },
                         {
-                            idx: 12,
+                            idx: 9,
                             title: "{% translate 'Main Corporation' %}"
                         },
                         {
-                            idx: 13,
-                            title: "{% translate 'Is Main?' %}"
+                            idx: 10,
+                            title: "{% translate 'Main?' %}"
                         },
                         {
-                            idx: 5,
+                            idx: 4,
                             title: "{% translate 'Main State' %}"
-                        }
+                        },
+                        {
+                            idx: 11,
+                            title: "{% translate 'Unregistered?' %}"
+                        },
 
                     ],
                     bootstrap: true

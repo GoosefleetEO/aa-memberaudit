@@ -33,7 +33,7 @@
             $('#tab_user_compliance').DataTable({
                 ajax: {
                     url: '{% url 'memberaudit:user_compliance_report_data' %}',
-                    dataSrc: '',
+                    dataSrc: 'data',
                     cache: false
                 },
                 columns: [
@@ -105,7 +105,7 @@
             $('#tab_corporation_compliance').DataTable({
                 ajax: {
                     url: '{% url 'memberaudit:corporation_compliance_report_data' %}',
-                    dataSrc: '',
+                    dataSrc: 'data',
                     cache: false
                 },
                 columns: [
@@ -163,7 +163,7 @@
             $('#tab_skill_sets').DataTable({
                 ajax: {
                     url: "{% url 'memberaudit:skill_sets_report_data' %}",
-                    dataSrc: '',
+                    dataSrc: 'data',
                     cache: false
                 },
                 columns: [

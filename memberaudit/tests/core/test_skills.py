@@ -1,3 +1,4 @@
+# from django.test import TestCase
 from eveuniverse.models import EveType
 
 from app_utils.testing import NoSocketsTestCase
@@ -28,17 +29,19 @@ class TestSkill(NoSocketsTestCase):
 
     def test_can_create_required_skills_from_eve_types(self):
         # when
-        archon = EveType.objects.get(name="125mm Gatling AutoCannon II")
+        archon = EveType.objects.get(name="Tengu")
         skills = required_skills_from_eve_types([archon])
         # then
-        skills_str = sorted([str(skill) for skill in skills])
-        self.assertListEqual(
+        skills_str = {str(skill) for skill in skills}
+        self.assertSetEqual(
             skills_str,
-            [
-                "Gunnery II",
-                "Small Autocannon Specialization I",
-                "Small Projectile Turret V",
-            ],
+            {
+                "Caldari Core Systems I",
+                "Caldari Defensive Systems I",
+                "Caldari Offensive Systems I",
+                "Caldari Propulsion Systems I",
+                "Caldari Strategic Cruiser I",
+            },
         )
 
     def test_str_1(self):

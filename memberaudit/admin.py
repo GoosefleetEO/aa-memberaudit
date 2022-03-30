@@ -144,7 +144,6 @@ class CharacterAdmin(admin.ModelAdmin):
     list_filter = (
         "created_at",
         "character_ownership__user__profile__state",
-        "character_ownership__user__profile__main_character__corporation_name",
         "character_ownership__user__profile__main_character__alliance_name",
     )
     list_select_related = (
@@ -154,7 +153,11 @@ class CharacterAdmin(admin.ModelAdmin):
         "character_ownership__character",
     )
     ordering = ["character_ownership__character__character_name"]
-    search_fields = ["character_ownership__character__character_name"]
+    search_fields = [
+        "character_ownership__character__character_name",
+        "character_ownership__user__profile__main_character__corporation_name",
+        "character_ownership__user__profile__main_character__alliance_name",
+    ]
     exclude = ("mailing_lists",)
 
     def get_queryset(self, *args, **kwargs):
@@ -169,9 +172,15 @@ class CharacterAdmin(admin.ModelAdmin):
                 )
             )
             .annotate(
+                num_sections_failed=Count(
+                    "update_status_set", filter=Q(update_status_set__is_success=False)
+                )
+            )
+            .annotate(
                 is_last_update_ok=Case(
+                    When(num_sections_failed__gt=0, then=False),
                     When(num_sections_ok=num_sections_total, then=True),
-                    default=Value(False),
+                    default=Value(None),
                 )
             )
         )

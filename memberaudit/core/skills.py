@@ -94,6 +94,12 @@ def _fetch_attributes_for_eve_types(
             AttributeId.REQUIRED_SKILL_2_LEVEL,
             AttributeId.REQUIRED_SKILL_3,
             AttributeId.REQUIRED_SKILL_3_LEVEL,
+            AttributeId.REQUIRED_SKILL_4,
+            AttributeId.REQUIRED_SKILL_4_LEVEL,
+            AttributeId.REQUIRED_SKILL_5,
+            AttributeId.REQUIRED_SKILL_5_LEVEL,
+            AttributeId.REQUIRED_SKILL_6,
+            AttributeId.REQUIRED_SKILL_6_LEVEL,
         ],
         eve_type_id__in=eve_type_ids,
     ).values_list("eve_type_id", "eve_dogma_attribute_id", "value")
@@ -113,6 +119,9 @@ def _create_skills_from_attributes(
             AttributeId.REQUIRED_SKILL_1: AttributeId.REQUIRED_SKILL_1_LEVEL,
             AttributeId.REQUIRED_SKILL_2: AttributeId.REQUIRED_SKILL_2_LEVEL,
             AttributeId.REQUIRED_SKILL_3: AttributeId.REQUIRED_SKILL_3_LEVEL,
+            AttributeId.REQUIRED_SKILL_4: AttributeId.REQUIRED_SKILL_4_LEVEL,
+            AttributeId.REQUIRED_SKILL_5: AttributeId.REQUIRED_SKILL_5_LEVEL,
+            AttributeId.REQUIRED_SKILL_6: AttributeId.REQUIRED_SKILL_6_LEVEL,
         }.items():
             if skill_id in attributes and skill_level_id in attributes:
                 skills.append((attributes[skill_id], attributes[skill_level_id]))

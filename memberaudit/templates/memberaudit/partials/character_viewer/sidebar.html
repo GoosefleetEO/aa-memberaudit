@@ -16,7 +16,8 @@
                     </li>
                 {% else %}
                     <li class="sidebar_character_disabled">
-                        {% include "memberaudit/partials/character_viewer/sidebar_character.html" %}
+                        {% include "memberaudit/partials/character_viewer/sidebar_character.html" %}&nbsp;
+                        <i class="fas fa-exclamation-triangle text-muted" title="Unregistered character"></i>
                     </li>
                 {% endif %}
 

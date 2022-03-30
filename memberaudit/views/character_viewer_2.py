@@ -117,7 +117,7 @@ def character_jump_clones_data(
     except ObjectDoesNotExist:
         pass
 
-    return JsonResponse(data, safe=False)
+    return JsonResponse({"data": data})
 
 
 def _character_mail_headers_data(request, character, mail_headers_qs) -> JsonResponse:
@@ -156,7 +156,7 @@ def _character_mail_headers_data(request, character, mail_headers_qs) -> JsonRes
     except ObjectDoesNotExist:
         pass
 
-    return JsonResponse(mails_data, safe=False)
+    return JsonResponse({"data": mails_data})
 
 
 @login_required
@@ -272,7 +272,7 @@ def character_skillqueue_data(
     except ObjectDoesNotExist:
         pass
 
-    return JsonResponse(data, safe=False)
+    return JsonResponse({"data": data})
 
 
 @login_required
@@ -399,7 +399,7 @@ def character_skill_sets_data(
                 row = _create_row(skill_check)
                 data.append(row)
     data = sorted(data, key=lambda k: (k["group"].lower(), k["skill_set_name"].lower()))
-    return JsonResponse(data, safe=False)
+    return JsonResponse({"data": data})
 
 
 @login_required
@@ -538,7 +538,7 @@ def character_skills_data(
     except ObjectDoesNotExist:
         pass
 
-    return JsonResponse(skills_data, safe=False)
+    return JsonResponse({"data": skills_data})
 
 
 @login_required
@@ -568,7 +568,8 @@ def character_wallet_journal_data(
             )
     except ObjectDoesNotExist:
         pass
-    return JsonResponse(wallet_data, safe=False)
+
+    return JsonResponse({"data": wallet_data})
 
 
 @login_required
@@ -600,4 +601,4 @@ def character_wallet_transactions_data(
             )
     except ObjectDoesNotExist:
         pass
-    return JsonResponse(wallet_data, safe=False)
+    return JsonResponse({"data": wallet_data})
