@@ -9,7 +9,11 @@ from ...views.character_finder import character_finder, character_finder_data
 from ..testdata.load_entities import load_entities
 from ..testdata.load_eveuniverse import load_eveuniverse
 from ..testdata.load_locations import load_locations
-from ..utils import add_memberaudit_character_to_user, json_response_to_python_2
+from ..utils import (
+    add_auth_character_to_user,
+    add_memberaudit_character_to_user,
+    json_response_to_python_2,
+)
 
 MODULE_PATH = "memberaudit.views.character_finder"
 
@@ -48,7 +52,8 @@ class TestCharacterFinderViews(TestCase):
         CharacterLocation.objects.create(
             character=character_1001, eve_solar_system=jita, location=jita_44
         )
-        character_1002 = add_memberaudit_character_to_user(self.user, 1002)
+        add_memberaudit_character_to_user(self.user, 1002)
+        add_auth_character_to_user(self.user, 1003)
         request = self.factory.get(reverse("memberaudit:character_finder_data"))
         request.user = self.user
         # when
@@ -56,6 +61,25 @@ class TestCharacterFinderViews(TestCase):
         # then
         self.assertEqual(response.status_code, 200)
         data = json_response_to_python_2(response)
+        self.assertSetEqual({x["character_id"] for x in data}, {1001, 1002, 1003})
+        first = data[0]
         self.assertSetEqual(
-            {x["character_pk"] for x in data}, {character_1001.pk, character_1002.pk}
+            set(first.keys()),
+            {
+                "character_id",
+                "character",
+                "character_organization",
+                "main_character",
+                "main_organization",
+                "state_name",
+                "location",
+                "actions",
+                "alliance_name",
+                "corporation_name",
+                "solar_system_name",
+                "region_name",
+                "main_alliance_name",
+                "main_corporation_name",
+                "main_str",
+            },
         )

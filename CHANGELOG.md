@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Added
+
+- Ability to see unregistered characters in character finder
+
 ### Fixed
 
 - Show charactesr being currently updated with status unknown instead of issue

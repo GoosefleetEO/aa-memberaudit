@@ -3,9 +3,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 
+from allianceauth.authentication.models import CharacterOwnership
 from allianceauth.services.hooks import get_extension_logger
 from app_utils.logging import LoggerAddTag
 from app_utils.views import (
@@ -15,7 +16,7 @@ from app_utils.views import (
 )
 
 from .. import __title__
-from ..models import Character
+from ..models import General
 from ._common import add_common_context, eve_solar_system_to_html
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
@@ -38,33 +39,65 @@ def character_finder(request) -> HttpResponse:
 @permission_required("memberaudit.finder_access")
 def character_finder_data(request) -> JsonResponse:
     character_list = list()
-    for character in Character.objects.user_has_access(
-        user=request.user
+    accessible_users = list(General.accessible_users(user=request.user))
+    for character_ownership in CharacterOwnership.objects.filter(
+        user__in=accessible_users
     ).select_related(
-        "character_ownership__character",
-        "character_ownership__user",
-        "character_ownership__user__profile__main_character",
-        "character_ownership__user__profile__state",
-        "location__location",
-        "location__eve_solar_system",
-        "location__eve_solar_system__eve_constellation__eve_region",
+        "character",
+        "user",
+        "user__profile__main_character",
+        "user__profile__state",
+        "memberaudit_character__location__location",
+        "memberaudit_character__location__eve_solar_system",
+        "memberaudit_character__location__eve_solar_system__eve_constellation__eve_region",
     ):
-        auth_character = character.character_ownership.character
-        character_viewer_url = reverse(
-            "memberaudit:character_viewer", args=[character.pk]
-        )
-        actions_html = fontawesome_link_button_html(
-            url=character_viewer_url,
-            fa_code="fas fa-search",
-            button_type="primary",
-        )
+        auth_character = character_ownership.character
+        try:
+            character = character_ownership.memberaudit_character
+        except ObjectDoesNotExist:
+            character = None
+            character_viewer_url = ""
+            actions_html = ""
+            location_html = ""
+            solar_system_name = ""
+            region_name = ""
+        else:
+            character_viewer_url = reverse(
+                "memberaudit:character_viewer", args=[character.pk]
+            )
+            actions_html = fontawesome_link_button_html(
+                url=character_viewer_url,
+                fa_code="fas fa-search",
+                button_type="primary",
+            )
+            try:
+                location_name = (
+                    character.location.location.name
+                    if character.location.location
+                    else ""
+                )
+                solar_system_html = eve_solar_system_to_html(
+                    character.location.eve_solar_system
+                )
+                location_html = format_html(
+                    "{}<br>{}", location_name, solar_system_html
+                )
+                solar_system_name = character.location.eve_solar_system.name
+                region_name = (
+                    character.location.eve_solar_system.eve_constellation.eve_region.name
+                )
+            except ObjectDoesNotExist:
+                location_html = ""
+                solar_system_name = ""
+                region_name = ""
+
         alliance_name = (
             auth_character.alliance_name if auth_character.alliance_name else ""
         )
         character_organization = format_html(
             "{}<br><em>{}</em>", auth_character.corporation_name, alliance_name
         )
-        user_profile = character.character_ownership.user.profile
+        user_profile = character_ownership.user.profile
         try:
             main_html = bootstrap_icon_plus_name_html(
                 user_profile.main_character.portrait_url(),
@@ -80,50 +113,41 @@ def character_finder_data(request) -> JsonResponse:
             main_organization = format_html(
                 "{}<br><em>{}</em>", auth_character.corporation_name, alliance_name
             )
-
         except AttributeError:
             main_alliance = main_organization = main_corporation = main_html = ""
 
-        text = format_html(
-            "{}&nbsp;{}",
-            mark_safe('&nbsp;<i class="fas fa-crown" title="Main character">')
-            if character.is_main
-            else "",
-            mark_safe('&nbsp;<i class="far fa-eye" title="Shared character">')
-            if character.is_shared
-            else "",
+        is_main = character_ownership.user.profile.main_character == auth_character
+        icons = []
+        if is_main:
+            icons.append(
+                mark_safe('<i class="fas fa-crown" title="Main character"></i>')
+            )
+        if character and character.is_shared:
+            icons.append(
+                mark_safe('<i class="far fa-eye" title="Shared character"></i>')
+            )
+        if not character:
+            icons.append(
+                mark_safe(
+                    '<i class="fas fa-exclamation-triangle" title="Unregistered character"></i>'
+                )
+            )
+        character_text = format_html_join(
+            mark_safe("&nbsp;"), "{}", ([html] for html in icons)
         )
         character_html = bootstrap_icon_plus_name_html(
             auth_character.portrait_url(),
             auth_character.character_name,
             avatar=True,
             url=character_viewer_url,
-            text=text,
+            text=character_text,
         )
-
-        try:
-            location_name = (
-                character.location.location.name if character.location.location else ""
-            )
-            solar_system_html = eve_solar_system_to_html(
-                character.location.eve_solar_system
-            )
-            location_html = format_html("{}<br>{}", location_name, solar_system_html)
-            solar_system_name = character.location.eve_solar_system.name
-            region_name = (
-                character.location.eve_solar_system.eve_constellation.eve_region.name
-            )
-        except ObjectDoesNotExist:
-            location_html = ""
-            solar_system_name = ""
-            region_name = ""
-
         alliance_name = (
             auth_character.alliance_name if auth_character.alliance_name else ""
         )
         character_list.append(
             {
-                "character_pk": character.pk,
+                "character_id": auth_character.character_id,
                 "character": {
                     "display": character_html,
                     "sort": auth_character.character_name,
@@ -140,7 +164,7 @@ def character_finder_data(request) -> JsonResponse:
                 "region_name": region_name,
                 "main_alliance_name": main_alliance,
                 "main_corporation_name": main_corporation,
-                "main_str": yesno_str(character.is_main),
+                "main_str": yesno_str(is_main),
             }
         )
     return JsonResponse({"data": character_list})
