@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Ability to see unregistered characters in character finder
 
+### Changed
+
+- Removed location from character finder
+
 ### Fixed
 
 - Show charactesr being currently updated with status unknown instead of issue

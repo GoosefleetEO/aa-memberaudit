@@ -17,7 +17,7 @@ from app_utils.views import (
 
 from .. import __title__
 from ..models import General
-from ._common import add_common_context, eve_solar_system_to_html
+from ._common import add_common_context
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
@@ -44,12 +44,10 @@ def character_finder_data(request) -> JsonResponse:
         user__in=accessible_users
     ).select_related(
         "character",
+        "memberaudit_character",
         "user",
         "user__profile__main_character",
         "user__profile__state",
-        "memberaudit_character__location__location",
-        "memberaudit_character__location__eve_solar_system",
-        "memberaudit_character__location__eve_solar_system__eve_constellation__eve_region",
     ):
         auth_character = character_ownership.character
         try:
@@ -58,9 +56,6 @@ def character_finder_data(request) -> JsonResponse:
             character = None
             character_viewer_url = ""
             actions_html = ""
-            location_html = ""
-            solar_system_name = ""
-            region_name = ""
         else:
             character_viewer_url = reverse(
                 "memberaudit:character_viewer", args=[character.pk]
@@ -70,26 +65,6 @@ def character_finder_data(request) -> JsonResponse:
                 fa_code="fas fa-search",
                 button_type="primary",
             )
-            try:
-                location_name = (
-                    character.location.location.name
-                    if character.location.location
-                    else ""
-                )
-                solar_system_html = eve_solar_system_to_html(
-                    character.location.eve_solar_system
-                )
-                location_html = format_html(
-                    "{}<br>{}", location_name, solar_system_html
-                )
-                solar_system_name = character.location.eve_solar_system.name
-                region_name = (
-                    character.location.eve_solar_system.eve_constellation.eve_region.name
-                )
-            except ObjectDoesNotExist:
-                location_html = ""
-                solar_system_name = ""
-                region_name = ""
 
         alliance_name = (
             auth_character.alliance_name if auth_character.alliance_name else ""
@@ -156,15 +131,13 @@ def character_finder_data(request) -> JsonResponse:
                 "main_character": main_html,
                 "main_organization": main_organization,
                 "state_name": user_profile.state.name,
-                "location": location_html,
                 "actions": actions_html,
                 "alliance_name": alliance_name,
                 "corporation_name": auth_character.corporation_name,
-                "solar_system_name": solar_system_name,
-                "region_name": region_name,
                 "main_alliance_name": main_alliance,
                 "main_corporation_name": main_corporation,
                 "main_str": yesno_str(is_main),
+                "unregistered_str": yesno_str(not bool(character)),
             }
         )
     return JsonResponse({"data": character_list})
