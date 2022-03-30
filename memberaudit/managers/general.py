@@ -5,6 +5,7 @@ from bravado.exception import HTTPForbidden, HTTPUnauthorized
 
 from django.contrib.auth.models import Group, User
 from django.db import models, transaction
+from django.db.models import Q
 from django.utils.timezone import now
 from esi.models import Token
 from eveuniverse.models import EveEntity, EveSolarSystem, EveType
@@ -143,15 +144,10 @@ class LocationManager(models.Manager):
         empty_threshold = now() - dt.timedelta(minutes=self._UPDATE_EMPTY_GRACE_MINUTES)
         stale_threshold = now() - dt.timedelta(hours=MEMBERAUDIT_LOCATION_STALE_HOURS)
         try:
-            location = (
-                self.exclude(
-                    eve_type__isnull=True,
-                    eve_solar_system__isnull=True,
-                    updated_at__lt=empty_threshold,
-                )
-                .exclude(updated_at__lt=stale_threshold)
-                .get(id=id)
-            )
+            location = self.exclude(
+                (Q(eve_type__isnull=True) & Q(updated_at__lt=empty_threshold))
+                | Q(updated_at__lt=stale_threshold)
+            ).get(id=id)
             created = False
             return location, created
         except self.model.DoesNotExist:
