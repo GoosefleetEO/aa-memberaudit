@@ -1,3 +1,5 @@
+from dj_datatables_view.base_datatable_view import BaseDatatableView
+
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse
@@ -37,7 +39,7 @@ def character_finder(request) -> HttpResponse:
 
 @login_required
 @permission_required("memberaudit.finder_access")
-def character_finder_data(request) -> JsonResponse:
+def character_finder_data_old(request) -> JsonResponse:
     character_list = list()
     accessible_users = list(General.accessible_users(user=request.user))
     for character_ownership in CharacterOwnership.objects.filter(
@@ -141,3 +143,169 @@ def character_finder_data(request) -> JsonResponse:
             }
         )
     return JsonResponse({"data": character_list})
+
+
+class CharacterFinderListJson(BaseDatatableView):
+    model = CharacterOwnership
+    columns = [
+        "character_id",
+        "character",
+        "character_organization",
+        "main_character",
+        "main_organization",
+        "state_name",
+        "actions",
+        "alliance_name",
+        "corporation_name",
+        "main_alliance_name",
+        "main_corporation_name",
+        "main_str",
+        "unregistered_str",
+    ]
+
+    # define column names that will be used in sorting
+    # order is important and should be same as order of columns
+    # displayed by datatables. For non sortable columns use empty
+    # value like ''
+    order_columns = [
+        "character_id",
+        "character",
+        "character_organization",
+        "main_character",
+        "main_organization",
+        "state_name",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+    ]
+    max_display_length = 500
+
+    def get_initial_queryset(self):
+        accessible_users = list(General.accessible_users(user=self.request.user))
+        return CharacterOwnership.objects.filter(
+            user__in=accessible_users
+        ).select_related(
+            "character",
+            "memberaudit_character",
+            "user",
+            "user__profile__main_character",
+            "user__profile__state",
+        )
+
+    def filter_queryset(self, qs):
+        # use parameters passed in GET request to filter queryset
+
+        # simple example:
+        search = self.request.GET.get("search[value]", None)
+        if search:
+            qs = qs.filter(character__character_name__istartswith=search)
+        return qs
+
+    def render_column(self, row, column):
+        # auth character related
+        if column == "character_id":
+            return row.character.character_id
+        alliance_name = (
+            row.character.alliance_name if row.character.alliance_name else ""
+        )
+        if column == "character_organization":
+            return format_html(
+                "{}<br><em>{}</em>",
+                row.character.corporation_name,
+                alliance_name,
+            )
+        if column == "alliance_name":
+            return alliance_name
+        if column == "corporation_name":
+            return row.character.corporation_name
+        # user related
+        if column == "state_name":
+            return row.user.profile.state.name
+        # main related
+        try:
+            main_character = row.user.profile.main_character
+        except AttributeError:
+            main_character = None
+            is_main = False
+        else:
+            is_main = row.user.profile.main_character == row.character
+            main_alliance_name = (
+                main_character.alliance_name if main_character.alliance_name else ""
+            )
+        if column == "main_character":
+            if main_character:
+                return bootstrap_icon_plus_name_html(
+                    main_character.portrait_url(),
+                    main_character.character_name,
+                    avatar=True,
+                )
+            return ""
+        if column == "main_organization":
+            if main_character:
+                return format_html(
+                    "{}<br><em>{}</em>",
+                    main_character.corporation_name,
+                    main_alliance_name,
+                )
+            return ""
+        if column == "main_alliance_name":
+            return main_alliance_name if main_character else ""
+        if column == "main_corporation_name":
+            return main_character.corporation_name if main_character else ""
+        if column == "main_str":
+            if main_character:
+                return yesno_str(is_main)
+            return ""
+        # member character related
+        try:
+            character = row.memberaudit_character
+        except ObjectDoesNotExist:
+            character = None
+            character_viewer_url = ""
+        else:
+            character_viewer_url = reverse(
+                "memberaudit:character_viewer", args=[character.pk]
+            )
+        if column == "character":
+            icons = []
+            if is_main:
+                icons.append(
+                    mark_safe('<i class="fas fa-crown" title="Main character"></i>')
+                )
+            if character and character.is_shared:
+                icons.append(
+                    mark_safe('<i class="far fa-eye" title="Shared character"></i>')
+                )
+            if not character:
+                icons.append(
+                    mark_safe(
+                        '<i class="fas fa-exclamation-triangle" title="Unregistered character"></i>'
+                    )
+                )
+            character_text = format_html_join(
+                mark_safe("&nbsp;"), "{}", ([html] for html in icons)
+            )
+            return bootstrap_icon_plus_name_html(
+                row.character.portrait_url(),
+                row.character.character_name,
+                avatar=True,
+                url=character_viewer_url,
+                text=character_text,
+            )
+        if column == "unregistered_str":
+            return yesno_str(not bool(character))
+        if column == "actions":
+            if character:
+                actions_html = fontawesome_link_button_html(
+                    url=character_viewer_url,
+                    fa_code="fas fa-search",
+                    button_type="primary",
+                )
+            else:
+                actions_html = ""
+            return actions_html
+        return super().render_column(row, column)

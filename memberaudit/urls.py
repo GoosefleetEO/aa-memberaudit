@@ -154,7 +154,7 @@ urlpatterns = [
     ),
     path(
         "character_finder_data",
-        character_finder.character_finder_data,
+        character_finder.CharacterFinderListJson.as_view(),
         name="character_finder_data",
     ),
     # reports

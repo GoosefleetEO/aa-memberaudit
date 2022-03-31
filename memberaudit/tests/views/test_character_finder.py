@@ -5,7 +5,7 @@ from eveuniverse.models import EveSolarSystem
 from app_utils.testing import create_user_from_evecharacter
 
 from ...models import CharacterLocation, Location
-from ...views.character_finder import character_finder, character_finder_data
+from ...views.character_finder import CharacterFinderListJson, character_finder
 from ..testdata.load_entities import load_entities
 from ..testdata.load_eveuniverse import load_eveuniverse
 from ..testdata.load_locations import load_locations
@@ -57,27 +57,8 @@ class TestCharacterFinderViews(TestCase):
         request = self.factory.get(reverse("memberaudit:character_finder_data"))
         request.user = self.user
         # when
-        response = character_finder_data(request)
+        response = CharacterFinderListJson.as_view()(request)
         # then
         self.assertEqual(response.status_code, 200)
         data = json_response_to_python_2(response)
-        self.assertSetEqual({x["character_id"] for x in data}, {1001, 1002, 1003})
-        first = data[0]
-        self.assertSetEqual(
-            set(first.keys()),
-            {
-                "character_id",
-                "character",
-                "character_organization",
-                "main_character",
-                "main_organization",
-                "state_name",
-                "actions",
-                "alliance_name",
-                "corporation_name",
-                "main_alliance_name",
-                "main_corporation_name",
-                "main_str",
-                "unregistered_str",
-            },
-        )
+        self.assertSetEqual({x[0] for x in data}, {1001, 1002, 1003})
