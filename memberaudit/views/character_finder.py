@@ -139,7 +139,28 @@ class CharacterFinderListJson(
         return qs
 
     def render_column(self, row, column):
-        # auth character related
+        result = self._render_column_general(row, column)
+        if result:
+            return result
+        result = self._render_column_auth_character(row, column)
+        if result:
+            return result
+        result = self._render_column_main_character(row, column)
+        if result:
+            return result
+        result = self._render_column_memberaudit_character(row, column)
+        if result:
+            return result
+        return super().render_column(row, column)
+
+    def _render_column_general(self, row, column):
+        if column == "state_name":
+            return row.user.profile.state.name
+        if column == "unregistered_str":
+            return row.unregistered
+        return None
+
+    def _render_column_auth_character(self, row, column):
         if column == "character_id":
             return row.character.character_id
         alliance_name = (
@@ -155,10 +176,9 @@ class CharacterFinderListJson(
             return alliance_name
         if column == "corporation_name":
             return row.character.corporation_name
-        # user related
-        if column == "state_name":
-            return row.user.profile.state.name
-        # main related
+        return None
+
+    def _render_column_main_character(self, row, column):
         try:
             main_character = row.user.profile.main_character
         except AttributeError:
@@ -193,7 +213,9 @@ class CharacterFinderListJson(
             if main_character:
                 return yesno_str(is_main)
             return ""
-        # member character related
+        return None
+
+    def _render_column_memberaudit_character(self, row, column):
         try:
             character = row.memberaudit_character
         except ObjectDoesNotExist:
@@ -204,6 +226,10 @@ class CharacterFinderListJson(
                 "memberaudit:character_viewer", args=[character.pk]
             )
         if column == "character":
+            try:
+                is_main = row.user.profile.main_character == row.character
+            except AttributeError:
+                is_main = False
             icons = []
             if is_main:
                 icons.append(
@@ -229,10 +255,8 @@ class CharacterFinderListJson(
                 url=character_viewer_url,
                 text=character_text,
             )
-        if column == "unregistered_str":
-            return row.unregistered
         if column == "actions":
-            if character:
+            if character_viewer_url:
                 actions_html = fontawesome_link_button_html(
                     url=character_viewer_url,
                     fa_code="fas fa-search",
@@ -241,7 +265,7 @@ class CharacterFinderListJson(
             else:
                 actions_html = ""
             return actions_html
-        return super().render_column(row, column)
+        return None
 
 
 @login_required
@@ -280,5 +304,5 @@ def character_finder_list_fdd_data(request) -> JsonResponse:
                 options = qs.values_list("user__profile__state__name", flat=True)
             else:
                 options = [f"** ERROR: Invalid column name '{column}' **"]
-            result[column] = sorted(list(set(options)))
+            result[column] = sorted(list(set(options)), key=str.casefold)
     return JsonResponse(result, safe=False)
