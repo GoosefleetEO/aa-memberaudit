@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
@@ -165,6 +165,7 @@ class CharacterFinderListJson(
         "main_corporation_name",
         "main_str",
         "unregistered_str",
+        "character_id",
     ]
 
     # define column names that will be used in sorting
@@ -184,10 +185,15 @@ class CharacterFinderListJson(
         "",
         "",
         "",
+        "",
     ]
 
     def get_initial_queryset(self):
-        accessible_users = list(General.accessible_users(user=self.request.user))
+        return self.initial_queryset(self.request)
+
+    @classmethod
+    def initial_queryset(cls, request):
+        accessible_users = list(General.accessible_users(user=request.user))
         return CharacterOwnership.objects.filter(
             user__in=accessible_users
         ).select_related(
@@ -325,3 +331,42 @@ class CharacterFinderListJson(
                 actions_html = ""
             return actions_html
         return super().render_column(row, column)
+
+
+@login_required
+@permission_required("memberaudit.finder_access")
+def character_finder_list_fdd_data(request) -> JsonResponse:
+    result = dict()
+    qs = CharacterFinderListJson.initial_queryset(request)
+    columns = request.GET.get("columns")
+    if columns:
+        for column in columns.split(","):
+            if column == "alliance_name":
+                options = qs.exclude(character__alliance_id__isnull=True).values_list(
+                    "character__alliance_name", flat=True
+                )
+            elif column == "corporation_name":
+                options = qs.values_list("character__corporation_name", flat=True)
+            elif column == "main_alliance_name":
+                options = qs.exclude(
+                    user__profile__main_character__alliance_id__isnull=True
+                ).values_list("user__profile__main_character__alliance_name", flat=True)
+            elif column == "main_corporation_name":
+                options = qs.values_list(
+                    "user__profile__main_character__corporation_name", flat=True
+                )
+            elif column == "main_str":
+                options = qs.values_list(
+                    "user__profile__main_character__character_name", flat=True
+                )
+            elif column == "unregistered_str":
+                options = map(
+                    lambda x: "yes" if x is None else "no",
+                    qs.values_list("memberaudit_character", flat=True),
+                )
+            elif column == "state_name":
+                options = qs.values_list("user__profile__state__name", flat=True)
+            else:
+                options = [f"** ERROR: Invalid column name '{column}' **"]
+            result[column] = sorted(list(set(options)))
+    return JsonResponse(result, safe=False)
