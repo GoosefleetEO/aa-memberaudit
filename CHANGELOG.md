@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Changed
+
+- Improve performance of character finder page for large data sets
+
 ## [1.13.0] - 2022-03-30
 
 ### Added
