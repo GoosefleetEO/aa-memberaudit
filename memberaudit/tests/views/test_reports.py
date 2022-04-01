@@ -348,12 +348,14 @@ class TestSkillSetReportData(TestCase):
         self.assertEqual(row["group"], "Alpha")
         self.assertEqual(row["character"], "Bruce Wayne")
         self.assertEqual(row["main"], "Bruce Wayne")
+        self.assertEqual(row["is_main_str"], "yes")
         self.assertTrue(multi_assert_not_in(["Ship 1", "Ship 2"], row["has_required"]))
 
         row = data[make_data_id(doctrine_1, self.character_1002)]
         self.assertEqual(row["group"], "Alpha")
         self.assertEqual(row["character"], "Clark Kent")
         self.assertEqual(row["main"], "Clark Kent")
+        self.assertEqual(row["is_main_str"], "yes")
 
         self.assertTrue(multi_assert_in(["Ship 1"], row["has_required"]))
         self.assertTrue(multi_assert_not_in(["Ship 2", "Ship 3"], row["has_required"]))
@@ -362,12 +364,14 @@ class TestSkillSetReportData(TestCase):
         self.assertEqual(row["group"], "Alpha")
         self.assertEqual(row["character"], "Lex Luther")
         self.assertEqual(row["main"], "Clark Kent")
+        self.assertEqual(row["is_main_str"], "no")
         self.assertTrue(multi_assert_in(["Ship 1", "Ship 2"], row["has_required"]))
 
         row = data[make_data_id(doctrine_2, self.character_1101)]
         self.assertEqual(row["group"], "Doctrine: Bravo")
         self.assertEqual(row["character"], "Lex Luther")
         self.assertEqual(row["main"], "Clark Kent")
+        self.assertEqual(row["is_main_str"], "no")
         self.assertTrue(multi_assert_in(["Ship 1"], row["has_required"]))
         self.assertTrue(multi_assert_not_in(["Ship 2"], row["has_required"]))
 
@@ -375,6 +379,7 @@ class TestSkillSetReportData(TestCase):
         self.assertEqual(row["group"], "[Ungrouped]")
         self.assertEqual(row["character"], "Lex Luther")
         self.assertEqual(row["main"], "Clark Kent")
+        self.assertEqual(row["is_main_str"], "no")
         self.assertTrue(multi_assert_in(["Ship 3"], row["has_required"]))
 
     # def test_can_handle_user_without_main(self):
