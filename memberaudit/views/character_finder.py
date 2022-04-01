@@ -187,7 +187,9 @@ class CharacterFinderListJson(
         else:
             is_main = row.user.profile.main_character == row.character
             main_alliance_name = (
-                main_character.alliance_name if main_character.alliance_name else ""
+                main_character.alliance_name
+                if main_character and main_character.alliance_name
+                else ""
             )
         if column == "main_character":
             if main_character:

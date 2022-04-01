@@ -35,7 +35,7 @@ class TestCharacterFinderViews(TestCase):
             permissions=[
                 "memberaudit.basic_access",
                 "memberaudit.finder_access",
-                "memberaudit.view_same_corporation",
+                "memberaudit.view_everything",
             ],
         )
 
@@ -58,6 +58,11 @@ class TestCharacterFinderViews(TestCase):
         )
         add_memberaudit_character_to_user(self.user, 1002)
         add_auth_character_to_user(self.user, 1003)
+        user_wo_main, _ = create_user_from_evecharacter(
+            1101, permissions=["memberaudit.basic_access"]
+        )
+        user_wo_main.profile.main_character = None
+        user_wo_main.profile.save()
         request = self.factory.get(reverse("memberaudit:character_finder_data"))
         request.user = self.user
         # when
@@ -65,7 +70,7 @@ class TestCharacterFinderViews(TestCase):
         # then
         self.assertEqual(response.status_code, 200)
         data = json_response_to_python_2(response)
-        self.assertSetEqual({x[12] for x in data}, {1001, 1002, 1003})
+        self.assertSetEqual({x[12] for x in data}, {1001, 1002, 1003, 1101})
 
     def test_character_finder_list_fdd_data(self):
         # given
@@ -77,6 +82,11 @@ class TestCharacterFinderViews(TestCase):
         )
         add_memberaudit_character_to_user(self.user, 1101)
         add_auth_character_to_user(self.user, 1102)
+        user_wo_main, _ = create_user_from_evecharacter(
+            1103, permissions=["memberaudit.basic_access"]
+        )
+        user_wo_main.profile.main_character = None
+        user_wo_main.profile.save()
         request = self.factory.get(
             reverse("memberaudit:character_finder_list_fdd_data")
             + "?columns=alliance_name,corporation_name,main_alliance_name,main_corporation_name,main_str,unregistered_str,state_name"
@@ -92,7 +102,7 @@ class TestCharacterFinderViews(TestCase):
         )
         self.assertListEqual(
             data["corporation_name"],
-            ["Harley Quinn inc.", "Lexcorp", "Wayne Technologies"],
+            ["Harley Quinn inc.", "Lexcorp", "Suicide Squad", "Wayne Technologies"],
         )
         self.assertListEqual(data["main_alliance_name"], ["Wayne Enterprises"])
         self.assertListEqual(data["main_corporation_name"], ["Wayne Technologies"])
