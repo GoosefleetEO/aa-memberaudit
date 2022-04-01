@@ -285,14 +285,19 @@ def character_finder_list_fdd_data(request) -> JsonResponse:
                 options = qs.values_list("character__corporation_name", flat=True)
             elif column == "main_alliance_name":
                 options = qs.exclude(
-                    user__profile__main_character__alliance_id__isnull=True
+                    Q(user__profile__main_character__isnull=True)
+                    | Q(user__profile__main_character__alliance_id__isnull=True)
                 ).values_list("user__profile__main_character__alliance_name", flat=True)
             elif column == "main_corporation_name":
-                options = qs.values_list(
+                options = qs.exclude(
+                    user__profile__main_character__isnull=True
+                ).values_list(
                     "user__profile__main_character__corporation_name", flat=True
                 )
             elif column == "main_str":
-                options = qs.values_list(
+                options = qs.exclude(
+                    user__profile__main_character__isnull=True
+                ).values_list(
                     "user__profile__main_character__character_name", flat=True
                 )
             elif column == "unregistered_str":
