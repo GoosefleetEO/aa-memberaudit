@@ -179,6 +179,7 @@
                     { data: 'corporation' },
                     { data: 'has_required_str' },
                     { data: 'is_doctrine_str' },
+                    { data: 'is_main_str' },
                 ],
                 order: [[0, "asc"], [1, "asc"], [4, "asc"]],
                 rowGroup: {
@@ -186,7 +187,7 @@
                     className: 'table-group'
                 },
                 columnDefs: [
-                    { "visible": false, "targets": [0, 6, 7, 8, 9] }
+                    { "visible": false, "targets": [0, 6, 7, 8, 9, 10] }
                 ],
                 filterDropDown: {
                     columns: [
@@ -213,6 +214,10 @@
                         {
                             idx: 9,
                             title: "{% translate 'Doctrine?' %}"
+                        },
+                        {
+                            idx: 10,
+                            title: "{% translate 'Main?' %}"
                         }
                     ],
                     autoSize: false,
