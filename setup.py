@@ -44,5 +44,6 @@ setup(
         "django-eveuniverse>=0.15",
         "allianceauth-app-utils>=1.13",
         "humanize",
+        "dj-datatables-view",
     ],
 )

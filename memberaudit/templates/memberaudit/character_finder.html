@@ -39,26 +39,18 @@
     {% include 'bundles/datatables-js.html' %}
 
     <!--load JS for filterDropDown plugin -->
-    <script type="text/javascript" src="{% static 'js/filterDropDown/filterDropDown.min.js' %}">
-    </script>
+    <script type="application/javascript" src="{% static 'memberaudit/vendor/datatables/plugins/filterDropDown.min.js' %}"></script>
 
     <script>
         $(document).ready(function() {
             $('#tab_characters').DataTable({
                 ajax: {
-                    url: '{% url 'memberaudit:character_finder_data' %}',
+                    url: '{% url "memberaudit:character_finder_data" %}',
                     dataSrc: 'data',
                     cache: false
                 },
-
                 columns: [
-                    {
-                        data: 'character',
-                        render: {
-                            _: 'display',
-                            sort: 'sort'
-                        }
-                    },
+                    { data: 'character' },
                     { data: 'character_organization' },
                     { data: 'main_character' },
                     { data: 'main_organization' },
@@ -79,6 +71,11 @@
                 ],
 
                 order: [ [ 0, "asc" ] ],
+
+                searching: true,
+                processing: true,
+                serverSide: true,
+                // stateSave: true,
 
                 filterDropDown: {
                     columns: [
@@ -112,7 +109,8 @@
                         },
 
                     ],
-                    bootstrap: true
+                    bootstrap: true,
+                    ajax: '{% url "memberaudit:character_finder_list_fdd_data" %}'
                 }
             });
         });
