@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
-## [1.13.1] - 2022-04-01
+## [1.14.0] - 2022-04-01
+
+### Added
+
+- Ability to filter the skill report to only main characters (#110)
+
+Big thanks to @buymespam for the contribution!
 
 ### Changed
 
