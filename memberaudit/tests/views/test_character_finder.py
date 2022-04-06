@@ -1,3 +1,4 @@
+from django.core.exceptions import PermissionDenied
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from eveuniverse.models import EveSolarSystem
@@ -16,6 +17,7 @@ from ..testdata.load_locations import load_locations
 from ..utils import (
     add_auth_character_to_user,
     add_memberaudit_character_to_user,
+    create_memberaudit_character,
     json_response_to_python_2,
 )
 
@@ -48,7 +50,7 @@ class TestCharacterFinderViews(TestCase):
         # then
         self.assertEqual(response.status_code, 200)
 
-    def test_character_finder_list_data(self):
+    def test_should_return_all_data_for_character_finder_list(self):
         # given
         character_1001 = add_memberaudit_character_to_user(self.user, 1001)
         jita = EveSolarSystem.objects.get(name="Jita")
@@ -72,7 +74,59 @@ class TestCharacterFinderViews(TestCase):
         data = json_response_to_python_2(response)
         self.assertSetEqual({x[12] for x in data}, {1001, 1002, 1003, 1101})
 
-    def test_character_finder_list_fdd_data(self):
+    def test_should_raise_permission_denied(self):
+        # given
+        user, _ = create_user_from_evecharacter(
+            1002,
+            permissions=["memberaudit.basic_access"],
+        )
+        request = self.factory.get(reverse("memberaudit:character_finder_data"))
+        request.user = user
+        # when
+        with self.assertRaises(PermissionDenied):
+            CharacterFinderListJson.as_view()(request)
+
+    def test_should_include_shared_character(self):
+        # given
+        user, _ = create_user_from_evecharacter(
+            1002,
+            permissions=[
+                "memberaudit.basic_access",
+                "memberaudit.finder_access",
+                "memberaudit.view_shared_characters",
+            ],
+        )
+        character_1101 = create_memberaudit_character(1101)
+        character_1101.is_shared = True
+        character_1101.save()
+        request = self.factory.get(reverse("memberaudit:character_finder_data"))
+        request.user = user
+        # when
+        response = CharacterFinderListJson.as_view()(request)
+        # then
+        self.assertEqual(response.status_code, 200)
+        data = json_response_to_python_2(response)
+        self.assertSetEqual({x[12] for x in data}, {1002, 1101})
+
+    def test_should_not_include_shared_character(self):
+        # given
+        user, _ = create_user_from_evecharacter(
+            1002,
+            permissions=["memberaudit.basic_access", "memberaudit.finder_access"],
+        )
+        character_1101 = create_memberaudit_character(1101)
+        character_1101.is_shared = True
+        character_1101.save()
+        request = self.factory.get(reverse("memberaudit:character_finder_data"))
+        request.user = user
+        # when
+        response = CharacterFinderListJson.as_view()(request)
+        # then
+        self.assertEqual(response.status_code, 200)
+        data = json_response_to_python_2(response)
+        self.assertSetEqual({x[12] for x in data}, {1002})
+
+    def test_should_return_all_data_for_character_finder_dff_list(self):
         # given
         character_1001 = add_memberaudit_character_to_user(self.user, 1001)
         jita = EveSolarSystem.objects.get(name="Jita")

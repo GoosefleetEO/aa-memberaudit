@@ -86,20 +86,20 @@ class CharacterFinderListJson(
     @classmethod
     def initial_queryset(cls, request):
         accessible_users = list(General.accessible_users(user=request.user))
-        return (
-            CharacterOwnership.objects.filter(user__in=accessible_users)
-            .annotate(
-                unregistered=Case(
-                    When(memberaudit_character=None, then=Value("yes")),
-                    default=Value("no"),
-                )
-            )
-            .select_related(
-                "character",
-                "memberaudit_character",
-                "user",
-                "user__profile__main_character",
-                "user__profile__state",
+        my_filter = Q(user__in=accessible_users)
+        if request.user.has_perm("memberaudit.view_shared_characters"):
+            my_filter |= Q(memberaudit_character__is_shared=True)
+        character_ownerships = CharacterOwnership.objects.select_related(
+            "character",
+            "memberaudit_character",
+            "user",
+            "user__profile__main_character",
+            "user__profile__state",
+        ).filter(my_filter)
+        return character_ownerships.annotate(
+            unregistered=Case(
+                When(memberaudit_character=None, then=Value("yes")),
+                default=Value("no"),
             )
         )
 

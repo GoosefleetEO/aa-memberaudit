@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.14.1] - 2022-04-06
+
+### Fixed
+
+- Not all shared characters are shown in character finder
+
 ## [1.14.0] - 2022-04-01
 
 ### Added

@@ -150,17 +150,17 @@ class TestGeneralUserHasAccess(NoSocketsTestCase):
         super().setUpClass()
         load_eveuniverse()
         load_entities()
-        cls.character_1002 = create_memberaudit_character(1002)
-        cls.user_1002 = cls.character_1002.character_ownership.user
-        cls.character_1003 = create_memberaudit_character(1003)
-        cls.user_1003 = cls.character_1003.character_ownership.user
-        cls.character_1101 = create_memberaudit_character(1101)
-        cls.user_1101 = cls.character_1101.character_ownership.user
+        character_1002 = create_memberaudit_character(1002)
+        cls.user_1002 = character_1002.character_ownership.user
+        character_1003 = create_memberaudit_character(1003)
+        cls.user_1003 = character_1003.character_ownership.user
+        character_1101 = create_memberaudit_character(1101)
+        cls.user_1101 = character_1101.character_ownership.user
         cls.user_dummy = AuthUtils.create_user("No-access-to-Member-Audit")
 
     def setUp(self) -> None:
-        self.character_1001 = create_memberaudit_character(1001)
-        self.user_1001 = self.character_1001.character_ownership.user
+        character_1001 = create_memberaudit_character(1001)
+        self.user_1001 = character_1001.character_ownership.user
 
     def test_should_see_own_user_only(self):
         # when
@@ -208,8 +208,7 @@ class TestGeneralUserHasAccess(NoSocketsTestCase):
         result = General.accessible_users(user=self.user_1001)
         # then
         self.assertSetEqual(
-            queryset_pks(result),
-            {self.user_1001.pk, self.user_1002.pk},
+            queryset_pks(result), {self.user_1001.pk, self.user_1002.pk}
         )
 
 
