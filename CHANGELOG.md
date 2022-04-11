@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.14.2] - 2022-04-11
+
+### Fixed
+
+- Do not show type ID in name of skills in character skill list
+
 ## [1.14.1] - 2022-04-06
 
 ### Fixed

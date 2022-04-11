@@ -427,7 +427,7 @@ class TestCharacterUpdateMails(CharacterUpdateTestDataMixin, TestCase):
         self.character_1001.update_mail_body(mail)
         # then
         obj = self.character_1001.mails.get(mail_id=1)
-        self.assertEqual(obj.body, "blah blah blah")
+        self.assertEqual(obj.body, "blah blah blah 😓")
 
     @patch(MODELS_PATH + ".character.eve_xml_to_html")
     def test_should_update_mail_body_from_scratch(self, mock_eve_xml_to_html, mock_esi):

@@ -525,12 +525,17 @@ def character_skills_data(
             "eve_type", "eve_type__eve_group"
         ).filter(active_skill_level__gte=1):
             level_str = MAP_ARABIC_TO_ROMAN_NUMBERS[skill.active_skill_level]
-            skill_name = f"{skill.eve_type.name} {level_str}"
+            skill_name = format_html(
+                '<span title="{}">{} {}</span>',
+                skill.eve_type.description,
+                skill.eve_type.name,
+                level_str,
+            )
             skills_data.append(
                 {
                     "group": skill.eve_type.eve_group.name,
                     "skill": skill.eve_type.name,
-                    "skill_name": f"{skill_name} - {skill.eve_type_id}",
+                    "skill_name": skill_name,
                     "level": skill.active_skill_level,
                     "level_str": level_str,
                 }
