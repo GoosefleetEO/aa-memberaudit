@@ -112,7 +112,9 @@ class TestUpdateCharacterAssets(TestCase):
         load_locations()
         cls.character_1001 = create_memberaudit_character(1001)
         cls.character_1002 = create_memberaudit_character(1002)
-        cls.token = cls.character_1001.character_ownership.user.token_set.first()
+        cls.token = (
+            cls.character_1001.eve_character.character_ownership.user.token_set.first()
+        )
         cls.jita = EveSolarSystem.objects.get(id=30000142)
         cls.jita_44 = Location.objects.get(id=60003760)
         cls.amamake = EveSolarSystem.objects.get(id=30002537)
@@ -396,7 +398,9 @@ class TestUpdateCharacterMails(TestCase):
         load_eveuniverse()
         load_entities()
         cls.character_1001 = create_memberaudit_character(1001)
-        cls.token = cls.character_1001.character_ownership.user.token_set.first()
+        cls.token = (
+            cls.character_1001.eve_character.character_ownership.user.token_set.first()
+        )
 
     def test_update_ok(self, mock_esi):
         """when update succeeded then report update success"""
@@ -441,7 +445,9 @@ class TestUpdateCharacterContacts(TestCase):
         load_eveuniverse()
         load_entities()
         cls.character_1001 = create_memberaudit_character(1001)
-        cls.token = cls.character_1001.character_ownership.user.token_set.first()
+        cls.token = (
+            cls.character_1001.eve_character.character_ownership.user.token_set.first()
+        )
 
     def test_update_ok(self, mock_esi):
         """when update succeeded then report update success"""
@@ -487,7 +493,9 @@ class TestUpdateCharacterContracts(TestCase):
         load_entities()
         load_locations()
         cls.character_1001 = create_memberaudit_character(1001)
-        cls.token = cls.character_1001.character_ownership.user.token_set.first()
+        cls.token = (
+            cls.character_1001.eve_character.character_ownership.user.token_set.first()
+        )
 
     def test_update_ok(self, mock_esi):
         """when update succeeded then report update success"""
@@ -532,7 +540,9 @@ class TestUpdateCharacterWalletJournal(TestCase):
         load_eveuniverse()
         load_entities()
         cls.character_1001 = create_memberaudit_character(1001)
-        cls.token = cls.character_1001.character_ownership.user.token_set.first()
+        cls.token = (
+            cls.character_1001.eve_character.character_ownership.user.token_set.first()
+        )
 
     def test_update_ok(self, mock_esi):
         """when update succeeded then report update success"""
@@ -721,7 +731,9 @@ class TestUpdateStructureEsi(TestCase):
         super().setUpClass()
         load_entities()
         cls.character = create_memberaudit_character(1001)
-        cls.token = cls.character.character_ownership.user.token_set.first()
+        cls.token = (
+            cls.character.eve_character.character_ownership.user.token_set.first()
+        )
 
     def test_normal(self, mock_structure_update_or_create_esi):
         """When ESI status is ok, then create MailEntity"""

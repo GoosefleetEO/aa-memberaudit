@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("eveonline", "0016_character_names_are_not_unique"),
+        ("eveonline", "0015_factions"),
         ("memberaudit", "0011_alter_character_character_ownership"),
     ]
 

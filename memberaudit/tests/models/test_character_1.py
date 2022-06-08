@@ -46,22 +46,29 @@ class TestCharacter(NoSocketsTestCase):
         super().setUpClass()
         load_entities()
 
-    def setUp(self) -> None:
-        self.character_1001 = create_memberaudit_character(1001)
-        self.user = self.character_1001.character_ownership.user
-
     def test_is_main_1(self):
-        self.assertTrue(self.character_1001.is_main)
+        # given
+        character_1001 = create_memberaudit_character(1001)
+        # when/then
+        self.assertTrue(character_1001.is_main)
 
     def test_is_main_2(self):
-        character_1101 = add_memberaudit_character_to_user(self.user, 1101)
-        self.assertTrue(self.character_1001.is_main)
+        # given
+        character_1001 = create_memberaudit_character(1001)
+        user = character_1001.eve_character.character_ownership.user
+        character_1101 = add_memberaudit_character_to_user(user, 1101)
+        # when/then
+        self.assertTrue(character_1001.is_main)
         self.assertFalse(character_1101.is_main)
 
     def test_is_main_3(self):
-        self.user.profile.main_character = None
-        self.user.profile.save()
-        self.assertFalse(self.character_1001.is_main)
+        # given
+        character_1001 = create_memberaudit_character(1001)
+        user = character_1001.eve_character.character_ownership.user
+        user.profile.main_character = None
+        user.profile.save()
+        # when/then
+        self.assertFalse(character_1001.is_main)
 
     def test_should_keep_sharing(self):
         # given
@@ -70,7 +77,7 @@ class TestCharacter(NoSocketsTestCase):
             permissions=["memberaudit.basic_access", "memberaudit.share_characters"],
         )
         character = create_character(
-            character_ownership=character_ownership, is_shared=True
+            eve_character=character_ownership.character, is_shared=True
         )
         # when
         character.update_sharing_consistency()
@@ -85,7 +92,7 @@ class TestCharacter(NoSocketsTestCase):
             permissions=["memberaudit.basic_access"],
         )
         character = create_character(
-            character_ownership=character_ownership, is_shared=True
+            eve_character=character_ownership.character, is_shared=True
         )
         # when
         character.update_sharing_consistency()
@@ -103,7 +110,9 @@ class TestCharacterContract(NoSocketsTestCase):
         load_locations()
         cls.character_1001 = create_memberaudit_character(1001)
         cls.character_1002 = create_memberaudit_character(1002)
-        cls.token = cls.character_1001.character_ownership.user.token_set.first()
+        cls.token = (
+            cls.character_1001.eve_character.character_ownership.user.token_set.first()
+        )
         cls.jita = EveSolarSystem.objects.get(id=30000142)
         cls.jita_44 = Location.objects.get(id=60003760)
         cls.amamake = EveSolarSystem.objects.get(id=30002537)
@@ -272,7 +281,9 @@ class TestCharacterFetchToken(TestCase):
         # then
         self.assertTrue(mock_notify_throttled.called)
         _, kwargs = mock_notify_throttled.call_args
-        self.assertEqual(kwargs["user"], self.character.character_ownership.user)
+        self.assertEqual(
+            kwargs["user"], self.character.eve_character.character_ownership.user
+        )
 
 
 class TestCharacterSkillQueue(NoSocketsTestCase):
@@ -328,7 +339,7 @@ class TestCharacterShip(NoSocketsTestCase):
         load_eveuniverse()
         load_entities()
         cls.character_1001 = create_memberaudit_character(1001)
-        cls.user = cls.character_1001.character_ownership.user
+        cls.user = cls.character_1001.eve_character.character_ownership.user
 
     def test_str(self):
         # given

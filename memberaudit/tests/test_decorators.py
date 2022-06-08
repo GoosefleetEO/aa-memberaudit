@@ -23,13 +23,13 @@ class TestFetchOwnerIfAllowed(TestCase):
 
     def setUp(self) -> None:
         self.character = create_memberaudit_character(1001)
-        self.user = self.character.character_ownership.user
+        self.user = self.character.eve_character.character_ownership.user
 
     def test_passthrough_when_fetch_owner_if_allowed(self):
         @fetch_character_if_allowed()
         def dummy(request, character_pk, character):
             self.assertEqual(character, self.character)
-            self.assertIn("character_ownership", character._state.fields_cache)
+            self.assertIn("eve_character", character._state.fields_cache)
             return HttpResponse("ok")
 
         request = self.factory.get(DUMMY_URL)

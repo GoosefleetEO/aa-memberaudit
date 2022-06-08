@@ -318,7 +318,9 @@ def character_finder_list_fdd_data(request) -> JsonResponse:
                     qs.values_list("memberaudit_character", flat=True),
                 )
             elif column == "state_name":
-                options = qs.values_list("user__profile__state__name", flat=True)
+                options = qs.values_list(
+                    "character_ownership__user__profile__state__name", flat=True
+                )
             else:
                 options = [f"** ERROR: Invalid column name '{column}' **"]
             result[column] = sorted(list(set(options)), key=str.casefold)

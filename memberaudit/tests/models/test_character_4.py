@@ -37,7 +37,7 @@ class TestCharacterUserHasAccess(TestCase):
         """
         self.assertTrue(
             self.character_1001.user_has_access(
-                self.character_1001.character_ownership.user
+                self.character_1001.eve_character.character_ownership.user
             )
         )
 
@@ -113,7 +113,7 @@ class TestCharacterUserHasAccess(TestCase):
             "memberaudit.view_same_corporation", user_3
         )
         character_1103 = add_memberaudit_character_to_user(
-            self.character_1001.character_ownership.user, 1103
+            self.character_1001.eve_character.character_ownership.user, 1103
         )
         self.assertFalse(character_1103.user_has_access(user_3))
 
@@ -131,7 +131,7 @@ class TestCharacterUserHasAccess(TestCase):
             "memberaudit.characters_access", user_3
         )
         character_1103 = add_memberaudit_character_to_user(
-            self.character_1001.character_ownership.user, 1103
+            self.character_1001.eve_character.character_ownership.user, 1103
         )
         self.assertTrue(character_1103.user_has_access(user_3))
 
@@ -192,7 +192,7 @@ class TestCharacterUserHasAccess(TestCase):
             "memberaudit.view_same_alliance", user_3
         )
         character_1103 = add_memberaudit_character_to_user(
-            self.character_1001.character_ownership.user, 1103
+            self.character_1001.eve_character.character_ownership.user, 1103
         )
         self.assertFalse(character_1103.user_has_access(user_3))
 
@@ -211,7 +211,7 @@ class TestCharacterUserHasAccess(TestCase):
             "memberaudit.characters_access", user_3
         )
         character_1103 = add_memberaudit_character_to_user(
-            self.character_1001.character_ownership.user, 1103
+            self.character_1001.eve_character.character_ownership.user, 1103
         )
         self.assertTrue(character_1103.user_has_access(user_3))
 
@@ -239,7 +239,8 @@ class TestCharacterUserHasAccess(TestCase):
         self.character_1001.is_shared = True
         self.character_1001.save()
         AuthUtils.add_permission_to_user_by_name(
-            "memberaudit.share_characters", self.character_1001.character_ownership.user
+            "memberaudit.share_characters",
+            self.character_1001.eve_character.character_ownership.user,
         )
         user_3, _ = create_user_from_evecharacter_with_access(1101)
         user_3 = AuthUtils.add_permission_to_user_by_name(
@@ -256,7 +257,8 @@ class TestCharacterUserHasAccess(TestCase):
         self.character_1001.is_shared = False
         self.character_1001.save()
         AuthUtils.add_permission_to_user_by_name(
-            "memberaudit.share_characters", self.character_1001.character_ownership.user
+            "memberaudit.share_characters",
+            self.character_1001.eve_character.character_ownership.user,
         )
         user_3, _ = create_user_from_evecharacter_with_access(1101)
         user_3 = AuthUtils.add_permission_to_user_by_name(
