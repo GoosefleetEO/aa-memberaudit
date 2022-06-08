@@ -21,7 +21,7 @@ from esi.errors import TokenError
 from esi.models import Token
 from eveuniverse.models import EveEntity, EveType
 
-from allianceauth.authentication.models import CharacterOwnership
+from allianceauth.eveonline.models import EveCharacter
 from allianceauth.services.hooks import get_extension_logger
 from app_utils.allianceauth import notify_throttled
 from app_utils.datetime import datetime_round_hour
@@ -132,12 +132,9 @@ class Character(models.Model):
         UpdateSection.ATTRIBUTES: 3,
     }
 
-    character_ownership = models.OneToOneField(
-        CharacterOwnership,
-        related_name="memberaudit_character",
-        on_delete=models.CASCADE,
-        primary_key=True,
-        help_text="ownership of this character on Auth",
+    id = models.AutoField(primary_key=True)
+    eve_character = models.OneToOneField(
+        EveCharacter, related_name="memberaudit_character", on_delete=models.CASCADE
     )
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)

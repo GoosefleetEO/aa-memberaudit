@@ -143,20 +143,21 @@ class CharacterAdmin(admin.ModelAdmin):
     )
     list_filter = (
         "created_at",
-        "character_ownership__user__profile__state",
-        "character_ownership__user__profile__main_character__alliance_name",
+        # "character_ownership__user__profile__state",
+        # "character_ownership__user__profile__main_character__alliance_name",
     )
-    list_select_related = (
-        "character_ownership__user",
-        "character_ownership__user__profile__main_character",
-        "character_ownership__user__profile__state",
-        "character_ownership__character",
-    )
-    ordering = ["character_ownership__character__character_name"]
+    # list_select_related = (
+    #     "character_ownership__user",
+    #     "character_ownership__user__profile__main_character",
+    #     "character_ownership__user__profile__state",
+    #     "character_ownership__character",
+    # )
+    # ordering = ["character_ownership__character__character_name"]
     search_fields = [
-        "character_ownership__character__character_name",
-        "character_ownership__user__profile__main_character__corporation_name",
-        "character_ownership__user__profile__main_character__alliance_name",
+        "eve_character__character_name"
+        # "character_ownership__character__character_name",
+        # "character_ownership__user__profile__main_character__corporation_name",
+        # "character_ownership__user__profile__main_character__alliance_name",
     ]
     exclude = ("mailing_lists",)
 
@@ -211,13 +212,13 @@ class CharacterAdmin(admin.ModelAdmin):
             return None
         return str(name)
 
-    @admin.display(ordering="character_ownership__user__profile__state__name")
+    # @admin.display(ordering="character_ownership__user__profile__state__name")
     def _state(self, obj) -> str:
         return str(obj.character_ownership.user.profile.state)
 
-    @admin.display(
-        ordering="character_ownership__user__profile__main_character__corporation_name"
-    )
+    # @admin.display(
+    #     ordering="character_ownership__user__profile__main_character__corporation_name"
+    # )
     def _organization(self, obj) -> str:
         try:
             main = obj.character_ownership.user.profile.main_character
