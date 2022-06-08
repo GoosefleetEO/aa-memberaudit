@@ -29,10 +29,9 @@ def fetch_character_if_allowed(*args_select_related):
         def _wrapped_view(request, character_pk, *args, **kwargs):
             try:
                 args_select_related_2 = args_select_related + (
-                    "character_ownership",
-                    "character_ownership__character",
-                    "character_ownership__user",
-                    "character_ownership__user__profile__main_character",
+                    "eve_character",
+                    "eve_character__character_ownership__user",
+                    "eve_character__character_ownership__user__profile__main_character",
                 )
                 character = Character.objects.select_related(
                     *args_select_related_2

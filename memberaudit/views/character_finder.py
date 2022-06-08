@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 
-from allianceauth.authentication.models import CharacterOwnership
+from allianceauth.eveonline.models import EveCharacter
 from allianceauth.services.hooks import get_extension_logger
 from app_utils.logging import LoggerAddTag
 from app_utils.views import (
@@ -42,7 +42,7 @@ def character_finder(request) -> HttpResponse:
 class CharacterFinderListJson(
     PermissionRequiredMixin, LoginRequiredMixin, BaseDatatableView
 ):
-    model = CharacterOwnership
+    model = EveCharacter
     permission_required = "memberaudit.finder_access"
     columns = [
         "character",
@@ -65,11 +65,11 @@ class CharacterFinderListJson(
     # displayed by datatables. For non sortable columns use empty
     # value like ''
     order_columns = [
-        "character__character_name",
-        "character__corporation_name",
-        "user__profile__main_character__character_name",
-        "user__profile__main_character__corporation_name",
-        "user__profile__state__state_name",
+        "character_name",
+        "corporation_name",
+        "character_ownership__user__profile__main_character__character_name",
+        "character_ownership__user__profile__main_character__corporation_name",
+        "character_ownership__user__profile__state__state_name",
         "",
         "",
         "",
@@ -86,17 +86,16 @@ class CharacterFinderListJson(
     @classmethod
     def initial_queryset(cls, request):
         accessible_users = list(General.accessible_users(user=request.user))
-        my_filter = Q(user__in=accessible_users)
+        my_filter = Q(character_ownership__user__in=accessible_users)
         if request.user.has_perm("memberaudit.view_shared_characters"):
             my_filter |= Q(memberaudit_character__is_shared=True)
-        character_ownerships = CharacterOwnership.objects.select_related(
-            "character",
+        eve_characters = EveCharacter.objects.select_related(
             "memberaudit_character",
-            "user",
-            "user__profile__main_character",
-            "user__profile__state",
+            "character_ownership__user",
+            "character_ownership__user__profile__main_character",
+            "character_ownership__user__profile__state",
         ).filter(my_filter)
-        return character_ownerships.annotate(
+        return eve_characters.annotate(
             unregistered=Case(
                 When(memberaudit_character=None, then=Value("yes")),
                 default=Value("no"),
@@ -106,25 +105,31 @@ class CharacterFinderListJson(
     def filter_queryset(self, qs):
         """use parameters passed in GET request to filter queryset"""
 
-        qs = self._apply_search_filter(qs, 4, "user__profile__state__name")
-        qs = self._apply_search_filter(qs, 6, "character__alliance_name")
-        qs = self._apply_search_filter(qs, 7, "character__corporation_name")
         qs = self._apply_search_filter(
-            qs, 8, "user__profile__main_character__alliance_name"
+            qs, 4, "character_ownership__user__profile__state__name"
+        )
+        qs = self._apply_search_filter(qs, 6, "alliance_name")
+        qs = self._apply_search_filter(qs, 7, "corporation_name")
+        qs = self._apply_search_filter(
+            qs, 8, "character_ownership__user__profile__main_character__alliance_name"
         )
         qs = self._apply_search_filter(
-            qs, 9, "user__profile__main_character__corporation_name"
+            qs,
+            9,
+            "character_ownership__user__profile__main_character__corporation_name",
         )
         qs = self._apply_search_filter(
-            qs, 10, "user__profile__main_character__character_name"
+            qs, 10, "character_ownership__user__profile__main_character__character_name"
         )
         qs = self._apply_search_filter(qs, 11, "unregistered")
 
         search = self.request.GET.get("search[value]", None)
         if search:
             qs = qs.filter(
-                Q(character__character_name__istartswith=search)
-                | Q(user__profile__main_character__character_name__istartswith=search)
+                Q(character_name__istartswith=search)
+                | Q(
+                    character_ownership__user__profile__main_character__character_name__istartswith=search
+                )
             )
         return qs
 
@@ -155,37 +160,35 @@ class CharacterFinderListJson(
 
     def _render_column_general(self, row, column):
         if column == "state_name":
-            return row.user.profile.state.name
+            return row.character_ownership.user.profile.state.name
         if column == "unregistered_str":
             return row.unregistered
         return None
 
     def _render_column_auth_character(self, row, column):
         if column == "character_id":
-            return row.character.character_id
-        alliance_name = (
-            row.character.alliance_name if row.character.alliance_name else ""
-        )
+            return row.character_id
+        alliance_name = row.alliance_name if row.alliance_name else ""
         if column == "character_organization":
             return format_html(
                 "{}<br><em>{}</em>",
-                row.character.corporation_name,
+                row.corporation_name,
                 alliance_name,
             )
         if column == "alliance_name":
             return alliance_name
         if column == "corporation_name":
-            return row.character.corporation_name
+            return row.corporation_name
         return None
 
     def _render_column_main_character(self, row, column):
         try:
-            main_character = row.user.profile.main_character
+            main_character = row.character_ownership.user.profile.main_character
         except AttributeError:
             main_character = None
             is_main = False
         else:
-            is_main = row.user.profile.main_character == row.character
+            is_main = row.character_ownership.user.profile.main_character == row
             main_alliance_name = (
                 main_character.alliance_name
                 if main_character and main_character.alliance_name
@@ -229,7 +232,7 @@ class CharacterFinderListJson(
             )
         if column == "character":
             try:
-                is_main = row.user.profile.main_character == row.character
+                is_main = row.character_ownership.user.profile.main_character == row
             except AttributeError:
                 is_main = False
             icons = []
@@ -251,8 +254,8 @@ class CharacterFinderListJson(
                 mark_safe("&nbsp;"), "{}", ([html] for html in icons)
             )
             return bootstrap_icon_plus_name_html(
-                row.character.portrait_url(),
-                row.character.character_name,
+                row.portrait_url(),
+                row.character_name,
                 avatar=True,
                 url=character_viewer_url,
                 text=character_text,
@@ -280,27 +283,34 @@ def character_finder_list_fdd_data(request) -> JsonResponse:
     if columns:
         for column in columns.split(","):
             if column == "alliance_name":
-                options = qs.exclude(character__alliance_id__isnull=True).values_list(
-                    "character__alliance_name", flat=True
+                options = qs.exclude(alliance_id__isnull=True).values_list(
+                    "alliance_name", flat=True
                 )
             elif column == "corporation_name":
-                options = qs.values_list("character__corporation_name", flat=True)
+                options = qs.values_list("corporation_name", flat=True)
             elif column == "main_alliance_name":
                 options = qs.exclude(
-                    Q(user__profile__main_character__isnull=True)
-                    | Q(user__profile__main_character__alliance_id__isnull=True)
-                ).values_list("user__profile__main_character__alliance_name", flat=True)
+                    Q(character_ownership__user__profile__main_character__isnull=True)
+                    | Q(
+                        character_ownership__user__profile__main_character__alliance_id__isnull=True
+                    )
+                ).values_list(
+                    "character_ownership__user__profile__main_character__alliance_name",
+                    flat=True,
+                )
             elif column == "main_corporation_name":
                 options = qs.exclude(
-                    user__profile__main_character__isnull=True
+                    character_ownership__user__profile__main_character__isnull=True
                 ).values_list(
-                    "user__profile__main_character__corporation_name", flat=True
+                    "character_ownership__user__profile__main_character__corporation_name",
+                    flat=True,
                 )
             elif column == "main_str":
                 options = qs.exclude(
-                    user__profile__main_character__isnull=True
+                    character_ownership__user__profile__main_character__isnull=True
                 ).values_list(
-                    "user__profile__main_character__character_name", flat=True
+                    "character_ownership__user__profile__main_character__character_name",
+                    flat=True,
                 )
             elif column == "unregistered_str":
                 options = map(

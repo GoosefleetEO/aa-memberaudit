@@ -150,38 +150,37 @@ class Character(models.Model):
         default_permissions = ()
 
     def __str__(self) -> str:
-        return f"{self.character_ownership.character.character_name} (PK:{self.pk})"
+        return f"{self.eve_character.character_name} (PK:{self.pk})"
 
     def __repr__(self) -> str:
-        return (
-            f"Character(pk={self.pk}, "
-            f"character_ownership='{self.character_ownership}')"
-        )
+        return f"Character(pk={self.pk}, eve_character='{self.eve_character}')"
 
     @cached_property
     def is_main(self) -> bool:
         """returns True if this character is a main character, else False"""
         try:
             return (
-                self.character_ownership.user.profile.main_character.character_id
-                == self.character_ownership.character.character_id
+                self.eve_character.character_ownership.user.profile.main_character.character_id
+                == self.eve_character.character_id
             )
         except AttributeError:
             return False
 
     @cached_property
     def name(self) -> str:
-        return self.character_ownership.character.character_name
+        return self.eve_character.character_name
 
     def user_is_owner(self, user: User) -> bool:
         """Return True if the given user is owner of this character"""
-        return self.character_ownership.user == user
+        return self.eve_character.character_ownership.user == user
 
     def user_has_access(self, user: User) -> bool:
         """Returns True if given user has permission to access this character
         in the character viewer
         """
-        if self.character_ownership.user == user:  # shortcut for better performance
+        if (
+            self.eve_character.character_ownership.user == user
+        ):  # shortcut for better performance
             return True
         return Character.objects.user_has_access(user).filter(pk=self.pk).exists()
 
@@ -320,8 +319,8 @@ class Character(models.Model):
         Exceptions:
         - TokenError: If no valid token can be found
         """
-        user = self.character_ownership.user
-        character = self.character_ownership.character
+        user = self.eve_character.character_ownership.user
+        character = self.eve_character
         token = (
             Token.objects.prefetch_related("scopes")
             .filter(user=user, character_id=character.character_id)
@@ -355,7 +354,7 @@ class Character(models.Model):
         """
         logger.info("%s: Fetching assets from ESI", self)
         asset_list = esi.client.Assets.get_characters_character_id_assets(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
             token=token.valid_access_token(),
         ).results()
         assets_flat = {int(x["item_id"]): x for x in asset_list}
@@ -364,7 +363,7 @@ class Character(models.Model):
         names = list()
         for asset_ids_chunk in chunks(list(assets_flat.keys()), 999):
             names += esi.client.Assets.post_characters_character_id_assets_names(
-                character_id=self.character_ownership.character.character_id,
+                character_id=self.eve_character.character_id,
                 token=token.valid_access_token(),
                 item_ids=asset_ids_chunk,
             ).results()
@@ -415,7 +414,7 @@ class Character(models.Model):
 
         logger.info("%s: Fetching character details from ESI", self)
         details = esi.client.Character.get_characters_character_id(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
         ).results()
         if MEMBERAUDIT_DEVELOPER_MODE:
             self._store_list_to_disk(details, "character_details")
@@ -435,7 +434,7 @@ class Character(models.Model):
     def update_contact_labels(self, token: Token, force_update: bool = False):
         logger.info("%s: Fetching contact labels from ESI", self)
         labels = esi.client.Contacts.get_characters_character_id_contacts_labels(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
             token=token.valid_access_token(),
         ).results()
         if MEMBERAUDIT_DEVELOPER_MODE:
@@ -454,7 +453,7 @@ class Character(models.Model):
     def update_contacts(self, token: Token, force_update: bool = False):
         logger.info("%s: Fetching contacts from ESI", self)
         contacts_data = esi.client.Contacts.get_characters_character_id_contacts(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
             token=token.valid_access_token(),
         ).results()
         if MEMBERAUDIT_DEVELOPER_MODE:
@@ -505,7 +504,7 @@ class Character(models.Model):
     def _fetch_contracts_from_esi(self, token) -> dict:
         logger.info("%s: Fetching contracts from ESI", self)
         contracts_data = esi.client.Contracts.get_characters_character_id_contracts(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
             token=token.valid_access_token(),
         ).results()
         if MEMBERAUDIT_DEVELOPER_MODE:
@@ -538,7 +537,7 @@ class Character(models.Model):
         )
         my_esi = esi.client.Contracts
         items_data = my_esi.get_characters_character_id_contracts_contract_id_items(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
             contract_id=contract.contract_id,
             token=token.valid_access_token(),
         ).results()
@@ -560,7 +559,7 @@ class Character(models.Model):
         )
         bids_data = (
             esi.client.Contracts.get_characters_character_id_contracts_contract_id_bids(
-                character_id=self.character_ownership.character.character_id,
+                character_id=self.eve_character.character_id,
                 contract_id=contract.contract_id,
                 token=token.valid_access_token(),
             ).results()
@@ -573,7 +572,7 @@ class Character(models.Model):
         """syncs the character's corporation history"""
         logger.info("%s: Fetching corporation history from ESI", self)
         history = esi.client.Character.get_characters_character_id_corporationhistory(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
         ).results()
         if MEMBERAUDIT_DEVELOPER_MODE:
             self._store_list_to_disk(history, "corporation_history")
@@ -592,7 +591,7 @@ class Character(models.Model):
         """update the character's implants"""
         logger.info("%s: Fetching implants from ESI", self)
         implants_data = esi.client.Clones.get_characters_character_id_implants(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
             token=token.valid_access_token(),
         ).results()
         if MEMBERAUDIT_DEVELOPER_MODE:
@@ -618,7 +617,7 @@ class Character(models.Model):
 
         logger.info("%s: Fetching location from ESI", self)
         location_info = esi.client.Location.get_characters_character_id_location(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
             token=token.valid_access_token(),
         ).results()
         CharacterLocation.objects.update_for_character(self, token, location_info)
@@ -628,7 +627,7 @@ class Character(models.Model):
         """syncs the character's loyalty entries"""
         logger.info("%s: Fetching loyalty entries from ESI", self)
         loyalty_entries = esi.client.Loyalty.get_characters_character_id_loyalty_points(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
             token=token.valid_access_token(),
         ).results()
         if MEMBERAUDIT_DEVELOPER_MODE:
@@ -653,7 +652,7 @@ class Character(models.Model):
         """updates the character's jump clones"""
         logger.info("%s: Fetching jump clones from ESI", self)
         jump_clones_info = esi.client.Clones.get_characters_character_id_clones(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
             token=token.valid_access_token(),
         ).results()
         if MEMBERAUDIT_DEVELOPER_MODE:
@@ -695,7 +694,7 @@ class Character(models.Model):
         """
         logger.info("%s: Fetching mailing lists from ESI", self)
         mailing_lists_raw = esi.client.Mail.get_characters_character_id_mail_lists(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
             token=token.valid_access_token(),
         ).results()
         if mailing_lists_raw:
@@ -756,7 +755,7 @@ class Character(models.Model):
 
         logger.info("%s: Fetching mail labels from ESI", self)
         mail_labels_info = esi.client.Mail.get_characters_character_id_mail_labels(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
             token=token.valid_access_token(),
         ).results()
         if MEMBERAUDIT_DEVELOPER_MODE:
@@ -793,7 +792,7 @@ class Character(models.Model):
         while True:
             logger.info("%s: Fetching mail headers from ESI - page %s", self, page)
             mail_headers = esi.client.Mail.get_characters_character_id_mail(
-                character_id=self.character_ownership.character.character_id,
+                character_id=self.eve_character.character_id,
                 last_mail_id=last_mail_id,
                 token=token.valid_access_token(),
             ).results()
@@ -833,7 +832,7 @@ class Character(models.Model):
         logger.debug("%s: Fetching body from ESI for mail ID %s", self, mail.mail_id)
         try:
             mail_body = esi.client.Mail.get_characters_character_id_mail_mail_id(
-                character_id=self.character_ownership.character.character_id,
+                character_id=self.eve_character.character_id,
                 mail_id=mail.mail_id,
                 token=token.valid_access_token(),
             ).result()
@@ -856,7 +855,7 @@ class Character(models.Model):
 
         logger.info("%s: Fetching online status from ESI", self)
         online_info = esi.client.Location.get_characters_character_id_online(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
             token=token.valid_access_token(),
         ).results()
         CharacterOnlineStatus.objects.update_or_create(
@@ -875,7 +874,7 @@ class Character(models.Model):
 
         logger.info("%s: Fetching ship from ESI", self)
         ship_info = esi.client.Location.get_characters_character_id_ship(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
             token=token.valid_access_token(),
         ).results()
         CharacterShip.objects.update_for_character(self, ship_info)
@@ -885,7 +884,7 @@ class Character(models.Model):
         """update the character's skill queue"""
         logger.info("%s: Fetching skill queue from ESI", self)
         skillqueue = esi.client.Skills.get_characters_character_id_skillqueue(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
             token=token.valid_access_token(),
         ).results()
         if MEMBERAUDIT_DEVELOPER_MODE:
@@ -929,7 +928,7 @@ class Character(models.Model):
 
         logger.info("%s: Fetching skills from ESI", self)
         skills_info = esi.client.Skills.get_characters_character_id_skills(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
             token=token.valid_access_token(),
         ).results()
         if MEMBERAUDIT_DEVELOPER_MODE:
@@ -967,7 +966,7 @@ class Character(models.Model):
 
         logger.info("%s: Fetching wallet balance from ESI", self)
         balance = esi.client.Wallet.get_characters_character_id_wallet(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
             token=token.valid_access_token(),
         ).results()
         if MEMBERAUDIT_DEVELOPER_MODE:
@@ -985,7 +984,7 @@ class Character(models.Model):
         """
         logger.info("%s: Fetching wallet journal from ESI", self)
         journal = esi.client.Wallet.get_characters_character_id_wallet_journal(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
             token=token.valid_access_token(),
         ).results()
         if MEMBERAUDIT_DEVELOPER_MODE:
@@ -1001,7 +1000,7 @@ class Character(models.Model):
         logger.info("%s: Fetching wallet transactions from ESI", self)
         transactions = (
             esi.client.Wallet.get_characters_character_id_wallet_transactions(
-                character_id=self.character_ownership.character.character_id,
+                character_id=self.eve_character.character_id,
                 token=token.valid_access_token(),
             ).results()
         )
@@ -1080,7 +1079,7 @@ class Character(models.Model):
         from .sections import CharacterAttributes
 
         attribute_data = esi.client.Skills.get_characters_character_id_attributes(
-            character_id=self.character_ownership.character.character_id,
+            character_id=self.eve_character.character_id,
             token=token.valid_access_token(),
         ).results()
         if MEMBERAUDIT_DEVELOPER_MODE:
@@ -1095,7 +1094,7 @@ class Character(models.Model):
 
     def update_sharing_consistency(self):
         """Update sharing to ensure consistency with permissions."""
-        if self.is_shared and not self.character_ownership.user.has_perm(
+        if self.is_shared and not self.eve_character.character_ownership.user.has_perm(
             "memberaudit.share_characters"
         ):
             self.is_shared = False

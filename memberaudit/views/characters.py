@@ -28,9 +28,8 @@ def index(request):
 @permission_required("memberaudit.basic_access")
 def launcher(request) -> HttpResponse:
     owned_chars_query = (
-        CharacterOwnership.objects.filter(user=request.user)
+        EveCharacter.objects.filter(character_ownership__user=request.user)
         .select_related(
-            "character",
             "memberaudit_character",
             "memberaudit_character__location",
             "memberaudit_character__location__eve_solar_system",
@@ -39,15 +38,14 @@ def launcher(request) -> HttpResponse:
             "memberaudit_character__unread_mail_count",
             "memberaudit_character__wallet_balance",
         )
-        .order_by("character__character_name")
+        .order_by("character_name")
     )
     has_auth_characters = owned_chars_query.exists()
     auth_characters = list()
     unregistered_chars = list()
-    for character_ownership in owned_chars_query:
-        eve_character = character_ownership.character
+    for eve_character in owned_chars_query:
         try:
-            character = character_ownership.memberaudit_character
+            character = eve_character.memberaudit_character
         except AttributeError:
             unregistered_chars.append(eve_character.character_name)
         else:
