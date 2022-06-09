@@ -270,10 +270,10 @@ INSTALLED_APPS += ["eveuniverse", "memberaudit"]
 DATABASES["default"] = {
     "ENGINE": "django.db.backends.mysql",
     "NAME": "tox_allianceauth",
-    "USER": os.environ["TOX_MYSQL_USER"],
-    "PASSWORD": os.environ["TOX_MYSQL_PASSWORD"],
-    "HOST": os.environ.get("TOX_MYSQL_HOST", "127.0.0.1"),
-    "PORT": os.environ.get("TOX_MYSQL_PORT", "3306"),
+    "USER": os.environ["MYSQL_USER"],
+    "PASSWORD": os.environ["MYSQL_PASSWORD"],
+    "HOST": os.environ.get("MYSQL_HOST", "127.0.0.1"),
+    "PORT": "3306",  # os.environ.get("MYSQL_PORT", "3306"),
     "OPTIONS": {"charset": "utf8mb4"},
     "TEST": {"CHARSET": "utf8mb4"},
 }
