@@ -20,7 +20,8 @@
                         <i class="fas fa-exclamation-triangle text-muted" title="Unregistered character"></i>
                     </li>
                 {% endif %}
-
+            {% empty %}
+                <li class="sidebar_character_disabled"><span class="text-muted">(orphan)</span></li>
             {% endfor %}
         </ul>
     </div>

@@ -99,13 +99,17 @@ def character_viewer(request, character_pk: int, character: Character) -> HttpRe
 
     # main character
     try:
-        main_character = (
-            character.eve_character.character_ownership.user.profile.main_character
-        )
-        main = f"[{main_character.corporation_ticker}] {main_character.character_name}"
-    except AttributeError:
+        user = character.eve_character.character_ownership.user
+    except ObjectDoesNotExist:
         main_character = None
-        main = "-"
+        main = "(orphan)"
+    else:
+        main_character = user.profile.main_character
+        main = (
+            f"[{main_character.corporation_ticker}] {main_character.character_name}"
+            if main_character
+            else "-"
+        )
 
     # mailing lists
     mailing_lists_qs = character.mailing_lists.all().annotate(

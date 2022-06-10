@@ -3,7 +3,7 @@ from dj_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Case, Q, Value, When
+from django.db.models import Case, F, Q, Value, When
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -97,11 +97,20 @@ class CharacterFinderListJson(
             "character_ownership__user__profile__main_character",
             "character_ownership__user__profile__state",
         ).filter(my_filter)
-        return eve_characters.annotate(
-            unregistered=Case(
-                When(memberaudit_character=None, then=Value("yes")),
-                default=Value("no"),
+        return (
+            eve_characters.annotate(
+                unregistered_str=Case(
+                    When(memberaudit_character=None, then=Value("yes")),
+                    default=Value("no"),
+                )
             )
+            .annotate(
+                is_orphan=Case(
+                    When(character_ownership__isnull=True, then=Value(1)),
+                    default=Value(0),
+                )
+            )
+            .annotate(state_name=F("character_ownership__user__profile__state__name"))
         )
 
     def filter_queryset(self, qs):
@@ -123,7 +132,7 @@ class CharacterFinderListJson(
         qs = self._apply_search_filter(
             qs, 10, "character_ownership__user__profile__main_character__character_name"
         )
-        qs = self._apply_search_filter(qs, 11, "unregistered")
+        qs = self._apply_search_filter(qs, 11, "unregistered_str")
 
         search = self.request.GET.get("search[value]", None)
         if search:
@@ -146,9 +155,6 @@ class CharacterFinderListJson(
         return qs
 
     def render_column(self, row, column):
-        result = self._render_column_general(row, column)
-        if result:
-            return result
         result = self._render_column_auth_character(row, column)
         if result:
             return result
@@ -159,16 +165,6 @@ class CharacterFinderListJson(
         if result:
             return result
         return super().render_column(row, column)
-
-    def _render_column_general(self, row, column):
-        if column == "state_name":
-            try:
-                return row.character_ownership.user.profile.state.name
-            except (AttributeError, ObjectDoesNotExist):
-                return ""
-        if column == "unregistered_str":
-            return row.unregistered
-        return None
 
     def _render_column_auth_character(self, row, column):
         if column == "character_id":
@@ -256,6 +252,8 @@ class CharacterFinderListJson(
             character_text = format_html_join(
                 mark_safe("&nbsp;"), "{}", ([html] for html in icons)
             )
+            if row.is_orphan:
+                character_text += mark_safe(" [orphan]")
             return bootstrap_icon_plus_name_html(
                 row.portrait_url(),
                 row.character_name,
