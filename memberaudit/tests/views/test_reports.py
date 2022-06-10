@@ -4,7 +4,11 @@ from django.urls import reverse
 from eveuniverse.models import EveType
 
 from allianceauth.authentication.models import State
-from allianceauth.eveonline.models import EveAllianceInfo, EveCorporationInfo
+from allianceauth.eveonline.models import (
+    EveAllianceInfo,
+    EveCharacter,
+    EveCorporationInfo,
+)
 from allianceauth.tests.auth_utils import AuthUtils
 from app_utils.testing import (
     create_user_from_evecharacter,
@@ -20,6 +24,7 @@ from ...views.reports import (
     user_compliance_report_data,
 )
 from ..testdata.factories import (
+    create_character,
     create_skill_set,
     create_skill_set_group,
     create_skill_set_skill,
@@ -270,6 +275,9 @@ class TestSkillSetReportData(TestCase):
 
         AuthUtils.create_user("John Doe")  # this user should not show up in view
         cls.character_1103 = create_memberaudit_character(1103)
+
+        # orphaned character, i.e. without a user
+        create_character(EveCharacter.objects.get(character_id=1121))
 
     def test_normal(self):
         def make_data_id(doctrine: SkillSetGroup, character: Character) -> str:

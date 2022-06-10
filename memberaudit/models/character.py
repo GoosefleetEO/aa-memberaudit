@@ -163,25 +163,40 @@ class Character(models.Model):
                 self.eve_character.character_ownership.user.profile.main_character.character_id
                 == self.eve_character.character_id
             )
-        except AttributeError:
+        except (ObjectDoesNotExist, AttributeError):
             return False
 
     @cached_property
     def name(self) -> str:
         return self.eve_character.character_name
 
+    # @cached_property
+    # def is_orphan(self) -> bool:
+    #     """Whether this character is not owned by a user."""
+    #     try:
+    #         self.eve_character.character_ownership
+    #     except ObjectDoesNotExist:
+    #         return True
+    #     return False
+
     def user_is_owner(self, user: User) -> bool:
         """Return True if the given user is owner of this character"""
-        return self.eve_character.character_ownership.user == user
+        try:
+            return self.eve_character.character_ownership.user == user
+        except ObjectDoesNotExist:
+            return False
 
     def user_has_access(self, user: User) -> bool:
         """Returns True if given user has permission to access this character
         in the character viewer
         """
-        if (
-            self.eve_character.character_ownership.user == user
-        ):  # shortcut for better performance
-            return True
+        try:
+            if (
+                self.eve_character.character_ownership.user == user
+            ):  # shortcut for better performance
+                return True
+        except ObjectDoesNotExist:
+            pass
         return Character.objects.user_has_access(user).filter(pk=self.pk).exists()
 
     def is_update_status_ok(self) -> bool:
@@ -319,7 +334,10 @@ class Character(models.Model):
         Exceptions:
         - TokenError: If no valid token can be found
         """
-        user = self.eve_character.character_ownership.user
+        try:
+            user = self.eve_character.character_ownership.user
+        except ObjectDoesNotExist:
+            raise TokenError(f"Can not find token for orphaned character: {self}")
         character = self.eve_character
         token = (
             Token.objects.prefetch_related("scopes")
@@ -341,7 +359,6 @@ class Character(models.Model):
                 message_id=message_id, user=user, title=title, message=message
             )
             raise TokenError(f"Could not find a matching token for {self}")
-
         return token
 
     @fetch_token_for_character("esi-assets.read_assets.v1")

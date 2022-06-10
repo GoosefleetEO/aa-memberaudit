@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Changed
+
+- Make sure character data is preserved after user revokes his API keys
+- Orphaned characters can be found through the character finder
+
 ## [1.15.0] - 2022-07-22
 
 ### Added

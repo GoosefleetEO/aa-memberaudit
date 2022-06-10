@@ -4,7 +4,7 @@ from esi.errors import TokenError
 from esi.models import Token
 
 from allianceauth.tests.auth_utils import AuthUtils
-from app_utils.testing import generate_invalid_pk
+from app_utils.testing import NoSocketsTestCase, generate_invalid_pk
 
 from ..decorators import fetch_character_if_allowed, fetch_token_for_character
 from ..models import Character
@@ -14,27 +14,28 @@ from .utils import create_memberaudit_character, scope_names_set
 DUMMY_URL = "http://www.example.com"
 
 
-class TestFetchOwnerIfAllowed(TestCase):
+class TestFetchOwnerIfAllowed(NoSocketsTestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
         cls.factory = RequestFactory()
         load_entities()
 
-    def setUp(self) -> None:
-        self.character = create_memberaudit_character(1001)
-        self.user = self.character.eve_character.character_ownership.user
-
     def test_passthrough_when_fetch_owner_if_allowed(self):
         @fetch_character_if_allowed()
         def dummy(request, character_pk, character):
-            self.assertEqual(character, self.character)
+            self.assertEqual(character, my_character)
             self.assertIn("eve_character", character._state.fields_cache)
             return HttpResponse("ok")
 
+        # given
+        my_character = create_memberaudit_character(1001)
+        user = my_character.eve_character.character_ownership.user
         request = self.factory.get(DUMMY_URL)
-        request.user = self.user
-        response = dummy(request, self.character.pk)
+        request.user = user
+        # when
+        response = dummy(request, my_character.pk)
+        # then
         self.assertEqual(response.status_code, 200)
 
     def test_returns_404_when_owner_not_found(self):
@@ -42,9 +43,14 @@ class TestFetchOwnerIfAllowed(TestCase):
         def dummy(request, character_pk, character):
             self.assertTrue(False)
 
+        # given
+        my_character = create_memberaudit_character(1001)
+        user = my_character.eve_character.character_ownership.user
         request = self.factory.get(DUMMY_URL)
-        request.user = self.user
+        request.user = user
+        # when
         response = dummy(request, generate_invalid_pk(Character))
+        # then
         self.assertEqual(response.status_code, 404)
 
     def test_returns_403_when_user_has_not_access(self):
@@ -52,10 +58,14 @@ class TestFetchOwnerIfAllowed(TestCase):
         def dummy(request, character_pk, character):
             self.assertTrue(False)
 
+        # given
+        my_character = create_memberaudit_character(1001)
         user_2 = AuthUtils.create_user("Lex Luthor")
         request = self.factory.get(DUMMY_URL)
         request.user = user_2
-        response = dummy(request, self.character.pk)
+        # when
+        response = dummy(request, my_character.pk)
+        # then
         self.assertEqual(response.status_code, 403)
 
     """

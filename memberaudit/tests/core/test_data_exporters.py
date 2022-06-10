@@ -11,6 +11,8 @@ from pytz import utc
 from django.test import TestCase
 from django.utils.timezone import now
 
+from allianceauth.eveonline.models import EveCharacter
+
 from ...core.data_exporters import (
     ContractExporter,
     ContractItemExporter,
@@ -22,6 +24,7 @@ from ...core.data_exporters import (
 )
 from ...models import CharacterWalletJournalEntry
 from ..testdata.factories import (
+    create_character,
     create_character_contract,
     create_character_contract_item,
     create_wallet_journal_entry,
@@ -126,7 +129,10 @@ class TestDataExporter(TestCase):
         super().setUpClass()
         load_entities()
         load_eveuniverse()
-        cls.character = create_memberaudit_character(1001)
+        cls.character_1001 = create_memberaudit_character(1001)
+        cls.character_1121 = create_character(
+            EveCharacter.objects.get(character_id=1121)
+        )  # orphaned character
 
     def test_should_create_exporters(self):
         # given
@@ -166,25 +172,28 @@ class TestDataExporter(TestCase):
 
     def test_should_show_count(self):
         # given
-        create_wallet_journal_entry(character=self.character)
+        create_wallet_journal_entry(character=self.character_1001)
         exporter = DataExporter.create_exporter("wallet-journal")
         # when/then
         self.assertEqual(exporter.count(), 1)
 
     def test_should_have_data(self):
         # given
-        create_wallet_journal_entry(character=self.character)
+        create_wallet_journal_entry(character=self.character_1001)
         exporter = DataExporter.create_exporter("wallet-journal")
         # when/then
         self.assertTrue(exporter.has_data())
 
     def test_should_create_csv_file_for_contract(self):
         # given
-        create_character_contract(character=self.character, contract_id=42)
+        create_character_contract(character=self.character_1001, contract_id=42)
+        create_character_contract(character=self.character_1121, contract_id=69)
         exporter = DataExporter.create_exporter("contract")
         # when
-        obj = self._write_to_file(exporter)
+        data = self._write_to_file(exporter)
         # then
+        self.assertEqual(len(data), 2)
+        obj = data["Bruce Wayne"]
         self.assertEqual(obj["owner character"], "Bruce Wayne")
         self.assertEqual(obj["owner corporation"], "Wayne Technologies")
         self.assertEqual(obj["contract id"], "42")
@@ -192,12 +201,14 @@ class TestDataExporter(TestCase):
 
     def test_should_create_csv_file_for_contract_item(self):
         # given
-        contract = create_character_contract(character=self.character)
+        contract = create_character_contract(character=self.character_1001)
         create_character_contract_item(contract=contract, record_id=12)
         exporter = DataExporter.create_exporter("contract-item")
         # when
-        obj = self._write_to_file(exporter)
+        data = self._write_to_file(exporter, "record id")
         # then
+        self.assertEqual(len(data), 1)
+        obj = data["12"]
         self.assertEqual(obj["contract pk"], str(contract.pk))
         self.assertEqual(obj["record id"], "12")
         self.assertEqual(obj["type"], "Merlin")
@@ -205,12 +216,11 @@ class TestDataExporter(TestCase):
         # TODO: test all properties and all contract types
 
     def test_should_create_csv_file_for_wallet_journal(self):
-
         # given
         create_wallet_journal_entry(
             amount=1000000.0,
             balance=20000000.0,
-            character=self.character,
+            character=self.character_1001,
             context_id=1002,
             context_id_type=CharacterWalletJournalEntry.CONTEXT_ID_TYPE_CHARACTER_ID,
             date=dt.datetime(2021, 12, 1, 12, 30, tzinfo=utc),
@@ -223,10 +233,28 @@ class TestDataExporter(TestCase):
             tax=0.05,
             tax_receiver_id=1101,
         )
+        create_wallet_journal_entry(
+            amount=1000000.0,
+            balance=20000000.0,
+            character=self.character_1121,
+            context_id=1002,
+            context_id_type=CharacterWalletJournalEntry.CONTEXT_ID_TYPE_CHARACTER_ID,
+            date=dt.datetime(2021, 12, 1, 12, 30, tzinfo=utc),
+            description="test description",
+            entry_id=69,
+            first_party_id=1001,
+            ref_type="player_donation",
+            reason="test reason",
+            second_party_id=1002,
+            tax=0.05,
+            tax_receiver_id=1101,
+        )
         exporter = DataExporter.create_exporter("wallet-journal")
         # when
-        obj = self._write_to_file(exporter)
+        data = self._write_to_file(exporter)
         # then
+        self.assertEqual(len(data), 2)
+        obj = data["Bruce Wayne"]
         self.assertEqual(obj["owner character"], "Bruce Wayne")
         self.assertEqual(obj["owner corporation"], "Wayne Technologies")
         self.assertEqual(obj["amount"], "1000000.0")
@@ -243,15 +271,13 @@ class TestDataExporter(TestCase):
         self.assertEqual(obj["tax"], "0.05")
         self.assertEqual(obj["tax_receiver"], "Lex Luther")
 
-    def _write_to_file(self, exporter) -> dict:
+    def _write_to_file(self, exporter, key="owner character") -> dict:
         with TemporaryDirectory() as tmpdirname:
             output_file = exporter.write_to_file(tmpdirname)
             self.assertTrue(output_file.exists())
             with output_file.open("r") as csv_file:
                 reader = csv.DictReader(csv_file)
-                data = [row for row in reader]
-        self.assertEqual(len(data), 1)
-        return data[0]
+                return {row[key]: row for row in reader}
 
 
 class TestTopicsAndExportFiles(TestCase):

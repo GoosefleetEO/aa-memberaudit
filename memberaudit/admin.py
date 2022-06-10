@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import Group
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Case, Count, Max, Prefetch, Q, Value, When
 from django.forms.models import BaseInlineFormSet
 from django.shortcuts import redirect, render
@@ -211,7 +211,7 @@ class CharacterAdmin(admin.ModelAdmin):
             name = (
                 obj.eve_character.character_ownership.user.profile.main_character.character_name
             )
-        except AttributeError:
+        except (AttributeError, ObjectDoesNotExist):
             return None
         return str(name)
 
@@ -231,7 +231,7 @@ class CharacterAdmin(admin.ModelAdmin):
                 main.corporation_name,
                 f" [{main.alliance_ticker}]" if main.alliance_ticker else "",
             )
-        except AttributeError:
+        except (AttributeError, ObjectDoesNotExist):
             return None
 
     @admin.display(boolean=True, ordering="is_last_update_ok")

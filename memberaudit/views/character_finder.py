@@ -87,7 +87,9 @@ class CharacterFinderListJson(
     def initial_queryset(cls, request):
         accessible_users = list(General.accessible_users(user=request.user))
         my_filter = Q(character_ownership__user__in=accessible_users)
-        if request.user.has_perm("memberaudit.view_shared_characters"):
+        if request.user.has_perm("memberaudit.view_everything"):
+            my_filter |= Q(memberaudit_character__isnull=False)
+        elif request.user.has_perm("memberaudit.view_shared_characters"):
             my_filter |= Q(memberaudit_character__is_shared=True)
         eve_characters = EveCharacter.objects.select_related(
             "memberaudit_character",
@@ -160,7 +162,10 @@ class CharacterFinderListJson(
 
     def _render_column_general(self, row, column):
         if column == "state_name":
-            return row.character_ownership.user.profile.state.name
+            try:
+                return row.character_ownership.user.profile.state.name
+            except (AttributeError, ObjectDoesNotExist):
+                return ""
         if column == "unregistered_str":
             return row.unregistered
         return None
@@ -184,16 +189,14 @@ class CharacterFinderListJson(
     def _render_column_main_character(self, row, column):
         try:
             main_character = row.character_ownership.user.profile.main_character
-        except AttributeError:
+        except ObjectDoesNotExist:
             main_character = None
-            is_main = False
-        else:
-            is_main = row.character_ownership.user.profile.main_character == row
-            main_alliance_name = (
-                main_character.alliance_name
-                if main_character and main_character.alliance_name
-                else ""
-            )
+        is_main = main_character == row
+        main_alliance_name = (
+            main_character.alliance_name
+            if main_character and main_character.alliance_name
+            else ""
+        )
         if column == "main_character":
             if main_character:
                 return bootstrap_icon_plus_name_html(
@@ -233,7 +236,7 @@ class CharacterFinderListJson(
         if column == "character":
             try:
                 is_main = row.character_ownership.user.profile.main_character == row
-            except AttributeError:
+            except ObjectDoesNotExist:
                 is_main = False
             icons = []
             if is_main:
@@ -313,14 +316,17 @@ def character_finder_list_fdd_data(request) -> JsonResponse:
                     flat=True,
                 )
             elif column == "unregistered_str":
-                options = map(
-                    lambda x: "yes" if x is None else "no",
-                    qs.values_list("memberaudit_character", flat=True),
-                )
+                options = [
+                    "yes" if elem is None else "no"
+                    for elem in qs.values_list("memberaudit_character", flat=True)
+                ]
             elif column == "state_name":
-                options = qs.values_list(
-                    "character_ownership__user__profile__state__name", flat=True
-                )
+                options = [
+                    "-" if elem is None else elem
+                    for elem in qs.values_list(
+                        "character_ownership__user__profile__state__name", flat=True
+                    )
+                ]
             else:
                 options = [f"** ERROR: Invalid column name '{column}' **"]
             result[column] = sorted(list(set(options)), key=str.casefold)

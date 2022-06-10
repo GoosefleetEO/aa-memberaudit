@@ -8,7 +8,12 @@ from django.urls import reverse
 from django.utils.timezone import now
 from eveuniverse.models import EveEntity, EveMarketPrice, EveType
 
-from app_utils.testing import generate_invalid_pk, response_text
+from allianceauth.eveonline.models import EveCharacter
+from app_utils.testing import (
+    create_user_from_evecharacter,
+    generate_invalid_pk,
+    response_text,
+)
 
 from ...models import (
     CharacterAsset,
@@ -35,6 +40,7 @@ from ...views.character_viewer_1 import (
     character_loyalty_data,
     character_viewer,
 )
+from ..testdata.factories import create_character
 from ..utils import (
     LoadTestDataMixin,
     json_response_to_dict_2,
@@ -44,13 +50,36 @@ from ..utils import (
 MODULE_PATH = "memberaudit.views.character_viewer_1"
 
 
-class TestCharacterViewer1(LoadTestDataMixin, TestCase):
-    def test_can_open_character_main_view(self):
+class TestCharacterViewer(LoadTestDataMixin, TestCase):
+    def test_can_open_character_main_view_for_normal_character(self):
+        # given
         request = self.factory.get(
             reverse("memberaudit:character_viewer", args=[self.character.pk])
         )
         request.user = self.user
+        # when
         response = character_viewer(request, self.character.pk)
+        # then
+        self.assertEqual(response.status_code, 200)
+
+    def test_can_open_character_main_view_for_orphan(self):
+        # given
+        character = create_character(EveCharacter.objects.get(character_id=1121))
+        user, _ = create_user_from_evecharacter(
+            1002,
+            permissions=[
+                "memberaudit.basic_access",
+                "memberaudit.view_everything",
+                "memberaudit.characters_access",
+            ],
+        )
+        request = self.factory.get(
+            reverse("memberaudit:character_viewer", args=[character.pk])
+        )
+        request.user = user
+        # when
+        response = character_viewer(request, character.pk)
+        # then
         self.assertEqual(response.status_code, 200)
 
     def test_character_attribute_data(self):
