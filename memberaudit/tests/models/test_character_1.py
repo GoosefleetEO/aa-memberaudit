@@ -77,6 +77,18 @@ class TestCharacter(NoSocketsTestCase):
         # when/then
         self.assertFalse(character.is_main)
 
+    def test_should_be_true_when_orphan(self):
+        # given
+        character = create_character(EveCharacter.objects.get(character_id=1121))
+        # when/then
+        self.assertTrue(character.is_orphan)
+
+    def test_should_be_false_when_not_a_orphan(self):
+        # given
+        character = create_memberaudit_character(1001)
+        # when/then
+        self.assertFalse(character.is_orphan)
+
     def test_should_keep_sharing(self):
         # given
         _, character_ownership = create_user_from_evecharacter(

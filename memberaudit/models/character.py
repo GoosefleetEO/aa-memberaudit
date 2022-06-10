@@ -170,14 +170,14 @@ class Character(models.Model):
     def name(self) -> str:
         return self.eve_character.character_name
 
-    # @cached_property
-    # def is_orphan(self) -> bool:
-    #     """Whether this character is not owned by a user."""
-    #     try:
-    #         self.eve_character.character_ownership
-    #     except ObjectDoesNotExist:
-    #         return True
-    #     return False
+    @cached_property
+    def is_orphan(self) -> bool:
+        """Whether this character is not owned by a user."""
+        try:
+            self.eve_character.character_ownership
+        except ObjectDoesNotExist:
+            return True
+        return False
 
     def user_is_owner(self, user: User) -> bool:
         """Return True if the given user is owner of this character"""
@@ -337,7 +337,9 @@ class Character(models.Model):
         try:
             user = self.eve_character.character_ownership.user
         except ObjectDoesNotExist:
-            raise TokenError(f"Can not find token for orphaned character: {self}")
+            raise TokenError(
+                f"Can not find token for orphaned character: {self}"
+            ) from None
         character = self.eve_character
         token = (
             Token.objects.prefetch_related("scopes")
