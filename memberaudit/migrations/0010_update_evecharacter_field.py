@@ -5,7 +5,7 @@ from django.db import migrations
 
 def forwards(apps, schema_editor):
     Character = apps.get_model("memberaudit", "Character")
-    for character in Character.objects.all():
+    for character in Character.objects.select_related("character_ownership").all():
         character.eve_character_id = character.character_ownership.character_id
         character.save()
 

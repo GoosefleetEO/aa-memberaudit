@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [1.15.0] - tbd
 
+>**Update Notes**:<br>IMPORTANT: To avoid the risk of potential data corruption, please make sure to shut down your AA instance completely (incl. gunicorn, celery, discordbot, ...) before running the migrations for this release.
+
 ### Changed
 
 - Make sure historical character data is preserved after user "revokes his API keys"
