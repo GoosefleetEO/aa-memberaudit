@@ -21,6 +21,7 @@ from esi.errors import TokenError
 from esi.models import Token
 from eveuniverse.models import EveEntity, EveType
 
+from allianceauth.authentication.models import CharacterOwnership
 from allianceauth.eveonline.models import EveCharacter
 from allianceauth.services.hooks import get_extension_logger
 from app_utils.allianceauth import notify_throttled
@@ -156,34 +157,48 @@ class Character(models.Model):
         return f"Character(pk={self.pk}, eve_character='{self.eve_character}')"
 
     @cached_property
-    def is_main(self) -> bool:
-        """returns True if this character is a main character, else False"""
-        try:
-            return (
-                self.eve_character.character_ownership.user.profile.main_character.character_id
-                == self.eve_character.character_id
-            )
-        except (ObjectDoesNotExist, AttributeError):
-            return False
-
-    @cached_property
     def name(self) -> str:
         return self.eve_character.character_name
 
     @cached_property
+    def character_ownership(self) -> Optional[CharacterOwnership]:
+        try:
+            return self.eve_character.character_ownership
+        except ObjectDoesNotExist:
+            return None
+
+    @cached_property
+    def user(self) -> Optional[User]:
+        try:
+            return self.character_ownership.user
+        except AttributeError:
+            return None
+
+    @cached_property
+    def main_character(self) -> Optional[EveCharacter]:
+        try:
+            return self.character_ownership.user.profile.main_character
+        except AttributeError:
+            return None
+
+    @cached_property
+    def is_main(self) -> bool:
+        """returns True if this character is a main character, else False"""
+        try:
+            return self.main_character.character_id == self.eve_character.character_id
+        except AttributeError:
+            return False
+
+    @cached_property
     def is_orphan(self) -> bool:
         """Whether this character is not owned by a user."""
-        try:
-            self.eve_character.character_ownership
-        except ObjectDoesNotExist:
-            return True
-        return False
+        return self.character_ownership is None
 
     def user_is_owner(self, user: User) -> bool:
         """Return True if the given user is owner of this character"""
         try:
-            return self.eve_character.character_ownership.user == user
-        except ObjectDoesNotExist:
+            return self.user == user
+        except AttributeError:
             return False
 
     def user_has_access(self, user: User) -> bool:
@@ -191,11 +206,9 @@ class Character(models.Model):
         in the character viewer
         """
         try:
-            if (
-                self.eve_character.character_ownership.user == user
-            ):  # shortcut for better performance
+            if self.user == user:  # shortcut for better performance
                 return True
-        except ObjectDoesNotExist:
+        except AttributeError:
             pass
         return Character.objects.user_has_access(user).filter(pk=self.pk).exists()
 
@@ -334,31 +347,28 @@ class Character(models.Model):
         Exceptions:
         - TokenError: If no valid token can be found
         """
-        try:
-            user = self.eve_character.character_ownership.user
-        except ObjectDoesNotExist:
+        if self.is_orphan:
             raise TokenError(
                 f"Can not find token for orphaned character: {self}"
             ) from None
-        character = self.eve_character
         token = (
             Token.objects.prefetch_related("scopes")
-            .filter(user=user, character_id=character.character_id)
+            .filter(user=self.user, character_id=self.eve_character.character_id)
             .require_scopes(scopes if scopes else self.get_esi_scopes())
             .require_valid()
             .first()
         )
         if not token:
             message_id = f"{__title__}-fetch_token-{self.pk}-TokenError"
-            title = f"{__title__}: Invalid or missing token for {character}"
+            title = f"{__title__}: Invalid or missing token for {self.eve_character}"
             message = (
                 f"{MEMBERAUDIT_APP_NAME} could not find a valid token for your "
-                f"character {character}.\n"
+                f"character {self.eve_character}.\n"
                 f"Please re-add that character to {MEMBERAUDIT_APP_NAME} "
                 "at your earliest convenience to update your token."
             )
             notify_throttled(
-                message_id=message_id, user=user, title=title, message=message
+                message_id=message_id, user=self.user, title=title, message=message
             )
             raise TokenError(f"Could not find a matching token for {self}")
         return token
@@ -1113,8 +1123,10 @@ class Character(models.Model):
 
     def update_sharing_consistency(self):
         """Update sharing to ensure consistency with permissions."""
-        if self.is_shared and not self.eve_character.character_ownership.user.has_perm(
-            "memberaudit.share_characters"
+        if (
+            self.is_shared
+            and self.user
+            and not self.user.has_perm("memberaudit.share_characters")
         ):
             self.is_shared = False
             self.save()

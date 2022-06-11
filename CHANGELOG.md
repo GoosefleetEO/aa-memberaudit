@@ -7,10 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.15.0] - tbd
+
 ### Changed
 
-- Make sure character data is preserved after user revokes his API keys
-- Orphaned characters can be found through the character finder
+- Make sure historical character data is preserved after user "revokes his API keys"
+- Characters loose their user relation and become "orphans" in AA after their API keys are revoked. These orphans can now still be found through the character finder
 
 ## [1.15.0] - 2022-07-22
 

@@ -217,22 +217,22 @@ def corporation_compliance_report_data(request) -> JsonResponse:
 @permission_required("memberaudit.reports_access")
 def skill_sets_report_data(request) -> JsonResponse:
     def _create_data_row(group, character, skill_sets) -> dict:
-        user = character.eve_character.character_ownership.user
-        main_character = user.profile.main_character
-        if main_character:
-            main_name = main_character.character_name
+        if character.main_character:
+            main_name = character.main_character.character_name
             main_html = bootstrap_icon_plus_name_html(
-                user.profile.main_character.portrait_url(), main_name, avatar=True
+                character.main_character.portrait_url(), main_name, avatar=True
             )
-            main_corporation = main_character.corporation_name
+            main_corporation = character.main_character.corporation_name
             main_alliance = (
-                main_character.alliance_name if main_character.alliance_name else ""
+                character.main_character.alliance_name
+                if character.main_character.alliance_name
+                else ""
             )
             organization_html = format_html(
                 "{}{}",
                 main_corporation,
-                f" [{main_character.alliance_ticker}]"
-                if main_character.alliance_name
+                f" [{character.main_character.alliance_ticker}]"
+                if character.main_character.alliance_name
                 else "",
             )
         else:
@@ -266,12 +266,13 @@ def skill_sets_report_data(request) -> JsonResponse:
             if has_required
             else '<i class="fas fa-times boolean-icon-false"></i>'
         )
+        state_name = character.user.profile.state.name if character.user else ""
         return {
             "id": f"{group_pk}_{character.pk}",
             "group": group.name_plus if group else UNGROUPED_SKILL_SET,
             "main": main_name,
             "main_html": main_html,
-            "state": user.profile.state.name,
+            "state": state_name,
             "organization_html": organization_html,
             "corporation": main_corporation,
             "alliance": main_alliance,

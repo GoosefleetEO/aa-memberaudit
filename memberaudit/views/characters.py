@@ -122,7 +122,7 @@ def remove_character(request, character_pk: int) -> HttpResponse:
         ).get(pk=character_pk)
     except Character.DoesNotExist:
         return HttpResponseNotFound(f"Character with pk {character_pk} not found")
-    if character.eve_character.character_ownership.user == request.user:
+    if character.user and character.user == request.user:
         character_name = character.eve_character.character_name
         character.delete()
         messages.success(
@@ -149,8 +149,7 @@ def share_character(request, character_pk: int) -> HttpResponse:
         ).get(pk=character_pk)
     except Character.DoesNotExist:
         return HttpResponseNotFound(f"Character with pk {character_pk} not found")
-
-    if character.eve_character.character_ownership.user == request.user:
+    if character.user and character.user == request.user:
         character.is_shared = True
         character.save()
     else:
@@ -169,8 +168,7 @@ def unshare_character(request, character_pk: int) -> HttpResponse:
         ).get(pk=character_pk)
     except Character.DoesNotExist:
         return HttpResponseNotFound(f"Character with pk {character_pk} not found")
-
-    if character.eve_character.character_ownership.user == request.user:
+    if character.user and character.user == request.user:
         character.is_shared = False
         character.save()
     else:

@@ -47,6 +47,51 @@ class TestCharacter(NoSocketsTestCase):
         super().setUpClass()
         load_entities()
 
+    def test_user_should_return_user_when_not_orphan(self):
+        # given
+        character_1001 = create_memberaudit_character(1001)
+        user = character_1001.eve_character.character_ownership.user
+        # when/then
+        self.assertEqual(character_1001.user, user)
+
+    def test_user_should_be_None_when_orphan(self):
+        # given
+        character = create_character(EveCharacter.objects.get(character_id=1121))
+        # when/then
+        self.assertIsNone(character.user)
+
+    def test_should_return_main_when_it_exists_1(self):
+        # given
+        character_1001 = create_memberaudit_character(1001)
+        user = character_1001.eve_character.character_ownership.user
+        main_character = user.profile.main_character
+        # when/then
+        self.assertEqual(character_1001.main_character, main_character)
+
+    def test_should_return_main_when_it_exists_2(self):
+        # given
+        character_1001 = create_memberaudit_character(1001)
+        user = character_1001.eve_character.character_ownership.user
+        main_character = user.profile.main_character
+        character_1101 = add_memberaudit_character_to_user(user, 1101)
+        # when/then
+        self.assertEqual(character_1101.main_character, main_character)
+
+    def test_should_return_None_when_user_has_no_main(self):
+        # given
+        character_1001 = create_memberaudit_character(1001)
+        user = character_1001.eve_character.character_ownership.user
+        user.profile.main_character = None
+        user.profile.save()
+        # when/then
+        self.assertIsNone(character_1001.main_character)
+
+    def test_should_be_None_when_orphan(self):
+        # given
+        character = create_character(EveCharacter.objects.get(character_id=1121))
+        # when/then
+        self.assertIsNone(character.main_character)
+
     def test_should_identify_main(self):
         # given
         character_1001 = create_memberaudit_character(1001)

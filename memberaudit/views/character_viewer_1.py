@@ -98,18 +98,18 @@ def character_viewer(request, character_pk: int, character: Character) -> HttpRe
         character_details = None
 
     # main character
-    try:
-        user = character.eve_character.character_ownership.user
-    except ObjectDoesNotExist:
-        main_character = None
+    if character.is_orphan:
         main = "(orphan)"
-    else:
-        main_character = user.profile.main_character
+        main_character_id = None
+    elif character.main_character:
         main = (
-            f"[{main_character.corporation_ticker}] {main_character.character_name}"
-            if main_character
-            else "-"
+            f"[{character.main_character.corporation_ticker}] "
+            f"{character.main_character.character_name}"
         )
+        main_character_id = character.main_character.character_id
+    else:
+        main = "-"
+        main_character_id = None
 
     # mailing lists
     mailing_lists_qs = character.mailing_lists.all().annotate(
@@ -190,7 +190,7 @@ def character_viewer(request, character_pk: int, character: Character) -> HttpRe
         "mail_labels": mail_labels,
         "mailing_lists": mailing_lists,
         "main": main,
-        "main_character_id": main_character.character_id if main_character else None,
+        "main_character_id": main_character_id,
         "all_characters": all_characters,
         "show_tab": request.GET.get("tab", ""),
         "last_updates": last_updates,
@@ -209,16 +209,12 @@ def character_viewer(request, character_pk: int, character: Character) -> HttpRe
 
 def _identify_user_characters(request, character):
     """Identify all characters owned by this user for siderbar."""
-
-    try:
-        user = character.eve_character.character_ownership.user
-    except ObjectDoesNotExist:
+    if not character.user:
         eve_characters_of_user = EveCharacter.objects.none()
     else:
         eve_characters_of_user = EveCharacter.objects.select_related(
             "character_ownership__memberaudit_character"
-        ).filter(character_ownership__user=user)
-
+        ).filter(character_ownership__user=character.user)
     all_characters = (
         eve_characters_of_user.order_by("character_name")
         .annotate(memberaudit_character_pk=F("memberaudit_character"))

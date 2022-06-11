@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import Group
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 from django.db.models import Case, Count, Max, Prefetch, Q, Value, When
 from django.forms.models import BaseInlineFormSet
 from django.shortcuts import redirect, render
@@ -208,10 +208,8 @@ class CharacterAdmin(admin.ModelAdmin):
     )
     def _main(self, obj) -> str:
         try:
-            name = (
-                obj.eve_character.character_ownership.user.profile.main_character.character_name
-            )
-        except (AttributeError, ObjectDoesNotExist):
+            name = obj.main_character.character_name
+        except AttributeError:
             return None
         return str(name)
 
@@ -219,19 +217,23 @@ class CharacterAdmin(admin.ModelAdmin):
         ordering="eve_character__character_ownership__user__profile__state__name"
     )
     def _state(self, obj) -> str:
-        return str(obj.eve_character.character_ownership.user.profile.state)
+        try:
+            return str(obj.user.profile.state)
+        except AttributeError:
+            return ""
 
     @admin.display(
         ordering="eve_character__character_ownership__user__profile__main_character__corporation_name"
     )
     def _organization(self, obj) -> str:
         try:
-            main = obj.eve_character.character_ownership.user.profile.main_character
             return "{}{}".format(
-                main.corporation_name,
-                f" [{main.alliance_ticker}]" if main.alliance_ticker else "",
+                obj.main_character.corporation_name,
+                f" [{obj.main_character.alliance_ticker}]"
+                if obj.main_character.alliance_ticker
+                else "",
             )
-        except (AttributeError, ObjectDoesNotExist):
+        except AttributeError:
             return None
 
     @admin.display(boolean=True, ordering="is_last_update_ok")

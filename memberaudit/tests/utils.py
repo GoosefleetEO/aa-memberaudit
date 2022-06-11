@@ -63,7 +63,7 @@ class LoadTestDataMixin:
         load_entities()
         load_locations()
         cls.character = create_memberaudit_character(1001)
-        cls.user = cls.character.eve_character.character_ownership.user
+        cls.user = cls.character.user
         cls.jita = EveSolarSystem.objects.get(id=30000142)
         cls.jita_trade_hub = EveType.objects.get(id=52678)
         cls.corporation_2001 = EveEntity.objects.get(id=2001)
