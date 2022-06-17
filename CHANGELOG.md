@@ -9,7 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [1.14.3] - 2022-06-17
 
-- Add PyPI wheel
+### Changed
+
+- Switch to local SWAGGER spec file
+
+### Fixed
+
+- Add test data to distribution package
 
 ## [1.14.2] - 2022-04-11
 
