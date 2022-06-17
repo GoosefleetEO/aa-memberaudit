@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
-## [1.15.0] - tbd
+## [1.15.0a1] - 2022-06-15
 
->**Update Notes**:<br>IMPORTANT: To avoid the risk of potential data corruption, please make sure to shut down your AA instance completely (incl. gunicorn, celery, discordbot, ...) before running the migrations for this release.
+>**Alpha notes**:<br>This is an alpha release and not yet ready for production. We are releasing this update to gather stability feedback and to ensure this update works accross all commonly used environments for Alliance Auth.<br>To participate in this alpha test phase please follow these instructions:<br>1. Use a dev or test environment, but not production.<br>2. Have Member Audit installed with the current stable version (1.14) and have character data loadedy<br>3. Install this alpha release as update.<br>4. Check that the update (i.e. the migrations) went through without any issue and that the character data is still there<br>5. Inform us about the result of your alpha test and what environment you used (e.g. Ubuntu 18.04 with Maria DB 10.5 and Alliance Auth 2.12.1)
+
+>**Update Notes**:<br>To avoid the risk of potential data corruption, please make sure to shut down your AA instance completely (incl. gunicorn, celery, discordbot, ...) before running the migrations for this release.
 
 ### Changed
 
