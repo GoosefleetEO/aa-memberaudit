@@ -1,6 +1,6 @@
 from app_utils.testing import NoSocketsTestCase
 
-from ...core.xml_converter import eve_xml_to_html
+from ...core.xml_converter import DEFAULT_FONT_SIZE, eve_xml_to_html
 from ..testdata.load_entities import load_entities
 from ..testdata.load_eveuniverse import load_eveuniverse
 from ..testdata.load_locations import load_locations
@@ -91,10 +91,51 @@ class TestXMLConversion(NoSocketsTestCase):
         self.assertHTMLEqual(eve_xml_to_html(input), expected)
 
     def test_should_set_default_font(self):
-        input = 'First<br><span style="font-size: 20px">Second</span>Third'
+        input = 'First<br><font size="20">Second</font>Third'
         expected = (
             '<span style="font-size: 13px">First</span>'
             '<br><span style="font-size: 20px">Second</span>'
             '<span style="font-size: 13px">Third</span>'
         )
         self.assertHTMLEqual(eve_xml_to_html(input, add_default_style=True), expected)
+
+    def test_should_remove_comment(self):
+        input = "<u>First<!--<script>badcall();</script>--></u>"
+        expected = "<u>First</u>"
+        self.assertHTMLEqual(eve_xml_to_html(input), expected)
+
+    def test_should_remove_normal_script(self):
+        input = "<b>This is a <script>bad_attempt()</script> at injection</b>"
+        expected = "<b>This is a bad_attempt() at injection</b>"
+        self.assertHTMLEqual(eve_xml_to_html(input), expected)
+
+    # \ufe64 and \ufe65 are two examples of characters that normalize under NFKC to < >
+    def test_should_remove_confusable_script(self):
+        input = "<i>Yet another \ufe64script\ufe65attempted()\ufe64/script\ufe65 injection</i>"
+        expected = "<i>Yet another attempted() injection</i>"
+        self.assertHTMLEqual(eve_xml_to_html(input), expected)
+
+    def test_should_move_valid_children_out(self):
+        input = "<u>Test <div><i>it</i> <h1>out</h1></div> okay?</u>"
+        expected = "<u>Test <i>it</i> out okay?</u>"
+        self.assertHTMLEqual(eve_xml_to_html(input), expected)
+
+    def test_should_use_default_font_size(self):
+        input = '<font size="invalid">Test</font>'
+        expected = f'<span style="font-size: {DEFAULT_FONT_SIZE}px">Test</span>'
+        self.assertHTMLEqual(eve_xml_to_html(input), expected)
+
+    def test_should_use_absolute_font_size(self):
+        input = '<font size="-13">Test</font>'
+        expected = '<span style="font-size: 13px">Test</span>'
+        self.assertHTMLEqual(eve_xml_to_html(input), expected)
+
+    def test_should_handle_valid_or_invalid_protocols(self):
+        input = '<a href="unsupported://123456">I should just be text</a><br><a href="https://example.org/">I should be a link</a>'
+        expected = 'I should just be text<br><a href="https://example.org/" target="_blank">I should be a link</a>'
+        self.assertHTMLEqual(eve_xml_to_html(input), expected)
+
+    def test_should_remove_empty_elements(self):
+        input = '<font size="13"><font size="10"></font><a href="https://iforgottext.com/"></a>some text</font>'
+        expected = '<span style="font-size: 13px">some text</span>'
+        self.assertHTMLEqual(eve_xml_to_html(input), expected)
