@@ -45,5 +45,6 @@ setup(
         "allianceauth-app-utils>=1.13",
         "humanize",
         "dj-datatables-view",
+        "bleach",
     ],
 )
