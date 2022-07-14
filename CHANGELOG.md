@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.14.4] - 2022-07-14
+
+### Fixed
+
+- XSS vulnerability in character bio and emails
+
+Big thanks to @marnvermuldir for finding and fixing this issue!
+
 ## [1.14.3] - 2022-06-17
 
 ### Changed
