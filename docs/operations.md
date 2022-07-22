@@ -95,7 +95,9 @@ This app makes very heavy use of Celery and may run thousands of tasks every hou
 
 Please see [Celery Configuration](#celery-configuration) for details on how to configure celery accordingly.
 
-> **Note**<br>When the above requirements are met Member Audit will also run smoothly on smaller servers.
+```{note}
+When the above requirements are met Member Audit will also run smoothly on smaller servers.
+```
 
 ### Step 6 - Load Eve Universe map data
 
@@ -157,17 +159,19 @@ The exception is the basic role, `basic_access`, that every user needs just to a
 Name | Description | Type
 -- | -- | --
 `basic_access`| Can access this app and register and view own characters | Feature
-`share_characters`| Can share his characters. Note that others need the `view_shared_characters` permission to see them.  | Feature
-`finder_access`| Can access character finder features for accessing characters from others | Feature
+`share_characters`| Can share his characters. Note that others need the <br>`view_shared_characters` permission to see them.  | Feature
+`finder_access`| Can access character finder features for accessing characters<br>from others | Feature
 `reports_access`| Can access reports features for seeing reports and analytics. | Feature
 `characters_access`| Can access characters owned by others. | Feature
-`exports_access`| Can access data exports. Warning: This permission gives access to all data from all characters and does not require any additional scope permissions. | Feature
-`view_shared_characters`| All characters, which have been marked as shared & can access these characters | Feature & Scope
-`view_same_corporation`| All mains - incl. their alts -  of the same corporations the user's main belongs to | Scope
-`view_same_alliance`| All mains - incl. their alts -  of the same alliances the user's main belongs to | Scope
+`exports_access`| Can access data exports.<br>Warning: This permission gives access to all data from all<br>characters and does not require any additional scope permissions. | Feature
+`view_shared_characters`| All characters, which have been marked as shared &<br>can access these characters | Feature & Scope
+`view_same_corporation`| All mains - incl. their alts -  of the same corporations<br>the user's main belongs to | Scope
+`view_same_alliance`| All mains - incl. their alts -  of the same alliances<br>the user's main belongs to | Scope
 `view_everything`| All characters registered with Member Audit | Scope
 
-> **Hint**<br>All permissions can be found under the category "memberaudit | general".
+```{hint}
+All permissions can be found under the category "memberaudit | general".
+```
 
 ### Example Roles
 
@@ -177,7 +181,7 @@ Role | Description | Permissions
 -- | -- | --
 Normal user | Can use this app and register and access own characters | `basic_access`
 Recruiter | Can access shared characters | `basic_access`<br>`finder_access`<br>`view_shared_characters`
-Corporation Leadership | Can access reports for his corporation members (but can not access the characters) | `basic_access`<br>`reports_access`<br>`view_same_corporation`
+Corporation Leadership | Can access reports for his corporation members<br>(but can not access the characters) | `basic_access`<br>`reports_access`<br>`view_same_corporation`
 Corp Leadership & Recruiter | Can access shared characters | `basic_access`<br>`finder_access`<br>`view_shared_characters`<br>`reports_access`<br>`view_same_corporation`
 Alliance Auditor | Can search for and access all characters of his alliance  | `basic_access`<br>`finder_access`<br>`characters_access`<br>`view_same_alliance`
 
@@ -223,7 +227,9 @@ Your task throughout is defined by the number of celery workers. The more worker
 
 You can adjust the update frequency to meet your needs. For example if you have a lot of characters and your update tasks can not (or only barely) complete within the update cycle, then you can lengthen your update cycles to compensate. There are 3 update cycles called rings, which can be configured individually. See `MEMBERAUDIT_UPDATE_STALE_RING_x` in [settings](#settings) for details.
 
-> **Hint**<br>You can use the management command **memberaudit_stats** to get current data about the last update runs, which can be very helpful to find the optimal configuration. See [memberaudit_stats](#memberaudit_stats) for details.
+```{hint}
+You can use the management command **memberaudit_stats** to get current data about the last update runs, which can be very helpful to find the optimal configuration. See [memberaudit_stats](#memberaudit_stats) for details.
+```
 
 ## Settings
 
@@ -247,7 +253,9 @@ Name | Description | Default
 
 The following management commands are available to perform administrative tasks:
 
-> **Hint**:<br>Run any command with `--help` to see all options
+```{hint}
+Run any command with `--help` to see all options
+```
 
 ### memberaudit_data_export
 
@@ -263,7 +271,9 @@ Pre-loads data required for this app from ESI to improve app performance.
 
 This command deletes all locally stored character data, but maintains character skeletons, so they can be reloaded again from ESI.
 
-> **Warning**<br>Make sure to stop all supervisors before using this command.
+```{warning}
+Make sure to stop all supervisors before using this command.
+```
 
 ### memberaudit_stats
 

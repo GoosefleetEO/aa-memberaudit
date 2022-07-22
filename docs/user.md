@@ -23,6 +23,10 @@ A user is compliant when the following two criteria are both true:
 - User has access to Member Audit (i.e. has the access permission)
 - User has registered all his characters to Member Audit
 
->**Note**:<br>Only internal groups can be enabled as compliance groups.
+```{Note}
+Only internal groups can be enabled as compliance groups.
+```
 
->**Important**:<br>Once you have enabled a group as compliance group any user assignments will be handled automatically by Member Audit and Alliance Auth.
+```{important}
+Once you have enabled a group as compliance group any user assignments will be handled automatically by Member Audit and Alliance Auth.
+```
