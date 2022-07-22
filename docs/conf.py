@@ -6,16 +6,16 @@
 
 # -- Path setup --------------------------------------------------------------
 
-import os
-import sys
+# import os
+# import sys
 
-import sphinx_rtd_theme  # noqa
+# import sphinx_rtd_theme  # noqa
 
-import django
+# import django
 
-sys.path.insert(0, os.path.abspath(".."))
-os.environ["DJANGO_SETTINGS_MODULE"] = "testauth.settings"
-django.setup()
+# sys.path.insert(0, os.path.abspath(".."))
+# os.environ["DJANGO_SETTINGS_MODULE"] = "testauth.settings"
+# django.setup()
 
 
 # -- Project information -----------------------------------------------------
@@ -30,13 +30,7 @@ author = "Erik Kalkoken, Myrhea, Rounon Dax"
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = [
-    "myst_parser",
-    "sphinx_rtd_theme",
-    "sphinx.ext.autodoc",
-    "sphinx.ext.napoleon",
-    "sphinxcontrib_django2",
-]
+extensions = ["myst_parser", "sphinx_rtd_theme"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -62,7 +56,3 @@ html_css_files = ["css/rtd_dark.css"]
 
 # -- Options for myst -------------------------------------------------
 myst_heading_anchors = 3
-
-# autodoc
-autodoc_mock_imports = ["allianceauth"]
-add_module_names = False
