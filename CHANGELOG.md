@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.14.5] - 2022-07-22
+
+### Changed
+
+- Operations and user manual moved to Sphinx docs on rtd
+
 ## [1.14.4] - 2022-07-14
 
 ### Fixed

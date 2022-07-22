@@ -55,6 +55,11 @@ test-py39-dj32:
   - tox -e py39-django32
   - bash <(curl -s https://codecov.io/bash)
 
+test-docs:
+  extends: .test-py38
+  script:
+  - tox -e docs
+
 deploy-pypi:
   stage: deploy
   image: python:3.8-bullseye
