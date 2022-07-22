@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Operations and user manual moved to Sphinx docs on rtd
+- Swagger spec updated (#119)
 
 ## [1.14.4] - 2022-07-14
 
