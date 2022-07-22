@@ -828,11 +828,11 @@ class CharacterSkill(models.Model):
 
     active_skill_level = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)]
-    )
+    )  # TODO: Set min to 0 with next migration
     skillpoints_in_skill = models.PositiveBigIntegerField()
     trained_skill_level = models.PositiveBigIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)]
-    )
+    )  # TODO: Set min to 0 with next migration
 
     objects = CharacterSkillManager()
 

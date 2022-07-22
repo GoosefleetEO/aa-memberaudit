@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Display unallocated skillpoints (#121)
+- Display injected (but untrained) skills on character sheet (#122)
 
 ### Changed
 
