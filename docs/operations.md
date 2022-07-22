@@ -2,7 +2,7 @@
 
 ## Installation
 
-### Preconditions
+### Step  0 - Check dependencies are installed
 
 1. Member Audit is a plugin for Alliance Auth. If you don't have Alliance Auth running already, please install it first before proceeding. (see the official [AA installation guide](https://allianceauth.readthedocs.io/en/latest/installation/auth/allianceauth/) for details)
 
@@ -85,18 +85,17 @@ Update the Eve Online API app used for authentication in your AA installation to
 
 ### Step 5 - Verify Celery configuration
 
-This app makes very heavy use of Celery and may run thousands of tasks every hour.
+Member Audit makes very heavy use of Celery and will run many thousand tasks every hour.
 
-**Please make sure your celery configuration meets the following minimum requirements or Member Audit may overwhelm your server**:
+The minimum configuration for an average installation (approx. 500 characters) is the following:
 
-- 10 workers (more is better)
-- Tasks can be executed continuously without degrading overall server performance
-- Task priorities are enabled
+- 10 thread based workers
+- All workers can run continuously without degrading overall server performance
 
-Please see [Celery Configuration](#celery-configuration) for details on how to configure celery accordingly.
+Please see the section [Celery Configuration](#celery-configuration) on how to configure celery to run more efficiently.
 
-```{note}
-When the above requirements are met Member Audit will also run smoothly on smaller servers.
+```{important}
+This app will not work with the default setup for celery from the official AA installation guide. The default configuration is inefficient and not able to handle the task load from Member Audit. If you task queue is ever increasing this might be the reason.
 ```
 
 ### Step 6 - Load Eve Universe map data
@@ -115,7 +114,9 @@ python manage.py memberaudit_load_eve
 
 You may want to wait until the loading is complete before continuing.
 
-> **Hint**: These command will spawn a thousands of tasks. One easy way to monitor the progress is to watch the number of tasks shown on the Dashboard.
+```{hint}
+These command will spawn a thousands of tasks. One easy way to monitor the progress is to watch the number of tasks shown on the Dashboard.
+```
 
 ### Step 7 - Setup permissions
 
@@ -191,9 +192,9 @@ Alliance Auditor | Can search for and access all characters of his alliance  | `
 
 ### Task throughput
 
-This app makes heavy use of Celery and will often run thousands of tasks per hour. Auth's default Celery setup is not well suited for handling high task volumes though (e.g. it will only spawn one worker per core, which scale badly due to high CPU usage). We strongly recommend to switch to a thread based setup (e.g. gevent), which has been proven to be significantly more efficient for running Auth.
+This app makes heavy use of Celery and will often run thousands of tasks per hour. AA's default Celery setup is not well suited for handling high task volumes though (e.g. it will only spawn one worker per core, which scale badly due to high CPU usage). We strongly recommend to switch to a thread based setup (e.g. gevent), which has been proven to be significantly more efficient for running AA.
 
-For details on how to configure celery workers with threads please see [this section](https://allianceauth.readthedocs.io/en/latest/maintenance/tuning/celery.html#increasing-task-throughput) in the Auth's documentation.
+For details on how to configure celery workers with threads please see [this section](https://allianceauth.readthedocs.io/en/latest/maintenance/tuning/celery.html#increasing-task-throughput) in the AA's documentation.
 
 When switching to thread based workers please also make sure to setup measure to protect against memory leak. The default celery options will not work for threads. See [this section](https://allianceauth.readthedocs.io/en/latest/maintenance/tuning/celery.html#supervisor) for details.
 
