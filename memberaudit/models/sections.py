@@ -849,7 +849,7 @@ class CharacterSkill(models.Model):
 
 
 class CharacterSkillpoints(models.Model):
-    """Skillpoints of a character"""
+    """Skill points of a character"""
 
     character = models.OneToOneField(
         Character,
