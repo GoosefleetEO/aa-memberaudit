@@ -30,7 +30,7 @@ Users can monitor their characters, recruiters can vet the characters of applica
 
 In addition character based reports gives leadership another valuable tool for managing their respective organization.
 
-For details on how to install and use *Member Audit* please see the [documentation](https://aa-memberaudit.readthedocs.io/en/latest/).
+For details on how to install and use Member Audit please see the [documentation](https://aa-memberaudit.readthedocs.io/en/latest/).
 
 ## Features
 

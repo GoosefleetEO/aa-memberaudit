@@ -93,6 +93,9 @@
                             {% else %}
                                 <dd class="text-muted">{{no_data}}</dd>
                             {% endif %}
+
+                            <dt>{% translate 'Main:' %}</dt>
+                            <dd>{{ main|default:"-" }}</dd>
                         </dl>
                     </div>
 
@@ -107,7 +110,10 @@
 
                             <dt>{% translate 'Skillpoints:' %}</dt>
                             {% if character.skillpoints %}
-                                <dd>{{ character.skillpoints.total|intword }}</dd>
+                                <dd>
+                                    {{ character.skillpoints.total|intword }} (total)<br>
+                                    {{ character.skillpoints.unallocated|intword|default:"-" }} (unallocated)
+                                </dd>
                             {% else %}
                                 <dd class="text-muted">{{no_data}}</dd>
                             {% endif %}
@@ -164,8 +170,6 @@
                                 <dd class="text-muted">{{no_data}}</dd>
                             {% endif %}
 
-                            <dt>{% translate 'Main:' %}</dt>
-                            <dd>{{ main|default:"-" }}</dd>
                         </dl>
                     </div>
                 </div>

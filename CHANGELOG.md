@@ -7,11 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
-## [1.14.5] - 2022-07-22
+## [1.15.0] - 2022-07-22
+
+### Added
+
+- Display unallocated skillpoints (#121)
+- Display injected (but untrained) skills on character sheet (#122)
 
 ### Changed
 
 - Operations and user manual moved to Sphinx docs on rtd
+- Swagger spec updated (#119)
 
 ## [1.14.4] - 2022-07-14
 

@@ -521,9 +521,7 @@ def character_skills_data(
 ) -> JsonResponse:
     skills_data = list()
     try:
-        for skill in character.skills.select_related(
-            "eve_type", "eve_type__eve_group"
-        ).filter(active_skill_level__gte=1):
+        for skill in character.skills.select_related("eve_type", "eve_type__eve_group"):
             level_str = MAP_ARABIC_TO_ROMAN_NUMBERS[skill.active_skill_level]
             skill_name = format_html(
                 '<span title="{}">{} {}</span>',
