@@ -7,16 +7,49 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
-## [1.15.0a1] - 2022-06-15
+## [1.16.0a1] - 2022-06-15
 
->**Alpha notes**:<br>This is an alpha release and not yet ready for production. We are releasing this update to gather stability feedback and to ensure this update works accross all commonly used environments for Alliance Auth.<br>To participate in this alpha test phase please follow these instructions:<br>1. Use a dev or test environment, but not production.<br>2. Have Member Audit installed with the current stable version (1.14) and have character data loadedy<br>3. Install this alpha release as update.<br>4. Check that the update (i.e. the migrations) went through without any issue and that the character data is still there<br>5. Inform us about the result of your alpha test and what environment you used (e.g. Ubuntu 18.04 with Maria DB 10.5 and Alliance Auth 2.12.1)
+### Update notes
 
->**Update Notes**:<br>To avoid the risk of potential data corruption, please make sure to shut down your AA instance completely (incl. gunicorn, celery, discordbot, ...) before running the migrations for this release.
+We are releasing this update as alpha to gather stability feedback and to ensure this update works across all commonly used environments for Alliance Auth. Please only install this update if you feel comfortable with backup up and restoring your data in case of issues.
+
+>**Note**:<br>To minimize your risk we are providing you with a restore procedure that allows you to fully restore your previous version and data in case anything goes wrong.
+
+Please give us feedback about the result of your alpha test and what environment you used (e.g. Ubuntu 18.04 with Maria DB 10.5 and Alliance Auth 2.12.1).
+
+Should you run into any issues and need help please give us a shout on the AA Discord (#community-packages).
+
+#### Updating
+
+Please follow the these steps to install this update:
+
+1. Make sure you are on the latest stable version (1.15)
+1. Shut down your AA instance: `sudo supervisorctl stop myauth:`
+1. Backup your Member Audit tables (replace placeholders in brackets): `sudo mysql [database_name] -u [user] -p -N -e 'show tables like "memberaudit\_%"' | sudo xargs mysqldump [database_name] -u [user] -p > [filename].sql`
+1. Optional: Backup tables of apps dependent on Member Audit if applicable, e.g. Mail Relay, aa-memberaudit-securegroups
+1. Install the alpha release: `pip install aa-memberaudit==1.16.0a1`
+1. Run migrate: `python manage.py migrate`
+1. Check that the migrations went through without any issue
+1. Restart your AA instance: `sudo supervisorctl start myauth:`
+1. Open Member Audit and the character finder for a sample character to verify that the data has been migrated correctly.
+
+#### Restore (optional)
+
+In case your update failed here is how you can restore your previous stable version and data:
+
+1. Shut down your AA instance: `sudo supervisorctl stop myauth:`
+1. Migrate Member Audit to zero: `python manage.py migrate memberaudit zero --fake`
+1. Delete Member Audit tables by running the `drop_tables.sql` script provided under `memberaudit/tools` e.g. with: `mysql -u [user] -p [database_name] < drop_tables.sql`
+1. Re-install the latest stable version: `pip install aa-memberaudit==1.15.0`
+1. Run migrate: `python manage.py migrate`
+1. Re-load your data backup for Member Audit: `mysql -u [user] -p [database_name] < [filename].sql`
+1. Optional: Re-load your data backup for dependant apps: : `mysql -u [user] -p [database_name] < [filename].sql`
+1. Restart your AA instance: `sudo supervisorctl start myauth:`
 
 ### Changed
 
 - Make sure historical character data is preserved after user "revokes his API keys"
-- Characters loose their user relation and become "orphans" in AA after their API keys are revoked. These orphans can now still be found through the character finder
+- Characters loose their user relation and become "orphans" in AA after their API keys are revoked. These orphans can now be found through the character finder
 
 ## [1.15.0] - 2022-07-22
 
