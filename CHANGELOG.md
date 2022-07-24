@@ -11,25 +11,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Update notes
 
-We are releasing this update as alpha to gather stability feedback and to ensure this update works across all commonly used environments for Alliance Auth. Please only install this update if you feel comfortable with backup up and restoring your data in case of issues.
+We are releasing this update as alpha to gather stability feedback and to ensure this update works across all commonly used environments for Alliance Auth.
 
->**Note**:<br>To minimize your risk we are providing you with a restore procedure that allows you to fully restore your previous version and data in case anything goes wrong.
+>**Important**:<br>Please only install this update if you feel comfortable with potentially having to restore your data in case of issues.
 
-Please give us feedback about the result of your alpha test and what environment you used (e.g. Ubuntu 18.04 with Maria DB 10.5 and Alliance Auth 2.12.1).
+This update has been successfully completed on different installations including in production. And just in case something goes wrong we are providing you with a restore procedure that allows you to fully restore your previous version and data.
 
 Should you run into any issues and need help please give us a shout on the AA Discord (#community-packages).
+
+Please kindly give us feedback about the result of your alpha test and what environment you used (e.g. Ubuntu 18.04 with Maria DB 10.5 and Alliance Auth 2.12.1), so we can determine when to release this version as stable.
 
 #### Updating
 
 Please follow the these steps to install this update:
 
 1. Make sure you are on the latest stable version (1.15)
-1. Shut down your AA instance: `sudo supervisorctl stop myauth:`
-1. Backup your Member Audit tables (replace placeholders in brackets): `sudo mysql [database_name] -u [user] -p -N -e 'show tables like "memberaudit\_%"' | sudo xargs mysqldump [database_name] -u [user] -p > [filename].sql`
+1. Shut down your AA instance completely: `sudo supervisorctl stop myauth:`
+1. Optional: If you have any additional services that are connected with your AA instance shut them down too.
+1. Backup your Member Audit tables into a folder of your choice: `sudo mysql alliance_server -u allianceserver -p -N -e 'show tables like "memberaudit\_%"' | sudo xargs mysqldump alliance_server -u allianceserver -p > memberaudit_backup.sql`
 1. Optional: Backup tables of apps dependent on Member Audit if applicable, e.g. Mail Relay, aa-memberaudit-securegroups
 1. Install the alpha release: `pip install aa-memberaudit==1.16.0a1`
+1. Verify that the installation run through without any errors or warnings
 1. Run migrate: `python manage.py migrate`
-1. Check that the migrations went through without any issue
+1. Verify that the Django migrations went through without showing any errors or warnings
+1. Verify that all migrations for Member Audit have been enabled, including `0012`: `python manage.py showmigrations memberaudit`
 1. Restart your AA instance: `sudo supervisorctl start myauth:`
 1. Open Member Audit and the character finder for a sample character to verify that the data has been migrated correctly.
 
@@ -39,11 +44,11 @@ In case your update failed here is how you can restore your previous stable vers
 
 1. Shut down your AA instance: `sudo supervisorctl stop myauth:`
 1. Migrate Member Audit to zero: `python manage.py migrate memberaudit zero --fake`
-1. Delete Member Audit tables by running the `drop_tables.sql` script provided under `memberaudit/tools` e.g. with: `mysql -u [user] -p [database_name] < drop_tables.sql`
+1. Delete Member Audit tables by running the `drop_tables.sql` script provided under `memberaudit/tools` e.g. with: `sudo mysql -u allianceserver -p alliance_server < drop_tables.sql`
 1. Re-install the latest stable version: `pip install aa-memberaudit==1.15.0`
 1. Run migrate: `python manage.py migrate`
-1. Re-load your data backup for Member Audit: `mysql -u [user] -p [database_name] < [filename].sql`
-1. Optional: Re-load your data backup for dependant apps: : `mysql -u [user] -p [database_name] < [filename].sql`
+1. Re-load your data backup for Member Audit: `sudo mysql -u allianceserver -p alliance_server < memberaudit_backup.sql`
+1. Optional: Re-load your data backup for dependant apps OR manually delete tables of dependant apps, migrate them to zero faked then run migrate again to create fresh tables
 1. Restart your AA instance: `sudo supervisorctl start myauth:`
 
 ### Changed
