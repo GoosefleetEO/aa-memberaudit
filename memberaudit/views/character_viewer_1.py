@@ -71,9 +71,9 @@ def item_icon_plus_name_html(item, size=DEFAULT_ICON_SIZE) -> Tuple[str, str]:
     "details__eve_race",
     "wallet_balance",
     "skillpoints",
-    "character_ownership__user",
-    "character_ownership__user__profile__main_character",
-    "character_ownership__character",
+    "eve_character__character_ownership__user",
+    "eve_character__character_ownership__user__profile__main_character",
+    "eve_character",
     "location__location",
     "location__location__eve_solar_system",
     "location__eve_solar_system",
@@ -98,13 +98,18 @@ def character_viewer(request, character_pk: int, character: Character) -> HttpRe
         character_details = None
 
     # main character
-    auth_character = character.character_ownership.character
-    try:
-        main_character = character.character_ownership.user.profile.main_character
-        main = f"[{main_character.corporation_ticker}] {main_character.character_name}"
-    except AttributeError:
-        main_character = None
+    if character.is_orphan:
+        main = "(orphan)"
+        main_character_id = None
+    elif character.main_character:
+        main = (
+            f"[{character.main_character.corporation_ticker}] "
+            f"{character.main_character.character_name}"
+        )
+        main_character_id = character.main_character.character_id
+    else:
         main = "-"
+        main_character_id = None
 
     # mailing lists
     mailing_lists_qs = character.mailing_lists.all().annotate(
@@ -139,35 +144,7 @@ def character_viewer(request, character_pk: int, character: Character) -> HttpRe
         }
     )
 
-    # list of all characters owned by this user for sidebar
-    accessible_characters = set(
-        Character.objects.user_has_access(user=request.user).values_list(
-            "pk", flat=True
-        )
-    )
-    all_characters = (
-        EveCharacter.objects.select_related(
-            "character_ownership__memberaudit_character"
-        )
-        .filter(character_ownership__user=character.character_ownership.user)
-        .order_by("character_name")
-        .annotate(
-            memberaudit_character_pk=F("character_ownership__memberaudit_character")
-        )
-        .annotate(is_shared=F("character_ownership__memberaudit_character__is_shared"))
-        .values(
-            "character_id", "character_name", "memberaudit_character_pk", "is_shared"
-        )
-    )
-    all_characters = [
-        {
-            **obj,
-            **{
-                "has_access": (obj["memberaudit_character_pk"] in accessible_characters)
-            },
-        }
-        for obj in all_characters
-    ]
+    all_characters = _identify_user_characters(request, character)
 
     # assets total value
     character_assets_total = (
@@ -208,12 +185,12 @@ def character_viewer(request, character_pk: int, character: Character) -> HttpRe
     context = {
         "page_title": page_title,
         "character": character,
-        "auth_character": auth_character,
+        "auth_character": character.eve_character,
         "character_details": character_details,
         "mail_labels": mail_labels,
         "mailing_lists": mailing_lists,
         "main": main,
-        "main_character_id": main_character.character_id if main_character else None,
+        "main_character_id": main_character_id,
         "all_characters": all_characters,
         "show_tab": request.GET.get("tab", ""),
         "last_updates": last_updates,
@@ -228,6 +205,39 @@ def character_viewer(request, character_pk: int, character: Character) -> HttpRe
         "memberaudit/character_viewer.html",
         add_common_context(request, context),
     )
+
+
+def _identify_user_characters(request, character):
+    """Identify all characters owned by this user for siderbar."""
+    if not character.user:
+        eve_characters_of_user = EveCharacter.objects.none()
+    else:
+        eve_characters_of_user = EveCharacter.objects.select_related(
+            "character_ownership__memberaudit_character"
+        ).filter(character_ownership__user=character.user)
+    all_characters = (
+        eve_characters_of_user.order_by("character_name")
+        .annotate(memberaudit_character_pk=F("memberaudit_character"))
+        .annotate(is_shared=F("memberaudit_character__is_shared"))
+        .values(
+            "character_id", "character_name", "memberaudit_character_pk", "is_shared"
+        )
+    )
+    accessible_characters = set(
+        Character.objects.user_has_access(user=request.user).values_list(
+            "pk", flat=True
+        )
+    )
+    all_characters = [
+        {
+            **obj,
+            **{
+                "has_access": (obj["memberaudit_character_pk"] in accessible_characters)
+            },
+        }
+        for obj in all_characters
+    ]
+    return all_characters
 
 
 @login_required

@@ -108,7 +108,7 @@ class TestUILauncher(WebTest):
         self.assertEqual(launcher.status_code, 200)
 
         # check update went through
-        character_1001 = character_ownership_1001.memberaudit_character
+        character_1001 = character_ownership_1001.character.memberaudit_character
         self.assertTrue(character_1001.is_update_status_ok())
 
         # check added character is now visible in launcher
@@ -176,7 +176,7 @@ class TestUICharacterViewer(WebTest):
         load_entities()
         load_locations()
         cls.character = create_memberaudit_character(1001)
-        cls.user = cls.character.character_ownership.user
+        cls.user = cls.character.eve_character.character_ownership.user
         cls.jita_44 = Location.objects.get(id=60003760)
 
     def test_asset_container(self):

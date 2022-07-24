@@ -31,10 +31,10 @@ class TestCharacterManagerUserHasAccess(TestCase):
         # main character with alts
         cls.character_1001 = create_memberaudit_character(1001)  # main
         cls.character_1110 = add_memberaudit_character_to_user(  # alt
-            cls.character_1001.character_ownership.user, 1110
+            cls.character_1001.eve_character.character_ownership.user, 1110
         )
         cls.character_1121 = add_memberaudit_character_to_user(  # alt
-            cls.character_1001.character_ownership.user, 1121
+            cls.character_1001.eve_character.character_ownership.user, 1121
         )
         # main character with alts
         cls.character_1002 = create_memberaudit_character(1002)
@@ -42,10 +42,10 @@ class TestCharacterManagerUserHasAccess(TestCase):
         cls.character_1002.save()
         AuthUtils.add_permission_to_user_by_name(
             "memberaudit.share_characters",
-            cls.character_1002.character_ownership.user,
+            cls.character_1002.eve_character.character_ownership.user,
         )
         cls.character_1103 = add_memberaudit_character_to_user(
-            cls.character_1002.character_ownership.user, 1103
+            cls.character_1002.eve_character.character_ownership.user, 1103
         )
         # main characters
         cls.character_1003 = create_memberaudit_character(1003)
@@ -55,7 +55,7 @@ class TestCharacterManagerUserHasAccess(TestCase):
         cls.character_1102.save()
         AuthUtils.add_permission_to_user_by_name(
             "memberaudit.share_characters",
-            cls.character_1102.character_ownership.user,
+            cls.character_1102.eve_character.character_ownership.user,
         )
         cls.character_1111 = create_memberaudit_character(1111)
         cls.character_1122 = create_memberaudit_character(1122)
@@ -70,7 +70,7 @@ class TestCharacterManagerUserHasAccess(TestCase):
         then include those characters only
         """
         result_qs = Character.objects.user_has_access(
-            user=self.character_1001.character_ownership.user
+            user=self.character_1001.eve_character.character_ownership.user
         )
         self.assertSetEqual(result_qs.eve_character_ids(), {1001, 1110, 1121})
 
@@ -79,7 +79,7 @@ class TestCharacterManagerUserHasAccess(TestCase):
         when user has permission to view own corporation and not characters_access
         then include own characters only
         """
-        user = self.character_1001.character_ownership.user
+        user = self.character_1001.eve_character.character_ownership.user
         user = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.view_same_corporation", user
         )
@@ -91,7 +91,7 @@ class TestCharacterManagerUserHasAccess(TestCase):
         when user has permission to view own corporation and characters_access
         then include characters of corporations members (mains + alts)
         """
-        user = self.character_1001.character_ownership.user
+        user = self.character_1001.eve_character.character_ownership.user
         user = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.view_same_corporation", user
         )
@@ -108,7 +108,7 @@ class TestCharacterManagerUserHasAccess(TestCase):
         when user has permission to view own alliance and not characters_access
         then include own character only
         """
-        user = self.character_1001.character_ownership.user
+        user = self.character_1001.eve_character.character_ownership.user
         user = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.view_same_alliance", user
         )
@@ -120,7 +120,7 @@ class TestCharacterManagerUserHasAccess(TestCase):
         when user has permission to view own alliance and characters_access
         then include characters of alliance members (mains + alts)
         """
-        user = self.character_1001.character_ownership.user
+        user = self.character_1001.eve_character.character_ownership.user
         user = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.view_same_alliance", user
         )
@@ -138,7 +138,7 @@ class TestCharacterManagerUserHasAccess(TestCase):
         and does not belong to any alliance
         then do not include any alliance characters
         """
-        user = self.character_1102.character_ownership.user
+        user = self.character_1102.eve_character.character_ownership.user
         user = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.view_same_alliance", user
         )
@@ -153,7 +153,7 @@ class TestCharacterManagerUserHasAccess(TestCase):
         when user has permission to view everything and no characters_access
         then include own character only
         """
-        user = self.character_1001.character_ownership.user
+        user = self.character_1001.eve_character.character_ownership.user
         user = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.view_everything", user
         )
@@ -165,7 +165,7 @@ class TestCharacterManagerUserHasAccess(TestCase):
         when user has permission to view everything and characters_access
         then include all characters
         """
-        user = self.character_1001.character_ownership.user
+        user = self.character_1001.eve_character.character_ownership.user
         user = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.view_everything", user
         )
@@ -183,7 +183,7 @@ class TestCharacterManagerUserHasAccess(TestCase):
         when user has recruiter permission
         then include own character plus shared characters from members
         """
-        user = self.character_1001.character_ownership.user
+        user = self.character_1001.eve_character.character_ownership.user
         user = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.view_shared_characters", user
         )
@@ -197,7 +197,7 @@ class TestCharacterManagerUserHasAccess(TestCase):
         character_1107 = create_memberaudit_character(1107)
         character_1107.is_shared = True
         character_1107.save()
-        user = self.character_1001.character_ownership.user
+        user = self.character_1001.eve_character.character_ownership.user
         user = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.view_shared_characters", user
         )

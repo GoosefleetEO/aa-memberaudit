@@ -100,32 +100,7 @@ class TestAddCharacter(TestCase):
         self.assertTrue(mock_tasks.update_compliancegroups_for_user.delay.called)
         self.assertTrue(mock_messages.success.called)
         self.assertTrue(
-            Character.objects.filter(
-                character_ownership__character__character_id=1001
-            ).exists()
-        )
-
-    def test_should_not_add_character(self, mock_tasks, mock_messages):
-        # given
-        user, _ = create_user_from_evecharacter(
-            1001,
-            permissions=["memberaudit.basic_access"],
-            scopes=Character.get_esi_scopes(),
-        )
-        user_2, _ = create_user_from_evecharacter(1002)
-        token = user_2.token_set.get(character_id=1002)
-        # when
-        response = self._add_character(user, token)
-        # then
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse("memberaudit:launcher"))
-        self.assertFalse(mock_tasks.update_character.delay.called)
-        self.assertFalse(mock_tasks.update_compliancegroups_for_user.delay.called)
-        self.assertTrue(mock_messages.error.called)
-        self.assertFalse(
-            Character.objects.filter(
-                character_ownership__character__character_id=1002
-            ).exists()
+            Character.objects.filter(eve_character__character_id=1001).exists()
         )
 
 
@@ -150,7 +125,7 @@ class TestRemoveCharacter(TestCase):
     def test_should_remove_character(self, mock_tasks, mock_messages):
         # given
         character = create_memberaudit_character(1001)
-        user = character.character_ownership.user
+        user = character.eve_character.character_ownership.user
         # when
         response = self._remove_character(user, character.pk)
         # then
@@ -179,7 +154,7 @@ class TestRemoveCharacter(TestCase):
     ):
         # given
         character = create_memberaudit_character(1001)
-        user = character.character_ownership.user
+        user = character.eve_character.character_ownership.user
         invalid_character_pk = generate_invalid_pk(Character)
         # when
         response = self._remove_character(user, invalid_character_pk)
@@ -199,13 +174,13 @@ class TestShareCharacter(TestCase):
 
     def setUp(self) -> None:
         self.character_1001 = create_memberaudit_character(1001)
-        self.user_1001 = self.character_1001.character_ownership.user
+        self.user_1001 = self.character_1001.eve_character.character_ownership.user
         self.user_1001 = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.share_characters", self.user_1001
         )
 
         self.character_1002 = create_memberaudit_character(1002)
-        self.user_1002 = self.character_1002.character_ownership.user
+        self.user_1002 = self.character_1002.eve_character.character_ownership.user
         self.user_1002 = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.share_characters", self.user_1002
         )
@@ -282,10 +257,10 @@ class TestUnshareCharacter(TestCase):
         self.character_1001 = create_memberaudit_character(1001)
         self.character_1001.is_shared = True
         self.character_1001.save()
-        self.user_1001 = self.character_1001.character_ownership.user
+        self.user_1001 = self.character_1001.eve_character.character_ownership.user
 
         self.character_1002 = create_memberaudit_character(1002)
-        self.user_1002 = self.character_1002.character_ownership.user
+        self.user_1002 = self.character_1002.eve_character.character_ownership.user
 
     def test_normal(self):
         request = self.factory.get(

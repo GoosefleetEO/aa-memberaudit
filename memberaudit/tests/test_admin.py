@@ -131,7 +131,7 @@ class TestCharacterAdmin(TestCase):
         load_eveuniverse()
         load_entities()
         cls.character = create_memberaudit_character(1001)
-        cls.user = cls.character.character_ownership.user
+        cls.user = cls.character.eve_character.character_ownership.user
 
     def test_column_character(self):
         self.assertEqual(self.modeladmin._character(self.character), "Bruce Wayne")
@@ -142,7 +142,7 @@ class TestCharacterAdmin(TestCase):
     def test_column_main_no_main(self):
         # given
         character = create_memberaudit_character(1002)
-        user = character.character_ownership.user
+        user = character.eve_character.character_ownership.user
         user.profile.main_character = None
         user.profile.save()
         # when
@@ -159,7 +159,7 @@ class TestCharacterAdmin(TestCase):
     def test_column_organization_no_main(self):
         # given
         character = create_memberaudit_character(1002)
-        user = character.character_ownership.user
+        user = character.eve_character.character_ownership.user
         user.profile.main_character = None
         user.profile.save()
         # when

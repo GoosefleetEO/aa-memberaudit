@@ -18,7 +18,7 @@ class CharacterUpdateTestDataMixin:
         cls.character_1002 = create_memberaudit_character(1002)
         cls.corporation_2001 = EveEntity.objects.get(id=2001)
         cls.corporation_2002 = EveEntity.objects.get(id=2002)
-        cls.token = cls.character_1001.character_ownership.user.token_set.first()
+        cls.token = cls.character_1001.user.token_set.first()
         cls.jita = EveSolarSystem.objects.get(id=30000142)
         cls.jita_44 = Location.objects.get(id=60003760)
         cls.amamake = EveSolarSystem.objects.get(id=30002537)

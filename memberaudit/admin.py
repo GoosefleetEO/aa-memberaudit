@@ -143,20 +143,20 @@ class CharacterAdmin(admin.ModelAdmin):
     )
     list_filter = (
         "created_at",
-        "character_ownership__user__profile__state",
-        "character_ownership__user__profile__main_character__alliance_name",
+        "eve_character__character_ownership__user__profile__state",
+        "eve_character__character_ownership__user__profile__main_character__alliance_name",
     )
     list_select_related = (
-        "character_ownership__user",
-        "character_ownership__user__profile__main_character",
-        "character_ownership__user__profile__state",
-        "character_ownership__character",
+        "eve_character__character_ownership__user",
+        "eve_character__character_ownership__user__profile__main_character",
+        "eve_character__character_ownership__user__profile__state",
+        "eve_character",
     )
-    ordering = ["character_ownership__character__character_name"]
+    ordering = ["eve_character__character_name"]
     search_fields = [
-        "character_ownership__character__character_name",
-        "character_ownership__user__profile__main_character__corporation_name",
-        "character_ownership__user__profile__main_character__alliance_name",
+        "eve_character__character_name"
+        "eve_character__character_ownership__user__profile__main_character__corporation_name",
+        "eve_character__character_ownership__user__profile__main_character__alliance_name",
     ]
     exclude = ("mailing_lists",)
 
@@ -194,36 +194,44 @@ class CharacterAdmin(admin.ModelAdmin):
 
     @admin.display(description="")
     def _character_pic(self, obj):
-        character = obj.character_ownership.character
+        character = obj.eve_character
         return format_html(
             '<img src="{}" class="img-circle">', character.portrait_url(size=32)
         )
 
-    @admin.display(ordering="character_ownership__character__character_name")
+    @admin.display(ordering="eve_character__character_name")
     def _character(self, obj) -> str:
-        return str(obj.character_ownership.character)
+        return str(obj.eve_character)
 
-    @admin.display(ordering="character_ownership__user__profile__main_character")
+    @admin.display(
+        ordering="eve_character__character_ownership__user__profile__main_character"
+    )
     def _main(self, obj) -> str:
         try:
-            name = obj.character_ownership.user.profile.main_character.character_name
+            name = obj.main_character.character_name
         except AttributeError:
             return None
         return str(name)
 
-    @admin.display(ordering="character_ownership__user__profile__state__name")
+    @admin.display(
+        ordering="eve_character__character_ownership__user__profile__state__name"
+    )
     def _state(self, obj) -> str:
-        return str(obj.character_ownership.user.profile.state)
+        try:
+            return str(obj.user.profile.state)
+        except AttributeError:
+            return ""
 
     @admin.display(
-        ordering="character_ownership__user__profile__main_character__corporation_name"
+        ordering="eve_character__character_ownership__user__profile__main_character__corporation_name"
     )
     def _organization(self, obj) -> str:
         try:
-            main = obj.character_ownership.user.profile.main_character
             return "{}{}".format(
-                main.corporation_name,
-                f" [{main.alliance_ticker}]" if main.alliance_ticker else "",
+                obj.main_character.corporation_name,
+                f" [{obj.main_character.alliance_ticker}]"
+                if obj.main_character.alliance_ticker
+                else "",
             )
         except AttributeError:
             return None

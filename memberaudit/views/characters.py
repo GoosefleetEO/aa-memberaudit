@@ -2,11 +2,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.db import transaction
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.html import format_html
 from esi.decorators import token_required
 
-from allianceauth.authentication.models import CharacterOwnership
 from allianceauth.eveonline.models import EveCharacter
 from allianceauth.services.hooks import get_extension_logger
 from app_utils.logging import LoggerAddTag
@@ -28,9 +27,8 @@ def index(request):
 @permission_required("memberaudit.basic_access")
 def launcher(request) -> HttpResponse:
     owned_chars_query = (
-        CharacterOwnership.objects.filter(user=request.user)
+        EveCharacter.objects.filter(character_ownership__user=request.user)
         .select_related(
-            "character",
             "memberaudit_character",
             "memberaudit_character__location",
             "memberaudit_character__location__eve_solar_system",
@@ -39,15 +37,14 @@ def launcher(request) -> HttpResponse:
             "memberaudit_character__unread_mail_count",
             "memberaudit_character__wallet_balance",
         )
-        .order_by("character__character_name")
+        .order_by("character_name")
     )
     has_auth_characters = owned_chars_query.exists()
     auth_characters = list()
     unregistered_chars = list()
-    for character_ownership in owned_chars_query:
-        eve_character = character_ownership.character
+    for eve_character in owned_chars_query:
         try:
-            character = character_ownership.memberaudit_character
+            character = eve_character.memberaudit_character
         except AttributeError:
             unregistered_chars.append(eve_character.character_name)
         else:
@@ -99,36 +96,20 @@ def launcher(request) -> HttpResponse:
 @permission_required("memberaudit.basic_access")
 @token_required(scopes=Character.get_esi_scopes())
 def add_character(request, token) -> HttpResponse:
-    token_char = EveCharacter.objects.get(character_id=token.character_id)
-    try:
-        character_ownership = CharacterOwnership.objects.select_related(
-            "character"
-        ).get(user=request.user, character=token_char)
-    except CharacterOwnership.DoesNotExist:
-        messages.error(
-            request,
-            format_html(
-                "You can register your main or alt characters."
-                "However, character <strong>{}</strong> is neither. ",
-                token_char.character_name,
-            ),
-        )
-    else:
-        with transaction.atomic():
-            character, _ = Character.objects.update_or_create(
-                character_ownership=character_ownership
-            )
-        tasks.update_character.delay(character_pk=character.pk)
-        messages.success(
-            request,
-            format_html(
-                "<strong>{}</strong> has been registered. "
-                "Note that it can take a minute until all character data is visible.",
-                character.character_ownership.character,
-            ),
-        )
-        if ComplianceGroupDesignation.objects.exists():
-            tasks.update_compliancegroups_for_user.delay(request.user.pk)
+    eve_character = get_object_or_404(EveCharacter, character_id=token.character_id)
+    with transaction.atomic():
+        character, _ = Character.objects.update_or_create(eve_character=eve_character)
+    tasks.update_character.delay(character_pk=character.pk)
+    messages.success(
+        request,
+        format_html(
+            "<strong>{}</strong> has been registered. "
+            "Note that it can take a minute until all character data is visible.",
+            eve_character,
+        ),
+    )
+    if ComplianceGroupDesignation.objects.exists():
+        tasks.update_compliancegroups_for_user.delay(request.user.pk)
     return redirect("memberaudit:launcher")
 
 
@@ -137,12 +118,12 @@ def add_character(request, token) -> HttpResponse:
 def remove_character(request, character_pk: int) -> HttpResponse:
     try:
         character = Character.objects.select_related(
-            "character_ownership__user", "character_ownership__character"
+            "eve_character__character_ownership__user", "eve_character"
         ).get(pk=character_pk)
     except Character.DoesNotExist:
         return HttpResponseNotFound(f"Character with pk {character_pk} not found")
-    if character.character_ownership.user == request.user:
-        character_name = character.character_ownership.character.character_name
+    if character.user and character.user == request.user:
+        character_name = character.eve_character.character_name
         character.delete()
         messages.success(
             request,
@@ -164,12 +145,11 @@ def remove_character(request, character_pk: int) -> HttpResponse:
 def share_character(request, character_pk: int) -> HttpResponse:
     try:
         character = Character.objects.select_related(
-            "character_ownership__user", "character_ownership__character"
+            "eve_character__character_ownership__user", "eve_character"
         ).get(pk=character_pk)
     except Character.DoesNotExist:
         return HttpResponseNotFound(f"Character with pk {character_pk} not found")
-
-    if character.character_ownership.user == request.user:
+    if character.user and character.user == request.user:
         character.is_shared = True
         character.save()
     else:
@@ -184,12 +164,11 @@ def share_character(request, character_pk: int) -> HttpResponse:
 def unshare_character(request, character_pk: int) -> HttpResponse:
     try:
         character = Character.objects.select_related(
-            "character_ownership__user", "character_ownership__character"
+            "eve_character__character_ownership__user", "eve_character"
         ).get(pk=character_pk)
     except Character.DoesNotExist:
         return HttpResponseNotFound(f"Character with pk {character_pk} not found")
-
-    if character.character_ownership.user == request.user:
+    if character.user and character.user == request.user:
         character.is_shared = False
         character.save()
     else:

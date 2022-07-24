@@ -32,7 +32,7 @@ def create_user_from_evecharacter_with_access(
 
 def create_memberaudit_character(character_id: int) -> Character:
     _, character_ownership = create_user_from_evecharacter_with_access(character_id)
-    return Character.objects.create(character_ownership=character_ownership)
+    return Character.objects.create(eve_character=character_ownership.character)
 
 
 def add_auth_character_to_user(
@@ -47,7 +47,7 @@ def add_auth_character_to_user(
 
 def add_memberaudit_character_to_user(user: User, character_id: int) -> Character:
     character_ownership = add_auth_character_to_user(user, character_id)
-    return Character.objects.create(character_ownership=character_ownership)
+    return Character.objects.create(eve_character=character_ownership.character)
 
 
 def scope_names_set(token: Token) -> set:
@@ -63,7 +63,7 @@ class LoadTestDataMixin:
         load_entities()
         load_locations()
         cls.character = create_memberaudit_character(1001)
-        cls.user = cls.character.character_ownership.user
+        cls.user = cls.character.user
         cls.jita = EveSolarSystem.objects.get(id=30000142)
         cls.jita_trade_hub = EveType.objects.get(id=52678)
         cls.corporation_2001 = EveEntity.objects.get(id=2001)

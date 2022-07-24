@@ -55,7 +55,7 @@ def user_compliance_report_data(request) -> JsonResponse:
         .annotate(
             unregistered_chars=Count(
                 "character_ownerships",
-                filter=Q(character_ownerships__memberaudit_character=None),
+                filter=Q(character_ownerships__character__memberaudit_character=None),
                 distinct=True,
             )
         )
@@ -69,7 +69,7 @@ def user_compliance_report_data(request) -> JsonResponse:
                 "memberaudit.characters_access"
             ):
                 try:
-                    character = main_character.character_ownership.memberaudit_character
+                    character = main_character.memberaudit_character
                 except ObjectDoesNotExist:
                     url = None
                 else:
@@ -159,7 +159,7 @@ def corporation_compliance_report_data(request) -> JsonResponse:
             unregistered_count=Count(
                 "userprofile__user__character_ownerships",
                 filter=Q(
-                    userprofile__user__character_ownerships__memberaudit_character__isnull=True
+                    userprofile__user__character_ownerships__character__memberaudit_character__isnull=True
                 ),
                 distinct=True,
             )
@@ -217,23 +217,22 @@ def corporation_compliance_report_data(request) -> JsonResponse:
 @permission_required("memberaudit.reports_access")
 def skill_sets_report_data(request) -> JsonResponse:
     def _create_data_row(group, character, skill_sets) -> dict:
-        user = character.character_ownership.user
-        auth_character = character.character_ownership.character
-        main_character = user.profile.main_character
-        if main_character:
-            main_name = main_character.character_name
+        if character.main_character:
+            main_name = character.main_character.character_name
             main_html = bootstrap_icon_plus_name_html(
-                user.profile.main_character.portrait_url(), main_name, avatar=True
+                character.main_character.portrait_url(), main_name, avatar=True
             )
-            main_corporation = main_character.corporation_name
+            main_corporation = character.main_character.corporation_name
             main_alliance = (
-                main_character.alliance_name if main_character.alliance_name else ""
+                character.main_character.alliance_name
+                if character.main_character.alliance_name
+                else ""
             )
             organization_html = format_html(
                 "{}{}",
                 main_corporation,
-                f" [{main_character.alliance_ticker}]"
-                if main_character.alliance_name
+                f" [{character.main_character.alliance_ticker}]"
+                if character.main_character.alliance_name
                 else "",
             )
         else:
@@ -243,8 +242,8 @@ def skill_sets_report_data(request) -> JsonResponse:
             reverse("memberaudit:character_viewer", args=[character.pk])
         )
         character_html = bootstrap_icon_plus_name_html(
-            auth_character.portrait_url(),
-            auth_character.character_name,
+            character.eve_character.portrait_url(),
+            character.eve_character.character_name,
             avatar=True,
             url=character_viewer_url,
         )
@@ -267,16 +266,17 @@ def skill_sets_report_data(request) -> JsonResponse:
             if has_required
             else '<i class="fas fa-times boolean-icon-false"></i>'
         )
+        state_name = character.user.profile.state.name if character.user else ""
         return {
             "id": f"{group_pk}_{character.pk}",
             "group": group.name_plus if group else UNGROUPED_SKILL_SET,
             "main": main_name,
             "main_html": main_html,
-            "state": user.profile.state.name,
+            "state": state_name,
             "organization_html": organization_html,
             "corporation": main_corporation,
             "alliance": main_alliance,
-            "character": character.character_ownership.character.character_name,
+            "character": character.eve_character.character_name,
             "character_html": character_html,
             "has_required": has_required_html,
             "has_required_str": yesno_str(bool(has_required)),
@@ -290,15 +290,14 @@ def skill_sets_report_data(request) -> JsonResponse:
     skill_set_checks_qs = (
         CharacterSkillSetCheck.objects.select_related(
             "character",
-            "character__character_ownership__character",
-            "character__character_ownership__user",
-            "character__character_ownership__user__profile__main_character",
-            "character__character_ownership__user__profile__state",
+            "character__eve_character__character_ownership__user",
+            "character__eve_character__character_ownership__user__profile__main_character",
+            "character__eve_character__character_ownership__user__profile__state",
             "skill_set",
             "skill_set__ship_type",
         )
         .exclude(
-            character__character_ownership__user__profile__state__pk=(
+            character__eve_character__character_ownership__user__profile__state__pk=(
                 get_guest_state_pk()
             )
         )

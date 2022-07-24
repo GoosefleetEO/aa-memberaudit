@@ -29,10 +29,6 @@ _entities_data = _load_entities_data()
 
 
 def load_entities():
-    EveAllianceInfo.objects.all().delete()
-    EveCorporationInfo.objects.all().delete()
-    EveCharacter.objects.all().delete()
-    EveEntity.objects.all().delete()
     for character_info in _entities_data.get("EveCharacter"):
         if character_info.get("alliance_id"):
             try:

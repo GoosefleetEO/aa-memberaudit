@@ -104,7 +104,7 @@ class TestMailData(TestCase):
         load_eveuniverse()
         load_entities()
         cls.character = create_memberaudit_character(1001)
-        cls.user = cls.character.character_ownership.user
+        cls.user = cls.character.eve_character.character_ownership.user
         cls.corporation_2001 = EveEntity.objects.get(id=2001)
         cls.label_1 = create_character_mail_label(character=cls.character)
         cls.label_2 = create_character_mail_label(character=cls.character)
@@ -350,7 +350,7 @@ class TestSkillSetsDetails(TestCase):
         load_eveuniverse()
         load_entities()
         cls.character = create_memberaudit_character(1001)
-        cls.user = cls.character.character_ownership.user
+        cls.user = cls.character.eve_character.character_ownership.user
 
     def test_should_show_details(self):
         # given

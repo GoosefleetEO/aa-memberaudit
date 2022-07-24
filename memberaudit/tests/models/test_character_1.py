@@ -9,6 +9,7 @@ from esi.errors import TokenError
 from esi.models import Token
 from eveuniverse.models import EveEntity, EveMarketPrice, EveSolarSystem, EveType
 
+from allianceauth.eveonline.models import EveCharacter
 from app_utils.testing import NoSocketsTestCase, create_user_from_evecharacter
 
 from ...models import (
@@ -46,22 +47,92 @@ class TestCharacter(NoSocketsTestCase):
         super().setUpClass()
         load_entities()
 
-    def setUp(self) -> None:
-        self.character_1001 = create_memberaudit_character(1001)
-        self.user = self.character_1001.character_ownership.user
+    def test_user_should_return_user_when_not_orphan(self):
+        # given
+        character_1001 = create_memberaudit_character(1001)
+        user = character_1001.eve_character.character_ownership.user
+        # when/then
+        self.assertEqual(character_1001.user, user)
 
-    def test_is_main_1(self):
-        self.assertTrue(self.character_1001.is_main)
+    def test_user_should_be_None_when_orphan(self):
+        # given
+        character = create_character(EveCharacter.objects.get(character_id=1121))
+        # when/then
+        self.assertIsNone(character.user)
 
-    def test_is_main_2(self):
-        character_1101 = add_memberaudit_character_to_user(self.user, 1101)
-        self.assertTrue(self.character_1001.is_main)
+    def test_should_return_main_when_it_exists_1(self):
+        # given
+        character_1001 = create_memberaudit_character(1001)
+        user = character_1001.eve_character.character_ownership.user
+        main_character = user.profile.main_character
+        # when/then
+        self.assertEqual(character_1001.main_character, main_character)
+
+    def test_should_return_main_when_it_exists_2(self):
+        # given
+        character_1001 = create_memberaudit_character(1001)
+        user = character_1001.eve_character.character_ownership.user
+        main_character = user.profile.main_character
+        character_1101 = add_memberaudit_character_to_user(user, 1101)
+        # when/then
+        self.assertEqual(character_1101.main_character, main_character)
+
+    def test_should_return_None_when_user_has_no_main(self):
+        # given
+        character_1001 = create_memberaudit_character(1001)
+        user = character_1001.eve_character.character_ownership.user
+        user.profile.main_character = None
+        user.profile.save()
+        # when/then
+        self.assertIsNone(character_1001.main_character)
+
+    def test_should_be_None_when_orphan(self):
+        # given
+        character = create_character(EveCharacter.objects.get(character_id=1121))
+        # when/then
+        self.assertIsNone(character.main_character)
+
+    def test_should_identify_main(self):
+        # given
+        character_1001 = create_memberaudit_character(1001)
+        # when/then
+        self.assertTrue(character_1001.is_main)
+
+    def test_should_be_true_for_main_only(self):
+        # given
+        character_1001 = create_memberaudit_character(1001)
+        user = character_1001.eve_character.character_ownership.user
+        character_1101 = add_memberaudit_character_to_user(user, 1101)
+        # when/then
+        self.assertTrue(character_1001.is_main)
         self.assertFalse(character_1101.is_main)
 
-    def test_is_main_3(self):
-        self.user.profile.main_character = None
-        self.user.profile.save()
-        self.assertFalse(self.character_1001.is_main)
+    def test_should_be_false_when_no_main(self):
+        # given
+        character_1001 = create_memberaudit_character(1001)
+        user = character_1001.eve_character.character_ownership.user
+        user.profile.main_character = None
+        user.profile.save()
+        # when/then
+        self.assertFalse(character_1001.is_main)
+
+    def test_should_be_false_when_orphan(self):
+        # given
+        character = create_character(EveCharacter.objects.get(character_id=1121))
+        # when/then
+        self.assertFalse(character.is_main)
+
+    def test_should_be_true_when_orphan(self):
+        # given
+        character = create_character(EveCharacter.objects.get(character_id=1121))
+        # when/then
+        self.assertTrue(character.is_orphan)
+
+    def test_should_be_false_when_not_a_orphan(self):
+        # given
+        character = create_memberaudit_character(1001)
+        # when/then
+        self.assertFalse(character.is_orphan)
 
     def test_should_keep_sharing(self):
         # given
@@ -70,13 +141,34 @@ class TestCharacter(NoSocketsTestCase):
             permissions=["memberaudit.basic_access", "memberaudit.share_characters"],
         )
         character = create_character(
-            character_ownership=character_ownership, is_shared=True
+            eve_character=character_ownership.character, is_shared=True
         )
         # when
         character.update_sharing_consistency()
         # then
         character.refresh_from_db()
         self.assertTrue(character.is_shared)
+
+    def test_should_identify_user_of_a_character(self):
+        # given
+        character_1001 = create_memberaudit_character(1001)
+        user = character_1001.eve_character.character_ownership.user
+        # when/then
+        self.assertTrue(character_1001.user_is_owner(user))
+
+    def test_should_identify_not_user_of_a_character(self):
+        # given
+        character_1001 = create_memberaudit_character(1001)
+        user = create_user_from_evecharacter(1002)
+        # when/then
+        self.assertFalse(character_1001.user_is_owner(user))
+
+    def test_should_identify_not_user_of_an_orphan(self):
+        # given
+        character = create_character(EveCharacter.objects.get(character_id=1121))
+        user = create_user_from_evecharacter(1002)
+        # when/then
+        self.assertFalse(character.user_is_owner(user))
 
     def test_should_remove_sharing(self):
         # given
@@ -85,7 +177,7 @@ class TestCharacter(NoSocketsTestCase):
             permissions=["memberaudit.basic_access"],
         )
         character = create_character(
-            character_ownership=character_ownership, is_shared=True
+            eve_character=character_ownership.character, is_shared=True
         )
         # when
         character.update_sharing_consistency()
@@ -103,7 +195,9 @@ class TestCharacterContract(NoSocketsTestCase):
         load_locations()
         cls.character_1001 = create_memberaudit_character(1001)
         cls.character_1002 = create_memberaudit_character(1002)
-        cls.token = cls.character_1001.character_ownership.user.token_set.first()
+        cls.token = (
+            cls.character_1001.eve_character.character_ownership.user.token_set.first()
+        )
         cls.jita = EveSolarSystem.objects.get(id=30000142)
         cls.jita_44 = Location.objects.get(id=60003760)
         cls.amamake = EveSolarSystem.objects.get(id=30002537)
@@ -249,30 +343,45 @@ class TestCharacterFetchToken(TestCase):
         super().setUpClass()
         load_entities()
 
-    def setUp(self) -> None:
-        self.character = create_memberaudit_character(1001)
-
-    def test_defaults(self):
-        token = self.character.fetch_token()
+    def test_should_return_token_with_default_scopes(self):
+        # given
+        character = create_memberaudit_character(1001)
+        # when
+        token = character.fetch_token()
+        # then
         self.assertIsInstance(token, Token)
         self.assertSetEqual(scope_names_set(token), set(Character.get_esi_scopes()))
 
-    def test_specified_scope(self):
-        token = self.character.fetch_token("esi-mail.read_mail.v1")
+    def test_should_return_token_with_specified_scope(self):
+        # given
+        character = create_memberaudit_character(1001)
+        # when
+        token = character.fetch_token("esi-mail.read_mail.v1")
         self.assertIsInstance(token, Token)
         self.assertIn("esi-mail.read_mail.v1", scope_names_set(token))
 
-    @patch(MODELS_PATH + ".character.notify_throttled")
-    def test_should_raise_exception_and_notify_user_if_not_found(
-        self, mock_notify_throttled
-    ):
+    def test_should_raise_exception_with_scope_not_found_for_orphans(self):
+        # given
+        character = create_character(EveCharacter.objects.get(character_id=1121))
         # when
         with self.assertRaises(TokenError):
-            self.character.fetch_token("invalid_scope")
+            character.fetch_token()
+
+    @patch(MODELS_PATH + ".character.notify_throttled")
+    def test_should_raise_exception_and_notify_user_if_scope_not_found(
+        self, mock_notify_throttled
+    ):
+        # given
+        character = create_memberaudit_character(1001)
+        # when
+        with self.assertRaises(TokenError):
+            character.fetch_token("invalid_scope")
         # then
         self.assertTrue(mock_notify_throttled.called)
         _, kwargs = mock_notify_throttled.call_args
-        self.assertEqual(kwargs["user"], self.character.character_ownership.user)
+        self.assertEqual(
+            kwargs["user"], character.eve_character.character_ownership.user
+        )
 
 
 class TestCharacterSkillQueue(NoSocketsTestCase):
@@ -328,7 +437,7 @@ class TestCharacterShip(NoSocketsTestCase):
         load_eveuniverse()
         load_entities()
         cls.character_1001 = create_memberaudit_character(1001)
-        cls.user = cls.character_1001.character_ownership.user
+        cls.user = cls.character_1001.eve_character.character_ownership.user
 
     def test_str(self):
         # given
