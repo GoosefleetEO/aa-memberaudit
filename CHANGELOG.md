@@ -28,6 +28,7 @@ Please follow the these steps to install this update:
 1. Make sure you are on the latest stable version (1.15)
 1. Shut down your AA instance completely: `sudo supervisorctl stop myauth:`
 1. Optional: If you have any additional services that are connected with your AA instance shut them down too.
+1. Clear your cache: `sudo redis-cli flushall;`
 1. Backup your Member Audit tables into a folder of your choice: `sudo mysql alliance_server -u allianceserver -p -N -e 'show tables like "memberaudit\_%"' | sudo xargs mysqldump alliance_server -u allianceserver -p > memberaudit_backup.sql`
 1. Optional: Backup tables of apps dependent on Member Audit if applicable, e.g. Mail Relay, aa-memberaudit-securegroups
 1. Install the alpha release: `pip install aa-memberaudit==1.16.0a1`
@@ -43,6 +44,7 @@ Please follow the these steps to install this update:
 In case your update failed here is how you can restore your previous stable version and data:
 
 1. Shut down your AA instance: `sudo supervisorctl stop myauth:`
+1. Clear your cache: `sudo redis-cli flushall;`
 1. Migrate Member Audit to zero: `python manage.py migrate memberaudit zero --fake`
 1. Delete Member Audit tables by running the `drop_tables.sql` script provided under `memberaudit/tools` e.g. with: `sudo mysql -u allianceserver -p alliance_server < drop_tables.sql`
 1. Re-install the latest stable version: `pip install aa-memberaudit==1.15.0`
