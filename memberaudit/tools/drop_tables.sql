@@ -49,4 +49,6 @@ DROP TABLE IF EXISTS memberaudit_skillset;
 DROP TABLE IF EXISTS memberaudit_skillsetgroup;
 DROP TABLE IF EXISTS memberaudit_skillsetgroup_skill_sets;
 DROP TABLE IF EXISTS memberaudit_skillsetskill;
+DROP TABLE IF EXISTS memberaudit_charactership;
+DROP TABLE IF EXISTS memberaudit_compliancegroupdesignation;
 SET FOREIGN_KEY_CHECKS=1;
