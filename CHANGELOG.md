@@ -58,6 +58,12 @@ In case your update failed here is how you can restore your previous stable vers
 - Make sure historical character data is preserved after user "revokes his API keys"
 - Characters loose their user relation and become "orphans" in AA after their API keys are revoked. These orphans can now be found through the character finder
 
+## [1.15.1] - 2022-08-06
+
+### Added
+
+- Extended API to make upcoming model change transparent for 3rd party apps
+
 ## [1.15.0] - 2022-07-22
 
 ### Added

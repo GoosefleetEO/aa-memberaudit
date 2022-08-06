@@ -16,11 +16,42 @@ class TestCharacterManager(TestCase):
     def setUpClass(cls) -> None:
         super().setUpClass()
         load_entities()
-        cls.character_1001 = create_memberaudit_character(1001)
-        cls.character_1002 = create_memberaudit_character(1002)
 
     def test_should_return_set_of_eve_character_ids(self):
+        # given
+        create_memberaudit_character(1001)
+        create_memberaudit_character(1002)
+        # when/then
         self.assertSetEqual(Character.objects.all().eve_character_ids(), {1001, 1002})
+
+    def test_should_return_characters_owner_by_user_only(self):
+        # given
+        character_1001 = create_memberaudit_character(1001)
+        user = character_1001.character_ownership.user
+        create_memberaudit_character(1002)
+        # when
+        result = Character.objects.owned_by_user(user)
+        # then
+        character_ids = set(
+            result.values_list(
+                "character_ownership__character__character_id", flat=True
+            )
+        )
+        self.assertSetEqual(character_ids, {1001})
+
+    def test_should_return_no_characters(self):
+        # given
+        user = AuthUtils.create_user("dummy")
+        create_memberaudit_character(1001)
+        # when
+        result = Character.objects.owned_by_user(user)
+        # then
+        character_ids = set(
+            result.values_list(
+                "character_ownership__character__character_id", flat=True
+            )
+        )
+        self.assertSetEqual(character_ids, set())
 
 
 class TestCharacterManagerUserHasAccess(TestCase):
