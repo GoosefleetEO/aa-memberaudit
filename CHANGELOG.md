@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
-## [1.16.0a1] - 2022-06-15
+## [2.0.0-ALPHA] - tbd
 
 ### Update notes
 
@@ -57,6 +57,11 @@ In case your update failed here is how you can restore your previous stable vers
 
 - Make sure historical character data is preserved after user "revokes his API keys"
 - Characters loose their user relation and become "orphans" in AA after their API keys are revoked. These orphans can now be found through the character finder
+
+## [1.16.0a1] - 2022-06-15
+
+Due to the breaking changes introduced by this new release for 3rd party apps, we will change the version to 2.0.0.
+2.0.0a1 is the next release and update after 1.16.0.a1, which also includes the changes from 1.15.1.
 
 ## [1.15.1] - 2022-08-06
 

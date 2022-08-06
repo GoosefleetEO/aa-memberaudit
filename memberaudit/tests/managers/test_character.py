@@ -32,11 +32,9 @@ class TestCharacterManager(TestCase):
         # when
         result = Character.objects.owned_by_user(user)
         # then
-        character_ids = set(
-            result.values_list(
-                "character_ownership__character__character_id", flat=True
-            )
-        )
+        character_ids = {
+            obj.character_ownership.character.character_id for obj in result
+        }
         self.assertSetEqual(character_ids, {1001})
 
     def test_should_return_no_characters(self):
@@ -46,11 +44,9 @@ class TestCharacterManager(TestCase):
         # when
         result = Character.objects.owned_by_user(user)
         # then
-        character_ids = set(
-            result.values_list(
-                "character_ownership__character__character_id", flat=True
-            )
-        )
+        character_ids = {
+            obj.character_ownership.character.character_id for obj in result
+        }
         self.assertSetEqual(character_ids, set())
 
 

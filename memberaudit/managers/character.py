@@ -22,7 +22,7 @@ class CharacterQuerySet(models.QuerySet):
 
     def owned_by_user(self, user: User) -> models.QuerySet:
         """Filter character owned by user."""
-        return self.filter(character_ownership__user__pk=user.pk)
+        return self.filter(eve_character__character_ownership__user__pk=user.pk)
 
 
 class CharacterManagerBase(ObjectCacheMixin, models.Manager):
