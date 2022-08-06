@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.15.1] - 2022-08-06
+
+### Added
+
+- Extended API to make upcoming model change transparent for 3rd party apps
+
 ## [1.15.0] - 2022-07-22
 
 ### Added
