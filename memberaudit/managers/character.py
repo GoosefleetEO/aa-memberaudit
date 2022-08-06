@@ -22,6 +22,10 @@ class CharacterQuerySet(models.QuerySet):
             self.values_list("character_ownership__character__character_id", flat=True)
         )
 
+    def owned_by_user(self, user: User) -> models.QuerySet:
+        """Filter character owned by user."""
+        return self.filter(character_ownership__user__pk=user.pk)
+
 
 class CharacterManagerBase(ObjectCacheMixin, models.Manager):
     def unregistered_characters_of_user_count(self, user: User) -> int:

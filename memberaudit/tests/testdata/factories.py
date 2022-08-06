@@ -18,6 +18,7 @@ from ...models import (
     CharacterContractItem,
     CharacterMail,
     CharacterMailLabel,
+    CharacterOnlineStatus,
     CharacterUpdateStatus,
     CharacterWalletJournalEntry,
     ComplianceGroupDesignation,
@@ -185,6 +186,17 @@ def create_mailing_list(**kwargs) -> MailEntity:
     }
     params.update(kwargs)
     return MailEntity.objects.create(**params)
+
+
+def create_online_status(character: Character, **kwargs) -> CharacterOnlineStatus:
+    params = {
+        "character": character,
+        "last_login": now() - dt.timedelta(days=1),
+        "last_logout": now() - dt.timedelta(days=1) + dt.timedelta(hours=4),
+        "logins": 42,
+    }
+    params.update(kwargs)
+    return CharacterOnlineStatus.objects.create(**params)
 
 
 def create_skill_set(**kwargs):
