@@ -63,6 +63,12 @@ In case your update failed here is how you can restore your previous stable vers
 Due to the breaking changes introduced by this new release for 3rd party apps, we will change the version to 2.0.0.
 2.0.0a1 is the next release and update after 1.16.0.a1, which also includes the changes from 1.15.1.
 
+## [1.15.2] - 2022-08-07
+
+### Added
+
+- Backwards compatible test factory for creating Character objects for 3rd party apps
+
 ## [1.15.1] - 2022-08-06
 
 ### Added
