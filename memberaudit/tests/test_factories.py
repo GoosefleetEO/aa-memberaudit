@@ -1,8 +1,8 @@
-from .testdata.factories import create_character_from_user
-from app_utils.testing import NoSocketsTestCase, create_user_from_evecharacter
-from ..models import Character
 from allianceauth.tests.auth_utils import AuthUtils
+from app_utils.testing import NoSocketsTestCase, create_user_from_evecharacter
 
+from ..models import Character
+from .testdata.factories import create_character_from_user
 from .testdata.load_entities import load_entities
 
 
