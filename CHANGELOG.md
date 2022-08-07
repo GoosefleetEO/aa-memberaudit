@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [1.15.2] - 2022-08-07
+
+### Added
+
+- Backwards compatible test factory for creating Character objects for 3rd party apps
+
 ## [1.15.1] - 2022-08-06
 
 ### Added
