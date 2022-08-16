@@ -4,7 +4,11 @@ from django.urls import reverse
 from eveuniverse.models import EveType
 
 from allianceauth.authentication.models import State
-from allianceauth.eveonline.models import EveAllianceInfo, EveCorporationInfo
+from allianceauth.eveonline.models import (
+    EveAllianceInfo,
+    EveCharacter,
+    EveCorporationInfo,
+)
 from allianceauth.tests.auth_utils import AuthUtils
 from app_utils.testing import (
     create_user_from_evecharacter,
@@ -20,6 +24,7 @@ from ...views.reports import (
     user_compliance_report_data,
 )
 from ..testdata.factories import (
+    create_character,
     create_skill_set,
     create_skill_set_group,
     create_skill_set_skill,
@@ -73,7 +78,7 @@ class TestUserComplianceReportTestData(TestCase):
         cls.character_1003 = create_memberaudit_character(1003)
         cls.character_1101 = create_memberaudit_character(1101)
         cls.user_1103 = create_user_from_evecharacter_with_access(1103)[0]
-        cls.user = cls.character_1001.character_ownership.user
+        cls.user = cls.character_1001.eve_character.character_ownership.user
         cls.user = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.reports_access", cls.user
         )
@@ -103,9 +108,9 @@ class TestUserComplianceReportTestData(TestCase):
         self.assertSetEqual(
             set(result.keys()),
             {
-                self.character_1001.character_ownership.user.pk,
-                self.character_1002.character_ownership.user.pk,
-                self.character_1003.character_ownership.user.pk,
+                self.character_1001.eve_character.character_ownership.user.pk,
+                self.character_1002.eve_character.character_ownership.user.pk,
+                self.character_1003.eve_character.character_ownership.user.pk,
                 self.user_1103.pk,
             },
         )
@@ -124,9 +129,9 @@ class TestUserComplianceReportTestData(TestCase):
         self.assertSetEqual(
             set(result.keys()),
             {
-                self.character_1001.character_ownership.user.pk,
-                self.character_1002.character_ownership.user.pk,
-                self.character_1003.character_ownership.user.pk,
+                self.character_1001.eve_character.character_ownership.user.pk,
+                self.character_1002.eve_character.character_ownership.user.pk,
+                self.character_1003.eve_character.character_ownership.user.pk,
                 self.user_1103.pk,
             },
         )
@@ -136,7 +141,7 @@ class TestUserComplianceReportTestData(TestCase):
         self.user = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.view_everything", self.user
         )
-        user = self.character_1002.character_ownership.user
+        user = self.character_1002.eve_character.character_ownership.user
         add_auth_character_to_user(user, 1103)
         group, _ = Group.objects.get_or_create(name="Test Group")
         AuthUtils.add_permissions_to_groups(
@@ -165,22 +170,28 @@ class TestCorporationComplianceReportTestData(TestCase):
             EveCorporationInfo.objects.get(corporation_id=2110)
         )
         cls.character_1001 = create_memberaudit_character(1001)
-        add_auth_character_to_user(cls.character_1001.character_ownership.user, 1107)
+        add_auth_character_to_user(
+            cls.character_1001.eve_character.character_ownership.user, 1107
+        )
         cls.character_1002 = create_memberaudit_character(1002)
         add_memberaudit_character_to_user(
-            cls.character_1002.character_ownership.user, 1104
+            cls.character_1002.eve_character.character_ownership.user, 1104
         )
-        add_auth_character_to_user(cls.character_1002.character_ownership.user, 1105)
-        add_auth_character_to_user(cls.character_1002.character_ownership.user, 1106)
+        add_auth_character_to_user(
+            cls.character_1002.eve_character.character_ownership.user, 1105
+        )
+        add_auth_character_to_user(
+            cls.character_1002.eve_character.character_ownership.user, 1106
+        )
         cls.character_1003 = create_memberaudit_character(1003)
         add_memberaudit_character_to_user(
-            cls.character_1003.character_ownership.user, 1101
+            cls.character_1003.eve_character.character_ownership.user, 1101
         )
         add_memberaudit_character_to_user(
-            cls.character_1003.character_ownership.user, 1102
+            cls.character_1003.eve_character.character_ownership.user, 1102
         )
         cls.user_1103 = create_user_from_evecharacter_with_access(1103)[0]
-        cls.user = cls.character_1001.character_ownership.user
+        cls.user = cls.character_1001.eve_character.character_ownership.user
         cls.user = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.reports_access", cls.user
         )
@@ -244,7 +255,7 @@ class TestSkillSetReportData(TestCase):
 
         # user 1 is manager requesting the report
         cls.character_1001 = create_memberaudit_character(1001)
-        cls.user = cls.character_1001.character_ownership.user
+        cls.user = cls.character_1001.eve_character.character_ownership.user
         cls.user = AuthUtils.add_permission_to_user_by_name(
             "memberaudit.reports_access", cls.user
         )
@@ -255,7 +266,7 @@ class TestSkillSetReportData(TestCase):
         # user 2 is normal user and has two characters
         cls.character_1002 = create_memberaudit_character(1002)
         cls.character_1101 = add_memberaudit_character_to_user(
-            cls.character_1002.character_ownership.user, 1101
+            cls.character_1002.eve_character.character_ownership.user, 1101
         )
         # cls.character_1003 = create_memberaudit_character(1003)
 
@@ -264,6 +275,9 @@ class TestSkillSetReportData(TestCase):
 
         AuthUtils.create_user("John Doe")  # this user should not show up in view
         cls.character_1103 = create_memberaudit_character(1103)
+
+        # orphaned character, i.e. without a user
+        create_character(EveCharacter.objects.get(character_id=1121))
 
     def test_normal(self):
         def make_data_id(doctrine: SkillSetGroup, character: Character) -> str:
@@ -384,7 +398,7 @@ class TestSkillSetReportData(TestCase):
 
     # def test_can_handle_user_without_main(self):
     #     character = create_memberaudit_character(1102)
-    #     user = character.character_ownership.user
+    #     user = character.eve_character.character_ownership.user
     #     user.profile.main_character = None
     #     user.profile.save()
 

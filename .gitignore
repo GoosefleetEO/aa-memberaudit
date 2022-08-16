@@ -6,12 +6,11 @@ __pycache__
 .vscode/
 dist/
 build/
+temp/
 *.egg-info/
-update_coverage.sh
 coverage.xml
 .coverage
 .tox
-announce_release.py
 htmlcov
 structures_notifications_archive/
 starbases_raw*.json
@@ -20,6 +19,5 @@ notifications_raw*.json
 structures_raw*.json
 starbases_raw*.json
 .mypy_cache
-todos.md
 memberaudit_log/
 _build/

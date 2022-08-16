@@ -29,8 +29,8 @@ from ...models import (
 )
 
 
-def create_character(character_ownership, **kwargs) -> Character:
-    params = {"character_ownership": character_ownership}
+def create_character(eve_character, **kwargs) -> Character:
+    params = {"eve_character": eve_character}
     params.update(kwargs)
     return Character.objects.create(**params)
 
@@ -73,7 +73,7 @@ def create_character_mail(
     params.update(kwargs)
     obj = CharacterMail.objects.create(**params)
     if not recipients:
-        character_id = character.character_ownership.character.character_id
+        character_id = character.eve_character.character_id
         recipients = [create_mail_entity_from_eve_entity(id=character_id)]
     obj.recipients.add(*recipients)
     if labels:

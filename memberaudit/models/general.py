@@ -84,7 +84,7 @@ class General(models.Model):
     def compliant_users(cls) -> models.QuerySet:
         """Users which are fully compliant."""
         return cls.users_with_basic_access().exclude(
-            character_ownerships__memberaudit_character__isnull=True
+            character_ownerships__character__memberaudit_character__isnull=True
         )
 
     @classmethod

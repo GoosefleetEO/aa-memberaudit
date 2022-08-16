@@ -7,6 +7,99 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [2.0.0] - 2022-08-16
+
+This release includes a major change to Member Audit's database structure and therefore requires some additional care when updating. Therefore please follow our special update instructions below.
+
+>**Important**:<br>This is a mandatory update. All future releases will be built upon this version.
+
+>**Hint**:<br>Should you run into any issues and need help please give us a shout on the AA Discord (#community-packages).
+
+### Update instructions
+
+Please follow these instructions for updating Member Audit from 1.x. If you are already on 2.0.0 alpha you can ignore these special instructions.
+
+1. Make sure you are on the latest stable version of Member Audit (1.15.2): `pip show aa-memberaudit`
+1. Make sure your current AA installation has no error: `python manage.py check`
+1. Shut down your AA instance completely: `sudo supervisorctl stop myauth:`
+1. Optional: If you have any additional services that are connected with your AA instance (e.g. Discord bots) shut them down too.
+1. Clear your cache: `sudo redis-cli flushall;`
+1. Backup your AA database with your standard procedure (or use the example procedure shown below)
+1. Install the update: `pip install aa-memberaudit==2.0.0`
+1. Verify that the installation went through without any errors or warnings by checking the console output of the last command
+1. Run migrate: `python manage.py migrate`
+1. Verify that the migration went through without any errors or warnings by checking the console output of the last command
+1. Copy static files: `python manage.py collectstatic --noinput`
+1. Check for any errors: `python manage.py check`
+1. When you have no errors: Restart your AA instance: `sudo supervisorctl start myauth:`
+
+### AA database backup
+
+You can do a complete backup of your database by running the following commands:
+
+1. Make sure your services are completely shut down
+1. Dump the whole database to a single file: `sudo mysqldump alliance_server -u allianceserver -p > alliance_server.sql`
+
+### Added
+
+- Characters and their (historical) data remain in the system, even after the related tokens have been revoked by the Character's owner.
+- Characters loose their user relation and become "orphans" in AA after their token have been revoked. These orphans can now be found through the character finder.
+
+## [2.0.0-ALPHA] - 2022-07-24
+
+### Update notes
+
+We are releasing this update as alpha to gather stability feedback and to ensure this update works across all commonly used environments for Alliance Auth.
+
+>**Important**:<br>Please only install this update if you feel comfortable with potentially having to restore your data in case of issues.
+
+This update has been successfully completed on different installations including in production. And just in case something goes wrong we are providing you with a restore procedure that allows you to fully restore your previous version and data.
+
+Should you run into any issues and need help please give us a shout on the AA Discord (#community-packages).
+
+Please kindly give us feedback about the result of your alpha test and what environment you used (e.g. Ubuntu 18.04 with Maria DB 10.5 and Alliance Auth 2.12.1), so we can determine when to release this version as stable.
+
+#### Updating
+
+Please follow the these steps to install this update:
+
+1. Make sure you are on the latest stable version (1.15)
+1. Shut down your AA instance completely: `sudo supervisorctl stop myauth:`
+1. Optional: If you have any additional services that are connected with your AA instance shut them down too.
+1. Clear your cache: `sudo redis-cli flushall;`
+1. Backup your Member Audit tables into a folder of your choice: `sudo mysql alliance_server -u allianceserver -p -N -e 'show tables like "memberaudit\_%"' | sudo xargs mysqldump alliance_server -u allianceserver -p > memberaudit_backup.sql`
+1. Optional: Backup tables of apps dependent on Member Audit if applicable, e.g. Mail Relay, aa-memberaudit-securegroups
+1. Install the alpha release: `pip install aa-memberaudit==1.16.0a1`
+1. Verify that the installation run through without any errors or warnings
+1. Run migrate: `python manage.py migrate`
+1. Verify that the Django migrations went through without showing any errors or warnings
+1. Verify that all migrations for Member Audit have been enabled, including `0012`: `python manage.py showmigrations memberaudit`
+1. Restart your AA instance: `sudo supervisorctl start myauth:`
+1. Open Member Audit and the character finder for a sample character to verify that the data has been migrated correctly.
+
+#### Restore (optional)
+
+In case your update failed here is how you can restore your previous stable version and data:
+
+1. Shut down your AA instance: `sudo supervisorctl stop myauth:`
+1. Clear your cache: `sudo redis-cli flushall;`
+1. Migrate Member Audit to zero: `python manage.py migrate memberaudit zero --fake`
+1. Delete Member Audit tables by running the `drop_tables.sql` script provided under `memberaudit/tools` e.g. with: `sudo mysql -u allianceserver -p alliance_server < drop_tables.sql`
+1. Re-install the latest stable version: `pip install aa-memberaudit==1.15.0`
+1. Run migrate: `python manage.py migrate`
+1. Re-load your data backup for Member Audit: `sudo mysql -u allianceserver -p alliance_server < memberaudit_backup.sql`
+1. Optional: Re-load your data backup for dependant apps OR manually delete tables of dependant apps, migrate them to zero faked then run migrate again to create fresh tables
+1. Restart your AA instance: `sudo supervisorctl start myauth:`
+
+### Changed
+
+(see stable release)
+
+## [1.16.0a1] - 2022-06-15
+
+Due to the breaking changes introduced by this new release for 3rd party apps, we will change the version to 2.0.0.
+2.0.0a1 is the next release and update after 1.16.0.a1, which also includes the changes from 1.15.1.
+
 ## [1.15.2] - 2022-08-07
 
 ### Added

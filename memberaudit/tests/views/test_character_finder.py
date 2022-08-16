@@ -1,16 +1,16 @@
 from django.core.exceptions import PermissionDenied
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
-from eveuniverse.models import EveSolarSystem
 
+from allianceauth.eveonline.models import EveCharacter
 from app_utils.testing import create_user_from_evecharacter, json_response_to_python
 
-from ...models import CharacterLocation, Location
 from ...views.character_finder import (
     CharacterFinderListJson,
     character_finder,
     character_finder_list_fdd_data,
 )
+from ..testdata.factories import create_character
 from ..testdata.load_entities import load_entities
 from ..testdata.load_eveuniverse import load_eveuniverse
 from ..testdata.load_locations import load_locations
@@ -50,14 +50,9 @@ class TestCharacterFinderViews(TestCase):
         # then
         self.assertEqual(response.status_code, 200)
 
-    def test_should_return_all_data_for_character_finder_list(self):
+    def test_should_return_all_existing_characters_for_list(self):
         # given
-        character_1001 = add_memberaudit_character_to_user(self.user, 1001)
-        jita = EveSolarSystem.objects.get(name="Jita")
-        jita_44 = Location.objects.get(id=60003760)
-        CharacterLocation.objects.create(
-            character=character_1001, eve_solar_system=jita, location=jita_44
-        )
+        add_memberaudit_character_to_user(self.user, 1001)
         add_memberaudit_character_to_user(self.user, 1002)
         add_auth_character_to_user(self.user, 1003)
         user_wo_main, _ = create_user_from_evecharacter(
@@ -65,6 +60,8 @@ class TestCharacterFinderViews(TestCase):
         )
         user_wo_main.profile.main_character = None
         user_wo_main.profile.save()
+        # orphaned character, i.e. without a user
+        create_character(EveCharacter.objects.get(character_id=1121))
         request = self.factory.get(reverse("memberaudit:character_finder_data"))
         request.user = self.user
         # when
@@ -72,7 +69,7 @@ class TestCharacterFinderViews(TestCase):
         # then
         self.assertEqual(response.status_code, 200)
         data = json_response_to_python_2(response)
-        self.assertSetEqual({x[12] for x in data}, {1001, 1002, 1003, 1101})
+        self.assertSetEqual({x[12] for x in data}, {1001, 1002, 1003, 1101, 1121})
 
     def test_should_raise_permission_denied(self):
         # given
@@ -126,14 +123,25 @@ class TestCharacterFinderViews(TestCase):
         data = json_response_to_python_2(response)
         self.assertSetEqual({x[12] for x in data}, {1002})
 
+    def test_should_not_include_orphaned_character(self):
+        # given
+        user, _ = create_user_from_evecharacter(
+            1002,
+            permissions=["memberaudit.basic_access", "memberaudit.finder_access"],
+        )
+        create_character(EveCharacter.objects.get(character_id=1121))
+        request = self.factory.get(reverse("memberaudit:character_finder_data"))
+        request.user = user
+        # when
+        response = CharacterFinderListJson.as_view()(request)
+        # then
+        self.assertEqual(response.status_code, 200)
+        data = json_response_to_python_2(response)
+        self.assertSetEqual({x[12] for x in data}, {1002})
+
     def test_should_return_all_data_for_character_finder_dff_list(self):
         # given
-        character_1001 = add_memberaudit_character_to_user(self.user, 1001)
-        jita = EveSolarSystem.objects.get(name="Jita")
-        jita_44 = Location.objects.get(id=60003760)
-        CharacterLocation.objects.create(
-            character=character_1001, eve_solar_system=jita, location=jita_44
-        )
+        add_memberaudit_character_to_user(self.user, 1001)
         add_memberaudit_character_to_user(self.user, 1101)
         add_auth_character_to_user(self.user, 1102)
         user_wo_main, _ = create_user_from_evecharacter(
@@ -141,6 +149,8 @@ class TestCharacterFinderViews(TestCase):
         )
         user_wo_main.profile.main_character = None
         user_wo_main.profile.save()
+        # orphaned character, i.e. without a user
+        create_character(EveCharacter.objects.get(character_id=1121))
         request = self.factory.get(
             reverse("memberaudit:character_finder_list_fdd_data")
             + "?columns=alliance_name,corporation_name,main_alliance_name,main_corporation_name,main_str,unregistered_str,state_name"
@@ -152,14 +162,20 @@ class TestCharacterFinderViews(TestCase):
         self.assertEqual(response.status_code, 200)
         data = json_response_to_python(response)
         self.assertListEqual(
-            data["alliance_name"], ["Lex Global Inc.", "Wayne Enterprises"]
+            data["alliance_name"], ["Hydra", "Lex Global Inc.", "Wayne Enterprises"]
         )
         self.assertListEqual(
             data["corporation_name"],
-            ["Harley Quinn inc.", "Lexcorp", "Suicide Squad", "Wayne Technologies"],
+            [
+                "Harley Quinn inc.",
+                "Lexcorp",
+                "Operations",
+                "Suicide Squad",
+                "Wayne Technologies",
+            ],
         )
         self.assertListEqual(data["main_alliance_name"], ["Wayne Enterprises"])
         self.assertListEqual(data["main_corporation_name"], ["Wayne Technologies"])
         self.assertListEqual(data["main_str"], ["Bruce Wayne"])
         self.assertListEqual(data["unregistered_str"], ["no", "yes"])
-        self.assertListEqual(data["state_name"], ["Guest"])
+        self.assertListEqual(data["state_name"], ["-", "Guest"])

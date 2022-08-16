@@ -151,16 +151,16 @@ class TestGeneralUserHasAccess(NoSocketsTestCase):
         load_eveuniverse()
         load_entities()
         character_1002 = create_memberaudit_character(1002)
-        cls.user_1002 = character_1002.character_ownership.user
+        cls.user_1002 = character_1002.eve_character.character_ownership.user
         character_1003 = create_memberaudit_character(1003)
-        cls.user_1003 = character_1003.character_ownership.user
+        cls.user_1003 = character_1003.eve_character.character_ownership.user
         character_1101 = create_memberaudit_character(1101)
-        cls.user_1101 = character_1101.character_ownership.user
+        cls.user_1101 = character_1101.eve_character.character_ownership.user
         cls.user_dummy = AuthUtils.create_user("No-access-to-Member-Audit")
 
     def setUp(self) -> None:
         character_1001 = create_memberaudit_character(1001)
-        self.user_1001 = character_1001.character_ownership.user
+        self.user_1001 = character_1001.eve_character.character_ownership.user
 
     def test_should_see_own_user_only(self):
         # when

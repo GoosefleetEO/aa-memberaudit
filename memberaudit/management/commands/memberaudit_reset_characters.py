@@ -95,7 +95,7 @@ class Command(BaseCommand):
 
             self.stdout.write(f"Recreating {len(character_ownerships)} characters ...")
             for character_ownership in character_ownerships:
-                Character.objects.create(character_ownership=character_ownership)
+                Character.objects.create(eve_character=character_ownership.character)
 
             if options["reload"]:
                 update_all_characters.delay()

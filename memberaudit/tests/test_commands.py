@@ -39,7 +39,11 @@ class TestResetCharacters(NoSocketsTestCase):
         call_command("memberaudit_reset_characters", "--noinput", stdout=out)
 
         self.assertSetEqual(
-            set(Character.objects.values_list("character_ownership_id", flat=True)),
+            set(
+                Character.objects.values_list(
+                    "eve_character__character_ownership__id", flat=True
+                )
+            ),
             {co_1001.id, co_1002.id},
         )
 
@@ -62,7 +66,11 @@ class TestResetCharacters(NoSocketsTestCase):
         call_command("memberaudit_reset_characters", "--noinput", stdout=out)
 
         self.assertSetEqual(
-            set(Character.objects.values_list("character_ownership_id", flat=True)),
+            set(
+                Character.objects.values_list(
+                    "eve_character__character_ownership__id", flat=True
+                )
+            ),
             {co_1001.id, co_1101.id},
         )
 

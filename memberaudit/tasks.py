@@ -103,7 +103,10 @@ def update_all_characters(force_update: bool = False) -> None:
         stats = CharacterUpdateStatus.objects.statistics()
         logger.info(f"Update statistics: {stats}")
 
-    for character_pk in Character.objects.values_list("pk", flat=True):
+    characters_with_owners = Character.objects.filter(
+        eve_character__character_ownership__isnull=False
+    ).values_list("pk", flat=True)
+    for character_pk in characters_with_owners:
         update_character.apply_async(
             kwargs={"character_pk": character_pk, "force_update": force_update},
             priority=DEFAULT_TASK_PRIORITY,
@@ -128,6 +131,9 @@ def update_character(self, character_pk: int, force_update: bool = False) -> boo
     character = Character.objects.get_cached(
         pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
     )
+    if character.is_orphan:
+        logger.info("%s: Skipping update for orphaned character", character)
+        return False
     all_sections = set(Character.UpdateSection.values)
     needs_update = force_update
     for section in all_sections:

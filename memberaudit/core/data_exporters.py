@@ -221,14 +221,13 @@ class ContractExporter(DataExporter):
             "issuer_corporation",
             "issuer",
             "start_location",
-            "character__character_ownership__character",
+            "character",
         ).order_by("date_issued")
 
     def format_obj(self, obj: models.Model) -> dict:
-        character = obj.character.character_ownership.character
         return {
-            "owner character": character.character_name,
-            "owner corporation": character.corporation_name,
+            "owner character": obj.character.eve_character.character_name,
+            "owner corporation": obj.character.eve_character.corporation_name,
             "contract pk": obj.pk,
             "contract id": obj.contract_id,
             "contract_type": obj.get_contract_type_display(),
@@ -286,19 +285,16 @@ class WalletJournalExporter(DataExporter):
 
     def get_queryset(self) -> models.QuerySet:
         return CharacterWalletJournalEntry.objects.select_related(
-            "first_party",
-            "second_party",
-            "character__character_ownership__character",
+            "first_party", "second_party", "character"
         ).order_by("date")
 
     def format_obj(self, obj: models.Model) -> dict:
         if not obj:
             return dict()
-        character = obj.character.character_ownership.character
         return {
             "date": obj.date.strftime("%Y-%m-%d %H:%M:%S"),
-            "owner character": character.character_name,
-            "owner corporation": character.corporation_name,
+            "owner character": obj.character.eve_character.character_name,
+            "owner corporation": obj.character.eve_character.corporation_name,
             "entry id": obj.entry_id,
             "ref type": obj.ref_type.replace("_", " ").title(),
             "first party": _name_or_default(obj.first_party),

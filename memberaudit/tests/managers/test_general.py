@@ -511,7 +511,9 @@ class TestLocationManager(NoSocketsTestCase):
         cls.corporation_2001 = EveEntity.objects.get(id=2001)
         cls.corporation_2002 = EveEntity.objects.get(id=2002)
         cls.character = create_memberaudit_character(1001)
-        cls.token = cls.character.character_ownership.user.token_set.first()
+        cls.token = (
+            cls.character.eve_character.character_ownership.user.token_set.first()
+        )
 
     # Structures
 
@@ -808,7 +810,9 @@ class TestLocationManagerAsync(TestCase):
         cls.corporation_2001 = EveEntity.objects.get(id=2001)
         cls.corporation_2002 = EveEntity.objects.get(id=2002)
         cls.character = create_memberaudit_character(1001)
-        cls.token = cls.character.character_ownership.user.token_set.first()
+        cls.token = (
+            cls.character.eve_character.character_ownership.user.token_set.first()
+        )
 
     def setUp(self) -> None:
         cache.clear()

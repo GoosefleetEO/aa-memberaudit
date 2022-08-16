@@ -18,19 +18,17 @@ logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
 class CharacterQuerySet(models.QuerySet):
     def eve_character_ids(self) -> set:
-        return set(
-            self.values_list("character_ownership__character__character_id", flat=True)
-        )
+        return set(self.values_list("eve_character__character_id", flat=True))
 
     def owned_by_user(self, user: User) -> models.QuerySet:
         """Filter character owned by user."""
-        return self.filter(character_ownership__user__pk=user.pk)
+        return self.filter(eve_character__character_ownership__user__pk=user.pk)
 
 
 class CharacterManagerBase(ObjectCacheMixin, models.Manager):
     def unregistered_characters_of_user_count(self, user: User) -> int:
         return CharacterOwnership.objects.filter(
-            user=user, memberaudit_character__isnull=True
+            user=user, character__memberaudit_character__isnull=True
         ).count()
 
     def user_has_access(self, user: User) -> models.QuerySet:
@@ -41,14 +39,14 @@ class CharacterManagerBase(ObjectCacheMixin, models.Manager):
             "memberaudit.characters_access"
         ):
             return self.all()
-        qs = self.filter(character_ownership__user=user)
+        qs = self.filter(eve_character__character_ownership__user=user)
         if (
             user.has_perm("memberaudit.characters_access")
             and user.has_perm("memberaudit.view_same_alliance")
             and user.profile.main_character.alliance_id
         ):
             qs |= self.filter(
-                character_ownership__user__profile__main_character__alliance_id=(
+                eve_character__character_ownership__user__profile__main_character__alliance_id=(
                     user.profile.main_character.alliance_id
                 )
             )
@@ -56,7 +54,7 @@ class CharacterManagerBase(ObjectCacheMixin, models.Manager):
             "memberaudit.view_same_corporation"
         ):
             qs |= self.filter(
-                character_ownership__user__profile__main_character__corporation_id=(
+                eve_character__character_ownership__user__profile__main_character__corporation_id=(
                     user.profile.main_character.corporation_id
                 )
             )
@@ -69,7 +67,8 @@ class CharacterManagerBase(ObjectCacheMixin, models.Manager):
             )
             viewable_users = users_with_permission(permission_to_share_characters)
             qs |= self.filter(
-                is_shared=True, character_ownership__user__in=viewable_users
+                is_shared=True,
+                eve_character__character_ownership__user__in=viewable_users,
             )
         return qs
 
@@ -237,7 +236,7 @@ class CharacterUpdateStatusManager(models.Manager):
         return {
             "app_totals": {
                 "users_count": User.objects.filter(
-                    character_ownerships__memberaudit_character__isnull=False
+                    character_ownerships__character__memberaudit_character__isnull=False
                 )
                 .distinct()
                 .count(),
