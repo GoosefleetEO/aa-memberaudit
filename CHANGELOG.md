@@ -7,7 +7,45 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
-## [2.0.0-ALPHA] - tbd
+## [2.0.0] - 2022-08-16
+
+This release includes a major change to Member Audit's database structure and therefore requires some additional care when updating. Therefore please follow our special update instructions below.
+
+>**Important**:<br>This is a mandatory update. All future releases will be built upon this version.
+
+>**Hint**:<br>Should you run into any issues and need help please give us a shout on the AA Discord (#community-packages).
+
+### Update instructions
+
+Please follow these instructions for updating Member Audit from 1.x. If you are already on 2.0.0 alpha you can ignore these special instructions.
+
+1. Make sure you are on the latest stable version of Member Audit (1.15.2): `pip show aa-memberaudit`
+1. Make sure your current AA installation has no error: `python manage.py check`
+1. Shut down your AA instance completely: `sudo supervisorctl stop myauth:`
+1. Optional: If you have any additional services that are connected with your AA instance (e.g. Discord bots) shut them down too.
+1. Clear your cache: `sudo redis-cli flushall;`
+1. Backup your AA database with your standard procedure (or use the example procedure shown below)
+1. Install the update: `pip install aa-memberaudit==2.0.0`
+1. Verify that the installation went through without any errors or warnings by checking the console output of the last command
+1. Run migrate: `python manage.py migrate`
+1. Verify that the migration went through without any errors or warnings by checking the console output of the last command
+1. Copy static files: `python manage.py collectstatic --noinput`
+1. Check for any errors: `python manage.py check`
+1. When you have no errors: Restart your AA instance: `sudo supervisorctl start myauth:`
+
+### AA database backup
+
+You can do a complete backup of your database by running the following commands:
+
+1. Make sure your services are completely shut down
+1. Dump the whole database to a single file: `sudo mysqldump alliance_server -u allianceserver -p > alliance_server.sql`
+
+### Added
+
+- Characters and their (historical) data remain in the system, even after the related tokens have been revoked by the Character's owner.
+- Characters loose their user relation and become "orphans" in AA after their token have been revoked. These orphans can now be found through the character finder.
+
+## [2.0.0-ALPHA] - 2022-07-24
 
 ### Update notes
 
@@ -55,8 +93,7 @@ In case your update failed here is how you can restore your previous stable vers
 
 ### Changed
 
-- Make sure historical character data is preserved after user "revokes his API keys"
-- Characters loose their user relation and become "orphans" in AA after their API keys are revoked. These orphans can now be found through the character finder
+(see stable release)
 
 ## [1.16.0a1] - 2022-06-15
 
