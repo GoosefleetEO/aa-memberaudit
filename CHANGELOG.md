@@ -38,7 +38,7 @@ Please follow these instructions for updating Member Audit from 1.x. If you are 
 You can do a complete backup of your database by running the following commands:
 
 1. Make sure your services are completely shut down
-1. Dump the whole database to a single file: `sudo mysqldump alliance_server -u allianceserver -p > alliance_server.sql`
+1. Dump the whole database to a single file: `sudo mysqldump alliance_auth -u allianceserver -p > alliance_auth.sql`
 
 ### Added
 
