@@ -425,7 +425,7 @@ class TestEftItem(NoSocketsTestCase):
         # given
         item = _EftItem(item_type=EveType.objects.get(name="High-grade Snake Alpha"))
         # when/then
-        self.assertTrue(item.is_cyberimplant())
+        self.assertTrue(item.is_cyber_implant())
 
     def test_should_be_drone(self):
         # given
