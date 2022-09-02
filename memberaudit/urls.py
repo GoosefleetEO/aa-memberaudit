@@ -197,4 +197,9 @@ urlpatterns = [
         admin.admin_create_skillset_from_fitting,
         name="admin_create_skillset_from_fitting",
     ),
+    path(
+        "admin/create-skill-set-from-skill-plan",
+        admin.admin_create_skillset_from_skill_plan,
+        name="admin_create_skillset_from_skill_plan",
+    ),
 ]

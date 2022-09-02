@@ -5,7 +5,7 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from ...models import SkillSet
-from ...views.admin import admin_create_skillset_from_fitting
+from ...views import admin
 from ..testdata.factories import (
     create_fitting_text,
     create_skill_set,
@@ -36,7 +36,7 @@ class TestCreateSkillSetFromFitting(TestCase):
         )
         request.user = self.superuser
         # when
-        response = admin_create_skillset_from_fitting(request)
+        response = admin.admin_create_skillset_from_fitting(request)
         # then
         self.assertEqual(response.status_code, 200)
 
@@ -48,7 +48,7 @@ class TestCreateSkillSetFromFitting(TestCase):
         )
         request.user = self.superuser
         # when
-        response = admin_create_skillset_from_fitting(request)
+        response = admin.admin_create_skillset_from_fitting(request)
         # then
         self.assertEqual(response.status_code, 302)
         self.assertTrue(mock_tasks.update_characters_skill_checks.delay.called)
@@ -64,7 +64,7 @@ class TestCreateSkillSetFromFitting(TestCase):
         )
         request.user = self.superuser
         # when
-        response = admin_create_skillset_from_fitting(request)
+        response = admin.admin_create_skillset_from_fitting(request)
         # then
         self.assertEqual(response.status_code, 302)
         self.assertTrue(mock_messages.warning.called)
@@ -81,7 +81,7 @@ class TestCreateSkillSetFromFitting(TestCase):
         )
         request.user = self.superuser
         # when
-        response = admin_create_skillset_from_fitting(request)
+        response = admin.admin_create_skillset_from_fitting(request)
         # then
         self.assertEqual(response.status_code, 302)
         self.assertTrue(mock_tasks.update_characters_skill_checks.delay.called)
@@ -103,7 +103,7 @@ class TestCreateSkillSetFromFitting(TestCase):
         )
         request.user = self.superuser
         # when
-        response = admin_create_skillset_from_fitting(request)
+        response = admin.admin_create_skillset_from_fitting(request)
         # then
         self.assertEqual(response.status_code, 302)
         self.assertTrue(mock_messages.info.called)
@@ -122,10 +122,40 @@ class TestCreateSkillSetFromFitting(TestCase):
         )
         request.user = self.superuser
         # when
-        response = admin_create_skillset_from_fitting(request)
+        response = admin.admin_create_skillset_from_fitting(request)
         # then
         self.assertEqual(response.status_code, 302)
         self.assertTrue(mock_tasks.update_characters_skill_checks.delay.called)
         self.assertTrue(mock_messages.info.called)
         skill_set = SkillSet.objects.last()
         self.assertEqual(skill_set.name, "My-Name")
+
+
+@patch(MODULE_PATH + ".messages", spec=True)
+@patch(MODULE_PATH + ".tasks", spec=True)
+class TestCreateSkillSetFromSkillPlan(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.factory = RequestFactory()
+        load_eveuniverse()
+        load_entities()
+        cls.superuser = User.objects.create_superuser("Superman")
+        cls.skill_plan_text = """
+        Caldari Core Systems 5
+        Caldari Strategic Cruiser 3
+        """
+
+    def test_should_open_page(self, mock_tasks, mock_messages):
+        # given
+        request = self.factory.get(
+            reverse("memberaudit:admin_create_skillset_from_skill_plan")
+        )
+        request.user = self.superuser
+        # when
+        response = admin.admin_create_skillset_from_skill_plan(request)
+        # then
+        self.assertEqual(response.status_code, 200)
+
+    # TODO: Test additional features
+    # TODO: Add tests for SkillSet.objects.update_or_create_from_skill_plan

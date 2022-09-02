@@ -22,6 +22,7 @@ from ..app_settings import (
 )
 from ..constants import DATETIME_FORMAT, EveCategoryId, EveTypeId
 from ..core.fittings import Fitting
+from ..core.skill_plans import SkillPlan
 from ..helpers import filter_groups_available_to_user
 from ..providers import esi
 
@@ -471,6 +472,7 @@ class SkillSetManager(models.Manager):
         skill_set_group=None,
         skill_set_name=None,
     ) -> Tuple[models.Model, bool]:
+        """Update or create a skill set from a fitting."""
         from ..models import SkillSetSkill
 
         required_skills = fitting.required_skills()
@@ -502,6 +504,35 @@ class SkillSetManager(models.Manager):
             if skill_set_group:
                 skill_set_group.skill_sets.add(skill_set)
 
+        return skill_set, created
+
+    def update_or_create_from_skill_plan(
+        self, skill_plan: SkillPlan, user: User = None, skill_set_group=None
+    ) -> Tuple[models.Model, bool]:
+        """Update or create a skill set from a fitting."""
+        from ..models import SkillSetSkill
+
+        description = (
+            f"Generated from skill plan '{skill_plan.name}' "
+            f"by {user if user else '?'} "
+            f"at {now().strftime(DATETIME_FORMAT)}"
+        )
+        with transaction.atomic():
+            skill_set, created = self.get_or_create(
+                name=skill_plan.name, defaults={"description": description}
+            )
+            skill_set.skills.all().delete()
+            skills = [
+                SkillSetSkill(
+                    skill_set=skill_set,
+                    eve_type=skill.eve_type,
+                    required_level=skill.level,
+                )
+                for skill in skill_plan.skills
+            ]
+            SkillSetSkill.objects.bulk_create(skills)
+            if skill_set_group:
+                skill_set_group.skill_sets.add(skill_set)
         return skill_set, created
 
     def compile_groups_map(self) -> dict:

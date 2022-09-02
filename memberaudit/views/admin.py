@@ -10,7 +10,8 @@ from app_utils.logging import LoggerAddTag
 from .. import __title__, tasks
 from ..core.eft_parser import EftParserError
 from ..core.fittings import Fitting
-from ..forms import ImportFittingForm
+from ..core.skill_plans import SkillPlan, SkillPlanError
+from ..forms import ImportFittingForm, ImportSkillPlanForm
 from ..models import SkillSet
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
@@ -78,6 +79,67 @@ def admin_create_skillset_from_fitting(request):
         {
             "title": "Member Audit",
             "subtitle": "Create skill set from fitting",
+            "form": form,
+        },
+    )
+
+
+@login_required
+@staff_member_required
+def admin_create_skillset_from_skill_plan(request):
+    if request.method == "POST":
+        form = ImportSkillPlanForm(request.POST)
+        if form.is_valid():
+            try:
+                skill_plan, errors = SkillPlan.create_from_plain_text(
+                    name=form.cleaned_data["skill_set_name"],
+                    text=form.cleaned_data["skill_plan_text"],
+                )
+            except SkillPlanError:
+                messages.warning(
+                    request, "The posted text does not appear to be a valid skill plan."
+                )
+            else:
+                if (
+                    not form.cleaned_data["can_overwrite"]
+                    and SkillSet.objects.filter(name=skill_plan.name).exists()
+                ):
+                    messages.warning(
+                        request,
+                        format_html(
+                            "A skill set with the name "
+                            f"<b>{skill_plan.name}</b> already exists."
+                        ),
+                    )
+                else:
+                    params = {"skill_plan": skill_plan, "user": request.user}
+                    if form.cleaned_data["skill_set_group"]:
+                        params["skill_set_group"] = form.cleaned_data["skill_set_group"]
+                    obj, created = SkillSet.objects.update_or_create_from_skill_plan(
+                        **params
+                    )
+                    logger.info(
+                        "%s: Skill Set created from skill plan", skill_plan.name
+                    )
+                    tasks.update_characters_skill_checks.delay(force_update=True)
+                    if created:
+                        msg = f"Skill Set <b>{obj.name}</b> has been created"
+                    else:
+                        msg = f"Skill Set <b>{obj.name}</b> has been updated"
+                    if errors:
+                        msg += f" with issues:<br>- {'<br>- '.join(errors)}"
+                        messages.warning(request, format_html(msg))
+                    else:
+                        messages.info(request, format_html(f"{msg}."))
+            return redirect("admin:memberaudit_skillset_changelist")
+    else:
+        form = ImportSkillPlanForm()
+    return render(
+        request,
+        "admin/memberaudit/skillset/import_fitting.html",
+        {
+            "title": "Member Audit",
+            "subtitle": "Create skill set from skill plan",
             "form": form,
         },
     )
