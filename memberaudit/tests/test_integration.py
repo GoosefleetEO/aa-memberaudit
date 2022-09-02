@@ -8,7 +8,6 @@ from django_webtest import WebTest
 from eveuniverse.models import EveEntity, EveType
 
 from allianceauth.tests.auth_utils import AuthUtils
-from app_utils.esi import EsiStatus
 
 from ..models import (
     CharacterAsset,
@@ -34,7 +33,7 @@ MODELS_PATH = "memberaudit.models"
 TASKS_PATH = "memberaudit.tasks"
 
 
-@patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
+@patch(TASKS_PATH + ".retry_task_if_esi_is_down", lambda x: None)
 class TestUILauncher(WebTest):
     @classmethod
     def setUpClass(cls):

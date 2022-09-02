@@ -14,7 +14,7 @@ from eveuniverse.models import EveEntity, EveMarketPrice
 from allianceauth.notifications import notify
 from allianceauth.services.hooks import get_extension_logger
 from allianceauth.services.tasks import QueueOnce
-from app_utils.esi import EsiErrorLimitExceeded, EsiOffline, fetch_esi_status
+from app_utils.esi import EsiErrorLimitExceeded, EsiOffline, retry_task_if_esi_is_down
 from app_utils.logging import LoggerAddTag
 
 from . import __title__, helpers
@@ -66,39 +66,22 @@ TASK_ESI_KWARGS = {
 }
 
 
-def _retry_if_esi_is_down(self):
-    """Retries the task if ESI is not online or not within the error threshold"""
-    try:
-        fetch_esi_status().raise_for_status()
-    except EsiOffline as ex:
-        countdown = (10 + int(random.uniform(1, 10))) * 60
-        logger.warning(
-            "ESI appears to be offline. Trying again in %d minutes.", countdown
-        )
-        raise self.retry(countdown=countdown) from ex
-    except EsiErrorLimitExceeded as ex:
-        logger.warning(
-            "ESI error limit threshold reached. Trying again in %s seconds", ex.retry_in
-        )
-        raise self.retry(countdown=ex.retry_in) from ex
+@shared_task(**TASK_DEFAULT_KWARGS)
+def run_regular_updates() -> None:
+    """Main task to be run on a regular basis to keep everything updated and running"""
+    update_market_prices.apply_async(priority=DEFAULT_TASK_PRIORITY)
+    update_all_characters.apply_async(priority=DEFAULT_TASK_PRIORITY)
+    update_compliance_groups_for_all.apply_async(priority=DEFAULT_TASK_PRIORITY)
 
 
 @shared_task(**{**TASK_DEFAULT_KWARGS, **{"bind": True}})
-def run_regular_updates(self) -> None:
-    """Main task to be run on a regular basis to keep everyting updated and running"""
-    _retry_if_esi_is_down(self)
-    update_market_prices.apply_async(priority=DEFAULT_TASK_PRIORITY)
-    update_all_characters.apply_async(priority=DEFAULT_TASK_PRIORITY)
-    update_compliancegroups_for_all.apply_async(priority=DEFAULT_TASK_PRIORITY)
-
-
-@shared_task(**TASK_DEFAULT_KWARGS)
-def update_all_characters(force_update: bool = False) -> None:
+def update_all_characters(self, force_update: bool = False) -> None:
     """Start the update of all registered characters
 
     Args:
     - force_update: When set to True will always update regardless of stale status
     """
+    retry_task_if_esi_is_down(self)
     if MEMBERAUDIT_LOG_UPDATE_STATS:
         stats = CharacterUpdateStatus.objects.statistics()
         logger.info(f"Update statistics: {stats}")
@@ -270,7 +253,7 @@ def update_character_section(
     **kwargs,
 ) -> None:
     """Task that updates the section of a character"""
-    _retry_if_esi_is_down(self)
+    retry_task_if_esi_is_down(self)
     character = Character.objects.get_cached(
         pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
     )
@@ -294,8 +277,8 @@ def update_character_section(
 def _character_update_with_error_logging(
     self, character: Character, section: str, method: object, *args, **kwargs
 ):
-    """Allows catching and logging of any exceptions occuring
-    during an character update
+    """Facilitate catching and logging of exceptions potentially occurring
+    during a character update.
     """
     try:
         return method(*args, **kwargs)
@@ -388,7 +371,7 @@ def assets_build_list_from_esi(
     self, character_pk: int, force_update: bool = False
 ) -> dict:
     """Building asset list"""
-    _retry_if_esi_is_down(self)
+    retry_task_if_esi_is_down(self)
     character = Character.objects.get_cached(
         pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
     )
@@ -620,7 +603,7 @@ def update_character_mails(
 def update_character_mailing_lists(
     self, character_pk: int, force_update: bool = False
 ) -> None:
-    _retry_if_esi_is_down(self)
+    retry_task_if_esi_is_down(self)
     character = Character.objects.get_cached(
         pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
     )
@@ -637,7 +620,7 @@ def update_character_mailing_lists(
 def update_character_mail_labels(
     self, character_pk: int, force_update: bool = False
 ) -> None:
-    _retry_if_esi_is_down(self)
+    retry_task_if_esi_is_down(self)
     character = Character.objects.get_cached(
         pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
     )
@@ -654,7 +637,7 @@ def update_character_mail_labels(
 def update_character_mail_headers(
     self, character_pk: int, force_update: bool = False
 ) -> None:
-    _retry_if_esi_is_down(self)
+    retry_task_if_esi_is_down(self)
     character = Character.objects.get_cached(
         pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
     )
@@ -670,7 +653,7 @@ def update_character_mail_headers(
 @shared_task(**TASK_ESI_KWARGS)
 def update_mail_body_esi(self, character_pk: int, mail_pk: int):
     """Task for updating the body of a mail from ESI"""
-    _retry_if_esi_is_down(self)
+    retry_task_if_esi_is_down(self)
     character = Character.objects.get_cached(
         pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
     )
@@ -693,7 +676,7 @@ def update_character_mail_bodies(self, character_pk: int) -> None:
     mails_without_body_count = mails_without_body_qs.count()
 
     if mails_without_body_count > 0:
-        logger.info("%s: Loading %s mailbodies", character, mails_without_body_count)
+        logger.info("%s: Loading %s mail bodies", character, mails_without_body_count)
         for mail in mails_without_body_qs:
             update_mail_body_esi.apply_async(
                 kwargs={"character_pk": character.pk, "mail_pk": mail.pk},
@@ -736,7 +719,7 @@ def update_character_contacts(
 def update_character_contact_labels(
     self, character_pk: int, force_update: bool = False
 ) -> None:
-    _retry_if_esi_is_down(self)
+    retry_task_if_esi_is_down(self)
     character = Character.objects.get_cached(
         pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
     )
@@ -753,7 +736,7 @@ def update_character_contact_labels(
 def update_character_contacts_2(
     self, character_pk: int, force_update: bool = False
 ) -> None:
-    _retry_if_esi_is_down(self)
+    retry_task_if_esi_is_down(self)
     character = Character.objects.get_cached(
         pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
     )
@@ -799,7 +782,7 @@ def update_character_contracts(
 def update_character_contract_headers(
     self, character_pk: int, force_update: bool = False
 ) -> bool:
-    _retry_if_esi_is_down(self)
+    retry_task_if_esi_is_down(self)
     character = Character.objects.get_cached(
         pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
     )
@@ -844,7 +827,7 @@ def update_character_contracts_items(character_pk: int):
 @shared_task(**TASK_ESI_KWARGS)
 def update_contract_items_esi(self, character_pk: int, contract_pk: int):
     """Task for updating the items of a contract from ESI"""
-    _retry_if_esi_is_down(self)
+    retry_task_if_esi_is_down(self)
     character = Character.objects.get_cached(
         pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
     )
@@ -881,7 +864,7 @@ def update_character_contracts_bids(character_pk: int):
 @shared_task(**TASK_ESI_KWARGS)
 def update_contract_bids_esi(self, character_pk: int, contract_pk: int):
     """Task for updating the bids of a contract from ESI"""
-    _retry_if_esi_is_down(self)
+    retry_task_if_esi_is_down(self)
     character = Character.objects.get_cached(
         pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
     )
@@ -915,7 +898,7 @@ def update_character_wallet_journal(
 
 @shared_task(**TASK_ESI_KWARGS)
 def update_character_wallet_journal_entries(self, character_pk: int) -> None:
-    _retry_if_esi_is_down(self)
+    retry_task_if_esi_is_down(self)
     character = Character.objects.get_cached(
         pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
     )
@@ -933,7 +916,7 @@ def update_character_wallet_journal_entries(self, character_pk: int) -> None:
 @shared_task(**TASK_ESI_KWARGS)
 def update_market_prices(self):
     """Update market prices from ESI"""
-    _retry_if_esi_is_down(self)
+    retry_task_if_esi_is_down(self)
     EveMarketPrice.objects.update_from_esi(
         minutes_until_stale=MEMBERAUDIT_UPDATE_STALE_RING_2
     )
@@ -1093,18 +1076,18 @@ def _export_data_inform_user(user_pk: int, topic: str = None):
 
 
 @shared_task(**TASK_DEFAULT_KWARGS)
-def update_compliancegroups_for_all():
-    """Update compliancegroups for all users."""
+def update_compliance_groups_for_all():
+    """Update compliance groups for all users."""
     if ComplianceGroupDesignation.objects.exists():
         for user in User.objects.all():
-            update_compliancegroups_for_user.apply_async(
+            update_compliance_groups_for_user.apply_async(
                 kwargs={"user_pk": user.pk}, priority=DEFAULT_TASK_PRIORITY
             )
 
 
 @shared_task(**TASK_DEFAULT_KWARGS)
-def update_compliancegroups_for_user(user_pk: int):
-    """Update compliancegroups for user."""
+def update_compliance_groups_for_user(user_pk: int):
+    """Update compliance groups for user."""
     user = User.objects.get(pk=user_pk)
     ComplianceGroupDesignation.objects.update_user(user)
 

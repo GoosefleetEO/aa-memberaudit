@@ -109,7 +109,7 @@ def add_character(request, token) -> HttpResponse:
         ),
     )
     if ComplianceGroupDesignation.objects.exists():
-        tasks.update_compliancegroups_for_user.delay(request.user.pk)
+        tasks.update_compliance_groups_for_user.delay(request.user.pk)
     return redirect("memberaudit:launcher")
 
 
@@ -132,7 +132,7 @@ def remove_character(request, character_pk: int) -> HttpResponse:
             ),
         )
         if ComplianceGroupDesignation.objects.exists():
-            tasks.update_compliancegroups_for_user.delay(request.user.pk)
+            tasks.update_compliance_groups_for_user.delay(request.user.pk)
     else:
         return HttpResponseForbidden(
             f"No permission to remove Character with pk {character_pk}"
