@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [2.0.1] - 2022-09-02
+
+>**Important**:<br>In case you have not updated to Member Audit 2.x yet, please follow the special update instructions for updating to 2.0.0 first, before installing this patch!
+
+### Changed
+
+- Improved retry regime when ESI is down
+
 ## [2.0.0] - 2022-08-16
 
 This release includes a major change to Member Audit's database structure and therefore requires some additional care when updating. Therefore please follow our special update instructions below.

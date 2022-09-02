@@ -97,7 +97,7 @@ class TestAddCharacter(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("memberaudit:launcher"))
         self.assertTrue(mock_tasks.update_character.delay.called)
-        self.assertTrue(mock_tasks.update_compliancegroups_for_user.delay.called)
+        self.assertTrue(mock_tasks.update_compliance_groups_for_user.delay.called)
         self.assertTrue(mock_messages.success.called)
         self.assertTrue(
             Character.objects.filter(eve_character__character_id=1001).exists()
@@ -132,7 +132,7 @@ class TestRemoveCharacter(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("memberaudit:launcher"))
         self.assertFalse(Character.objects.filter(pk=character.pk).exists())
-        self.assertTrue(mock_tasks.update_compliancegroups_for_user.delay.called)
+        self.assertTrue(mock_tasks.update_compliance_groups_for_user.delay.called)
         self.assertTrue(mock_messages.success.called)
 
     def test_should_not_remove_character_from_another_user(
@@ -146,7 +146,7 @@ class TestRemoveCharacter(TestCase):
         # then
         self.assertEqual(response.status_code, 403)
         self.assertTrue(Character.objects.filter(pk=character_1001.pk).exists())
-        self.assertFalse(mock_tasks.update_compliancegroups_for_user.delay.called)
+        self.assertFalse(mock_tasks.update_compliance_groups_for_user.delay.called)
         self.assertFalse(mock_messages.success.called)
 
     def test_should_respond_with_not_found_for_invalid_characters(
@@ -161,7 +161,7 @@ class TestRemoveCharacter(TestCase):
         # then
         self.assertEqual(response.status_code, 404)
         self.assertTrue(Character.objects.filter(pk=character.pk).exists())
-        self.assertFalse(mock_tasks.update_compliancegroups_for_user.delay.called)
+        self.assertFalse(mock_tasks.update_compliance_groups_for_user.delay.called)
         self.assertFalse(mock_messages.success.called)
 
 

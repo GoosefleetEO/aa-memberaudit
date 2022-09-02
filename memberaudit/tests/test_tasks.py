@@ -27,7 +27,7 @@ from ..tasks import (
     update_character_mails,
     update_character_wallet_journal,
     update_characters_skill_checks,
-    update_compliancegroups_for_user,
+    update_compliance_groups_for_user,
     update_mail_entity_esi,
     update_market_prices,
     update_structure_esi,
@@ -43,56 +43,25 @@ MANAGERS_PATH = "memberaudit.managers"
 TASKS_PATH = "memberaudit.tasks"
 
 
-@patch(TASKS_PATH + ".update_compliancegroups_for_all")
+@patch(TASKS_PATH + ".update_compliance_groups_for_all")
 @patch(TASKS_PATH + ".update_all_characters")
 @patch(TASKS_PATH + ".update_market_prices")
 class TestRegularUpdates(TestCase):
-    @patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
     def test_should_run_update_normally(
         self,
         mock_update_market_prices,
         mock_update_all_characters,
-        mock_update_compliancegroups_for_all,
+        mock_update_compliance_groups_for_all,
     ):
         # when
         run_regular_updates()
         # then
         self.assertTrue(mock_update_market_prices.apply_async.called)
         self.assertTrue(mock_update_all_characters.apply_async.called)
-        self.assertTrue(mock_update_compliancegroups_for_all.apply_async.called)
-
-    @patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(False, 99, 60))
-    def test_should_retry_if_esi_is_down(
-        self,
-        mock_update_market_prices,
-        mock_update_all_characters,
-        mock_update_compliancegroups_for_all,
-    ):
-        # when
-        with self.assertRaises(CeleryRetry):
-            run_regular_updates()
-        # then
-        self.assertFalse(mock_update_market_prices.apply_async.called)
-        self.assertFalse(mock_update_all_characters.apply_async.called)
-        self.assertFalse(mock_update_compliancegroups_for_all.apply_async.called)
-
-    @patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 1, 60))
-    def test_should_retry_if_esi_error_threshold_exceeded(
-        self,
-        mock_update_market_prices,
-        mock_update_all_characters,
-        mock_update_compliancegroups_for_all,
-    ):
-        # when
-        with self.assertRaises(CeleryRetry):
-            run_regular_updates()
-        # then
-        self.assertFalse(mock_update_market_prices.apply_async.called)
-        self.assertFalse(mock_update_all_characters.apply_async.called)
-        self.assertFalse(mock_update_compliancegroups_for_all.apply_async.called)
+        self.assertTrue(mock_update_compliance_groups_for_all.apply_async.called)
 
 
-@patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
+@patch(TASKS_PATH + ".retry_task_if_esi_is_down", lambda x: None)
 class TestOtherTasks(TestCase):
     @patch(TASKS_PATH + ".EveMarketPrice.objects.update_from_esi")
     def test_update_market_prices(self, mock_update_from_esi):
@@ -101,7 +70,7 @@ class TestOtherTasks(TestCase):
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True)  # need to ignore exceptions
-@patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
+@patch(TASKS_PATH + ".retry_task_if_esi_is_down", lambda x: None)
 @patch(MODELS_PATH + ".character.esi")
 class TestUpdateCharacterAssets(TestCase):
     @classmethod
@@ -388,7 +357,7 @@ class TestUpdateCharacterAssets(TestCase):
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
-@patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
+@patch(TASKS_PATH + ".retry_task_if_esi_is_down", lambda x: None)
 @patch(MANAGERS_PATH + ".general.fetch_esi_status", lambda: EsiStatus(True, 99, 60))
 @patch(MODELS_PATH + ".character.esi")
 class TestUpdateCharacterMails(TestCase):
@@ -435,7 +404,7 @@ class TestUpdateCharacterMails(TestCase):
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
-@patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
+@patch(TASKS_PATH + ".retry_task_if_esi_is_down", lambda x: None)
 @patch(MANAGERS_PATH + ".general.fetch_esi_status", lambda: EsiStatus(True, 99, 60))
 @patch(MODELS_PATH + ".character.esi")
 class TestUpdateCharacterContacts(TestCase):
@@ -482,7 +451,7 @@ class TestUpdateCharacterContacts(TestCase):
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
-@patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
+@patch(TASKS_PATH + ".retry_task_if_esi_is_down", lambda x: None)
 @patch(MANAGERS_PATH + ".general.fetch_esi_status", lambda: EsiStatus(True, 99, 60))
 @patch(MODELS_PATH + ".character.esi")
 class TestUpdateCharacterContracts(TestCase):
@@ -530,7 +499,7 @@ class TestUpdateCharacterContracts(TestCase):
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
-@patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
+@patch(TASKS_PATH + ".retry_task_if_esi_is_down", lambda x: None)
 @patch(MANAGERS_PATH + ".general.fetch_esi_status", lambda: EsiStatus(True, 99, 60))
 @patch(MODELS_PATH + ".character.esi")
 class TestUpdateCharacterWalletJournal(TestCase):
@@ -577,7 +546,7 @@ class TestUpdateCharacterWalletJournal(TestCase):
 
 
 @patch(MODELS_PATH + ".character.MEMBERAUDIT_DATA_RETENTION_LIMIT", None)
-@patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
+@patch(TASKS_PATH + ".retry_task_if_esi_is_down", lambda x: None)
 @patch(MANAGERS_PATH + ".general.fetch_esi_status", lambda: EsiStatus(True, 99, 60))
 @patch(MODELS_PATH + ".character.esi")
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
@@ -698,7 +667,7 @@ class TestUpdateCharacter(TestCase):
     TASKS_PATH + ".Character.objects.get_cached",
     lambda pk, timeout: Character.objects.get(pk=pk),
 )
-@patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
+@patch(TASKS_PATH + ".retry_task_if_esi_is_down", lambda x: None)
 @patch(MANAGERS_PATH + ".general.fetch_esi_status", lambda: EsiStatus(True, 99, 60))
 @patch(TASKS_PATH + ".MEMBERAUDIT_LOG_UPDATE_STATS", False)
 @patch(MODELS_PATH + ".character.MEMBERAUDIT_DATA_RETENTION_LIMIT", None)
@@ -712,17 +681,17 @@ class TestUpdateAllCharacters(TestCase):
         load_entities()
         load_locations()
 
-    def setUp(self) -> None:
-        self.character_1001 = create_memberaudit_character(1001)
-
     def test_normal(self, mock_esi):
+        # given
         mock_esi.client = esi_client_stub
-
+        character_1001 = create_memberaudit_character(1001)
+        # when
         update_all_characters()
-        self.assertTrue(self.character_1001.is_update_status_ok())
+        # then
+        self.assertTrue(character_1001.is_update_status_ok())
 
 
-@patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
+@patch(TASKS_PATH + ".retry_task_if_esi_is_down", lambda x: None)
 @patch(MANAGERS_PATH + ".general.fetch_esi_status", lambda: EsiStatus(True, 99, 60))
 @patch(TASKS_PATH + ".Location.objects.structure_update_or_create_esi")
 class TestUpdateStructureEsi(TestCase):
@@ -765,7 +734,6 @@ class TestUpdateStructureEsi(TestCase):
             update_structure_esi(id=1000000000001, token_pk=self.token.pk)
 
 
-@patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
 @patch(MANAGERS_PATH + ".general.fetch_esi_status", lambda: EsiStatus(True, 99, 60))
 @patch(TASKS_PATH + ".MailEntity.objects.update_or_create_esi")
 class TestUpdateMailEntityEsi(TestCase):
@@ -792,7 +760,7 @@ class TestUpdateMailEntityEsi(TestCase):
             update_mail_entity_esi(1001)
 
 
-@patch(TASKS_PATH + ".fetch_esi_status", lambda: EsiStatus(True, 99, 60))
+@patch(TASKS_PATH + ".retry_task_if_esi_is_down", lambda x: None)
 @patch(MANAGERS_PATH + ".general.fetch_esi_status", lambda: EsiStatus(True, 99, 60))
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class TestUpdateCharactersDoctrines(TestCase):
@@ -872,6 +840,6 @@ class TestUpdateComplianceGroupDesignations(TestCase):
             scopes=Character.get_esi_scopes(),
         )
         # when
-        update_compliancegroups_for_user(user.pk)
+        update_compliance_groups_for_user(user.pk)
         # then
         self.assertTrue(mock_update_user.called)
