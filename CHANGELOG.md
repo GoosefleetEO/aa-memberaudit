@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Ability to create skill sets from imported skill plans
 
+### Changed
+
+- Error handling more user friendly when importing EFT fitting
+
 ## [2.0.1] - 2022-09-02
 
 >**Important**:<br>In case you have not updated to Member Audit 2.x yet, please follow the special update instructions for updating to 2.0.0 first, before installing this patch!

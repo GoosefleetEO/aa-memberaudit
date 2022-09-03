@@ -9,9 +9,6 @@ from allianceauth.services.hooks import get_extension_logger
 from app_utils.logging import LoggerAddTag
 
 from .. import __title__, tasks
-from ..core.eft_parser import EftParserError
-from ..core.fittings import Fitting
-from ..core.skill_plans import SkillPlan, SkillPlanError
 from ..forms import ImportFittingForm, ImportSkillPlanForm
 from ..models import SkillSet
 
@@ -24,53 +21,44 @@ def admin_create_skillset_from_fitting(request):
     if request.method == "POST":
         form = ImportFittingForm(request.POST)
         if form.is_valid():
-            try:
-                fitting, errors = Fitting.create_from_eft(
-                    form.cleaned_data["fitting_text"]
-                )
-            except EftParserError:
+            fitting = form.cleaned_data["_fitting"]
+            skill_set_name = (
+                form.cleaned_data["skill_set_name"]
+                if form.cleaned_data["skill_set_name"]
+                else fitting.name
+            )
+            if (
+                not form.cleaned_data["can_overwrite"]
+                and SkillSet.objects.filter(name=skill_set_name).exists()
+            ):
                 messages.warning(
-                    request, "The fitting does not appear to be a valid EFT format."
+                    request,
+                    format_html(
+                        "A skill set with the name "
+                        f"<b>{fitting.name}</b> already exists."
+                    ),
                 )
             else:
-                skill_set_name = (
-                    form.cleaned_data["skill_set_name"]
-                    if form.cleaned_data["skill_set_name"]
-                    else fitting.name
+                params = {"fitting": fitting, "user": request.user}
+                if form.cleaned_data["skill_set_group"]:
+                    params["skill_set_group"] = form.cleaned_data["skill_set_group"]
+                if form.cleaned_data["skill_set_name"]:
+                    params["skill_set_name"] = form.cleaned_data["skill_set_name"]
+                obj, created = SkillSet.objects.update_or_create_from_fitting(**params)
+                logger.info(
+                    "Skill Set created from fitting with name: %s", fitting.name
                 )
-                if (
-                    not form.cleaned_data["can_overwrite"]
-                    and SkillSet.objects.filter(name=skill_set_name).exists()
-                ):
-                    messages.warning(
-                        request,
-                        format_html(
-                            "A skill set with the name "
-                            f"<b>{fitting.name}</b> already exists."
-                        ),
-                    )
+                tasks.update_characters_skill_checks.delay(force_update=True)
+                if created:
+                    msg = f"Skill Set <b>{obj.name}</b> has been created"
                 else:
-                    params = {"fitting": fitting, "user": request.user}
-                    if form.cleaned_data["skill_set_group"]:
-                        params["skill_set_group"] = form.cleaned_data["skill_set_group"]
-                    if form.cleaned_data["skill_set_name"]:
-                        params["skill_set_name"] = form.cleaned_data["skill_set_name"]
-                    obj, created = SkillSet.objects.update_or_create_from_fitting(
-                        **params
-                    )
-                    logger.info(
-                        "Skill Set created from fitting with name: %s", fitting.name
-                    )
-                    tasks.update_characters_skill_checks.delay(force_update=True)
-                    if created:
-                        msg = f"Skill Set <b>{obj.name}</b> has been created"
-                    else:
-                        msg = f"Skill Set <b>{obj.name}</b> has been updated"
-                    if errors:
-                        msg += f" with issues:<br>- {'<br>- '.join(errors)}"
-                        messages.warning(request, format_html(msg))
-                    else:
-                        messages.info(request, format_html(f"{msg}."))
+                    msg = f"Skill Set <b>{obj.name}</b> has been updated"
+                if form.cleaned_data["_errors"]:
+                    errors = form.cleaned_data["_errors"]
+                    msg += f" with issues:<br>- {'<br>- '.join(errors)}"
+                    messages.warning(request, format_html(msg))
+                else:
+                    messages.info(request, format_html(f"{msg}."))
             return redirect("admin:memberaudit_skillset_changelist")
     else:
         form = ImportFittingForm()
@@ -92,47 +80,23 @@ def admin_create_skillset_from_skill_plan(request):
     if request.method == "POST":
         form = ImportSkillPlanForm(request.POST)
         if form.is_valid():
-            try:
-                skill_plan, errors = SkillPlan.create_from_plain_text(
-                    name=form.cleaned_data["skill_set_name"],
-                    text=form.cleaned_data["skill_plan_text"],
-                )
-            except SkillPlanError:
-                messages.warning(
-                    request, "The posted text does not appear to be a valid skill plan."
-                )
+            skill_plan = form.cleaned_data["_skill_plan"]
+            params = {"skill_plan": skill_plan, "user": request.user}
+            if form.cleaned_data["skill_set_group"]:
+                params["skill_set_group"] = form.cleaned_data["skill_set_group"]
+            obj, created = SkillSet.objects.update_or_create_from_skill_plan(**params)
+            logger.info("%s: Skill Set created from skill plan", skill_plan.name)
+            tasks.update_characters_skill_checks.delay(force_update=True)
+            if created:
+                msg = f"Skill Set <b>{obj.name}</b> has been created"
             else:
-                if (
-                    not form.cleaned_data["can_overwrite"]
-                    and SkillSet.objects.filter(name=skill_plan.name).exists()
-                ):
-                    messages.warning(
-                        request,
-                        format_html(
-                            "A skill set with the name "
-                            f"<b>{skill_plan.name}</b> already exists."
-                        ),
-                    )
-                else:
-                    params = {"skill_plan": skill_plan, "user": request.user}
-                    if form.cleaned_data["skill_set_group"]:
-                        params["skill_set_group"] = form.cleaned_data["skill_set_group"]
-                    obj, created = SkillSet.objects.update_or_create_from_skill_plan(
-                        **params
-                    )
-                    logger.info(
-                        "%s: Skill Set created from skill plan", skill_plan.name
-                    )
-                    tasks.update_characters_skill_checks.delay(force_update=True)
-                    if created:
-                        msg = f"Skill Set <b>{obj.name}</b> has been created"
-                    else:
-                        msg = f"Skill Set <b>{obj.name}</b> has been updated"
-                    if errors:
-                        msg += f" with issues:<br>- {'<br>- '.join(errors)}"
-                        messages.warning(request, format_html(msg))
-                    else:
-                        messages.info(request, format_html(f"{msg}."))
+                msg = f"Skill Set <b>{obj.name}</b> has been updated"
+            if form.cleaned_data["_errors"]:
+                errors = form.cleaned_data["_errors"]
+                msg += f" with issues:<br>- {'<br>- '.join(errors)}"
+                messages.warning(request, format_html(msg))
+            else:
+                messages.info(request, format_html(f"{msg}."))
             return redirect("admin:memberaudit_skillset_changelist")
     else:
         form = ImportSkillPlanForm()
