@@ -78,8 +78,7 @@ def admin_create_skillset_from_fitting(request):
         request,
         "admin/memberaudit/skillset/import_skills.html",
         {
-            "title": "Member Audit",
-            "subtitle": "Create skill set from fitting",
+            "title": "Create skill set from fitting",
             "form": form,
             "cl": {"opts": SkillSet._meta},
             "site_header": site_header,
@@ -141,8 +140,7 @@ def admin_create_skillset_from_skill_plan(request):
         request,
         "admin/memberaudit/skillset/import_skills.html",
         {
-            "title": "Member Audit",
-            "subtitle": "Create skill set from skill plan",
+            "title": "Create skill set from skill plan",
             "form": form,
             "cl": {"opts": SkillSet._meta},
             "site_header": site_header,
