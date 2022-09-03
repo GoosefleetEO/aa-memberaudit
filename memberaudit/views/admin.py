@@ -75,7 +75,7 @@ def admin_create_skillset_from_fitting(request):
         form = ImportFittingForm()
     return render(
         request,
-        "admin/memberaudit/skillset/import_fitting.html",
+        "admin/memberaudit/skillset/import_skills.html",
         {
             "title": "Member Audit",
             "subtitle": "Create skill set from fitting",
@@ -136,7 +136,7 @@ def admin_create_skillset_from_skill_plan(request):
         form = ImportSkillPlanForm()
     return render(
         request,
-        "admin/memberaudit/skillset/import_fitting.html",
+        "admin/memberaudit/skillset/import_skills.html",
         {
             "title": "Member Audit",
             "subtitle": "Create skill set from skill plan",

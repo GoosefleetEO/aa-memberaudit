@@ -157,5 +157,86 @@ class TestCreateSkillSetFromSkillPlan(TestCase):
         # then
         self.assertEqual(response.status_code, 200)
 
-    # TODO: Test additional features
-    # TODO: Add tests for SkillSet.objects.update_or_create_from_skill_plan
+    def test_should_create_new_skillset(self, mock_tasks, mock_messages):
+        # given
+        request = self.factory.post(
+            reverse("memberaudit:admin_create_skillset_from_skill_plan"),
+            data={
+                "skill_set_name": "My Skill Set",
+                "skill_plan_text": self.skill_plan_text,
+            },
+        )
+        request.user = self.superuser
+        # when
+        response = admin.admin_create_skillset_from_skill_plan(request)
+        # then
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(mock_tasks.update_characters_skill_checks.delay.called)
+        self.assertTrue(mock_messages.info.called)
+        self.assertEqual(SkillSet.objects.count(), 1)
+
+    def test_should_not_overwrite_existing_skillset(self, mock_tasks, mock_messages):
+        # given
+        skill_set = create_skill_set(name="My Skill Set")
+        request = self.factory.post(
+            reverse("memberaudit:admin_create_skillset_from_skill_plan"),
+            data={
+                "skill_set_name": "My Skill Set",
+                "skill_plan_text": self.skill_plan_text,
+            },
+        )
+        request.user = self.superuser
+        # when
+        response = admin.admin_create_skillset_from_skill_plan(request)
+        # then
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(mock_messages.warning.called)
+        self.assertFalse(mock_tasks.update_characters_skill_checks.delay.called)
+        skill_set.refresh_from_db()
+        self.assertEqual(skill_set.skills.count(), 0)
+
+    def test_should_overwrite_existing_skillset_when_requested(
+        self, mock_tasks, mock_messages
+    ):
+        # given
+        skill_set = create_skill_set(name="My Skill Set")
+        request = self.factory.post(
+            reverse("memberaudit:admin_create_skillset_from_skill_plan"),
+            data={
+                "skill_set_name": "My Skill Set",
+                "skill_plan_text": self.skill_plan_text,
+                "can_overwrite": True,
+            },
+        )
+        request.user = self.superuser
+        # when
+        response = admin.admin_create_skillset_from_skill_plan(request)
+        # then
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(mock_tasks.update_characters_skill_checks.delay.called)
+        self.assertTrue(mock_messages.warning.info)
+        skill_set.refresh_from_db()
+        self.assertGreater(skill_set.skills.count(), 0)
+
+    def test_should_create_new_skillset_and_assign_group(
+        self, mock_tasks, mock_messages
+    ):
+        # given
+        skill_set_group = create_skill_set_group()
+        request = self.factory.post(
+            reverse("memberaudit:admin_create_skillset_from_skill_plan"),
+            data={
+                "skill_set_name": "My Skill Set",
+                "skill_plan_text": self.skill_plan_text,
+                "skill_set_group": skill_set_group.id,
+            },
+        )
+        request.user = self.superuser
+        # when
+        response = admin.admin_create_skillset_from_skill_plan(request)
+        # then
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(mock_messages.info.called)
+        self.assertTrue(mock_tasks.update_characters_skill_checks.delay.called)
+        skill_set = SkillSet.objects.first()
+        self.assertIn(skill_set, skill_set_group.skill_sets.all())

@@ -19,11 +19,19 @@ from app_utils.testing import (
     create_user_from_evecharacter,
 )
 
-from ...models import ComplianceGroupDesignation, Location, MailEntity, SkillSet
+from memberaudit.models import (
+    ComplianceGroupDesignation,
+    Location,
+    MailEntity,
+    SkillSet,
+)
+
 from ..testdata.esi_client_stub import esi_client_stub
 from ..testdata.factories import (
     create_compliance_group,
     create_fitting,
+    create_skill,
+    create_skill_plan,
     create_skill_set_group,
 )
 from ..testdata.load_entities import load_entities
@@ -850,7 +858,7 @@ class TestSkillSetManager(NoSocketsTestCase):
         load_entities()
         cls.fitting = create_fitting(name="My fitting")
 
-    def test_should_create_new_skill_set(self):
+    def test_should_create_new_skill_set_from_fitting(self):
         # when
         skill_set, created = SkillSet.objects.update_or_create_from_fitting(
             fitting=self.fitting
@@ -875,12 +883,61 @@ class TestSkillSetManager(NoSocketsTestCase):
             },
         )
 
-    def test_should_create_new_skill_set_and_assign_to_group(self):
+    def test_should_create_new_skill_set_from_fitting_and_assign_to_group(self):
         # given
         skill_set_group = create_skill_set_group()
         # when
         skill_set, created = SkillSet.objects.update_or_create_from_fitting(
             fitting=self.fitting, skill_set_group=skill_set_group
+        )
+        # then
+        self.assertTrue(created)
+        self.assertIn(skill_set, skill_set_group.skill_sets.all())
+
+    def test_should_create_new_skill_set_from_skill_plan(self):
+        # given
+        skills = [
+            create_skill(
+                eve_type=EveType.objects.get(name="Small Autocannon Specialization"),
+                level=1,
+            ),
+            create_skill(
+                eve_type=EveType.objects.get(name="Light Drone Operation"),
+                level=5,
+            ),
+        ]
+        skill_plan = create_skill_plan(name="My skill plan", skills=skills)
+        # when
+        skill_set, created = SkillSet.objects.update_or_create_from_skill_plan(
+            skill_plan=skill_plan
+        )
+        # then
+        self.assertTrue(created)
+        self.assertEqual(skill_set.name, "My skill plan")
+        skills_str = {skill.required_skill_str for skill in skill_set.skills.all()}
+        self.assertSetEqual(
+            skills_str,
+            {"Small Autocannon Specialization I", "Light Drone Operation V"},
+        )
+
+    def test_should_create_new_skill_set_from_skill_plan_and_assign_to_group(self):
+        # given
+        # given
+        skills = [
+            create_skill(
+                eve_type=EveType.objects.get(name="Small Autocannon Specialization"),
+                level=1,
+            ),
+            create_skill(
+                eve_type=EveType.objects.get(name="Light Drone Operation"),
+                level=5,
+            ),
+        ]
+        skill_plan = create_skill_plan(name="My skill plan", skills=skills)
+        skill_set_group = create_skill_set_group()
+        # when
+        skill_set, created = SkillSet.objects.update_or_create_from_skill_plan(
+            skill_plan=skill_plan, skill_set_group=skill_set_group
         )
         # then
         self.assertTrue(created)
