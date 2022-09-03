@@ -46,7 +46,7 @@ def compress_skills(skills: List["Skill"]) -> List["Skill"]:
     skills_map = defaultdict(list)
     for skill in skills:
         skills_map[skill.eve_type.id].append(skill)
-    return [max(same_skils) for _, same_skils in skills_map.items()]
+    return [max(same_skills) for _, same_skills in skills_map.items()]
 
 
 def required_skills_from_eve_types(

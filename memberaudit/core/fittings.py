@@ -169,7 +169,7 @@ class Fitting:
         """Create new object from fitting in EFT format.
         Also returns list of non fatal issues (if any).
 
-        Raises ``EftParserError` when a fatal error occured.
+        Raises ``EftParserError` when a fatal error occurred.
         """
         from .eft_parser import create_fitting_from_eft
 

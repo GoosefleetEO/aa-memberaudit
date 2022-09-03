@@ -1,5 +1,6 @@
 """Factories for creating test objects with defaults."""
 import datetime as dt
+import random
 from itertools import count
 from pathlib import Path
 from typing import Iterable
@@ -11,8 +12,11 @@ from eveuniverse.models import EveType
 from allianceauth.authentication.models import State
 from app_utils.testing import create_authgroup
 
-from ...core.fittings import Fitting, Item, Module
-from ...models import (
+from memberaudit.constants import EveCategoryId
+from memberaudit.core.fittings import Fitting, Item, Module
+from memberaudit.core.skill_plans import SkillPlan
+from memberaudit.core.skills import Skill
+from memberaudit.models import (
     Character,
     CharacterContract,
     CharacterContractItem,
@@ -188,6 +192,31 @@ def create_fitting_text(file_name: str) -> str:
     fitting_file = testdata_folder / file_name
     with fitting_file.open("r") as fp:
         return fp.read()
+
+
+def create_skill(**kwargs) -> Skill:
+    params = {}
+    if "eve_type" not in kwargs:
+        params["eve_type"] = (
+            EveType.objects.filter(
+                eve_group__eve_category_id=EveCategoryId.SKILL, published=True
+            )
+            .order_by("?")
+            .first()
+        )
+    if "level" not in kwargs:
+        params["level"] = random.randint(1, 5)
+    params.update(kwargs)
+    return Skill(**params)
+
+
+def create_skill_plan(**kwargs) -> SkillPlan:
+    my_id = next_number("skill_plan_id")
+    params = {"name": f"Test Skill Plan {my_id}"}
+    if "skills" not in kwargs:
+        params["skills"] = [create_skill() for _ in range(random.randint(1, 5))]
+    params.update(kwargs)
+    return SkillPlan(**params)
 
 
 def create_mail_entity_from_eve_entity(id: int) -> MailEntity:

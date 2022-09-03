@@ -43,14 +43,14 @@ def export_topic_to_archive(topic: str, destination_folder: str = None) -> str:
     Returns:
     - Path of created zip file or empty string if none was created
 
-    Shell ouput is suppressed unless in DEBUG mode.
+    Shell output is suppressed unless in DEBUG mode.
     """
     exporter = DataExporter.create_exporter(topic)
     if not exporter.has_data():
         return ""
     logger.info("Exporting %s with %s objects", exporter, f"{exporter.count():,}")
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        csv_file = exporter.write_to_file(tmpdirname)
+    with tempfile.TemporaryDirectory() as temp_dirname:
+        csv_file = exporter.write_to_file(temp_dirname)
         destination = (
             Path(destination_folder) if destination_folder else default_destination()
         )
@@ -65,8 +65,8 @@ def file_to_zip(source_file: Path, destination: Path) -> Path:
     zip_file = (destination / source_file.name).with_suffix(".zip")
     with zipfile.ZipFile(
         file=zip_file, mode="w", compression=zipfile.ZIP_DEFLATED
-    ) as myzip:
-        myzip.write(filename=source_file, arcname=source_file.name)
+    ) as my_zip:
+        my_zip.write(filename=source_file, arcname=source_file.name)
     logger.info("Created export file: %s", zip_file)
     return zip_file
 

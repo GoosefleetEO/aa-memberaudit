@@ -1,5 +1,5 @@
 import datetime as dt
-from typing import Iterable, Tuple
+from typing import Iterable, List, Tuple
 
 from bravado.exception import HTTPForbidden, HTTPUnauthorized
 
@@ -22,6 +22,8 @@ from ..app_settings import (
 )
 from ..constants import DATETIME_FORMAT, EveCategoryId, EveTypeId
 from ..core.fittings import Fitting
+from ..core.skill_plans import SkillPlan
+from ..core.skills import Skill
 from ..helpers import filter_groups_available_to_user
 from ..providers import esi
 
@@ -471,37 +473,64 @@ class SkillSetManager(models.Manager):
         skill_set_group=None,
         skill_set_name=None,
     ) -> Tuple[models.Model, bool]:
+        """Update or create a skill set from a fitting."""
+        if not skill_set_name:
+            skill_set_name = fitting.name
+        return self.update_or_create_from_skills(
+            name=skill_set_name,
+            skills=fitting.required_skills(),
+            source=f"EFT fitting '{fitting.name}'",
+            user=user,
+            skill_set_group=skill_set_group,
+            ship_type=fitting.ship_type,
+        )
+
+    def update_or_create_from_skill_plan(
+        self, skill_plan: SkillPlan, user: User = None, skill_set_group=None
+    ) -> Tuple[models.Model, bool]:
+        """Update or create a skill set from a fitting."""
+
+        return self.update_or_create_from_skills(
+            name=skill_plan.name,
+            skills=skill_plan.skills,
+            source="imported skill plan",
+            user=user,
+            skill_set_group=skill_set_group,
+        )
+
+    def update_or_create_from_skills(
+        self,
+        name: str,
+        skills: List[Skill],
+        source: str,
+        user: User = None,
+        skill_set_group=None,
+        ship_type: EveType = None,
+    ) -> Tuple[models.Model, bool]:
+        """Update or create a skill set from skills."""
         from ..models import SkillSetSkill
 
-        required_skills = fitting.required_skills()
         description = (
-            f"Generated from EFT fitting '{fitting.name}' "
+            f"Generated from {source} "
             f"by {user if user else '?'} "
             f"at {now().strftime(DATETIME_FORMAT)}"
         )
-        if not skill_set_name:
-            skill_set_name = fitting.name
         with transaction.atomic():
-            skill_set, created = self.get_or_create(
-                name=str(skill_set_name),
-                defaults={
-                    "ship_type": fitting.ship_type,
-                    "description": description,
-                },
+            skill_set, created = self.update_or_create(
+                name=name, defaults={"description": description, "ship_type": ship_type}
             )
             skill_set.skills.all().delete()
-            skills = [
+            skill_set_skills = [
                 SkillSetSkill(
                     skill_set=skill_set,
                     eve_type=skill.eve_type,
                     required_level=skill.level,
                 )
-                for skill in required_skills
+                for skill in skills
             ]
-            SkillSetSkill.objects.bulk_create(skills)
+            SkillSetSkill.objects.bulk_create(skill_set_skills)
             if skill_set_group:
                 skill_set_group.skill_sets.add(skill_set)
-
         return skill_set, created
 
     def compile_groups_map(self) -> dict:

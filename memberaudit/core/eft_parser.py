@@ -247,7 +247,7 @@ class _EftItem:
             return False
         return self._item_group_id() == EveGroupId.BOOSTER
 
-    def is_cyberimplant(self) -> bool:
+    def is_cyber_implant(self) -> bool:
         if self.is_empty:
             return False
         return self._item_group_id() == EveGroupId.CYBERIMPLANT
@@ -375,7 +375,7 @@ class _EftSection:
         if self.is_slots:
             if any([item.is_booster() for item in self.items]):
                 return self.Category.BOOSTERS
-            if any([item.is_cyberimplant() for item in self.items]):
+            if any([item.is_cyber_implant() for item in self.items]):
                 return self.Category.IMPLANTS
             if any([item.is_low_slot() for item in self.items]):
                 return self.Category.LOW_SLOTS
