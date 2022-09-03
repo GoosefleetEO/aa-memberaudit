@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.html import format_html
 
+from allianceauth import NAME as site_header
 from allianceauth.services.hooks import get_extension_logger
 from app_utils.logging import LoggerAddTag
 
@@ -80,6 +81,8 @@ def admin_create_skillset_from_fitting(request):
             "title": "Member Audit",
             "subtitle": "Create skill set from fitting",
             "form": form,
+            "cl": {"opts": SkillSet._meta},
+            "site_header": site_header,
         },
     )
 
@@ -141,5 +144,7 @@ def admin_create_skillset_from_skill_plan(request):
             "title": "Member Audit",
             "subtitle": "Create skill set from skill plan",
             "form": form,
+            "cl": {"opts": SkillSet._meta},
+            "site_header": site_header,
         },
     )
