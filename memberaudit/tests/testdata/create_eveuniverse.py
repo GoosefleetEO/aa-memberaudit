@@ -120,6 +120,8 @@ class CreateEveUniverseTestData(TestCase):
                     30651,
                     30548,
                     30549,
+                    3335,  # Amarr Cruiser skill
+                    52797,  # 2nd "Amarr Cruiser" skill
                 ],
                 enabled_sections=[EveUniverseEntityModel.LOAD_DOGMAS],
             ),

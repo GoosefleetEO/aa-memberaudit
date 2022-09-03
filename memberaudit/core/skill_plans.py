@@ -58,9 +58,8 @@ class SkillPlan:
                 issues.append(f"Invalid skill level. Ignored line: {line}")
                 continue
             skill_name = " ".join(words)
-            try:
-                eve_type = EveType.objects.get(name=skill_name)
-            except EveType.DoesNotExist:
+            eve_type = EveType.objects.filter(published=True, name=skill_name).first()
+            if not eve_type:
                 issues.append(f"Could not identify skill. Ignoring line: {line}")
                 continue
             skills.append(Skill(eve_type=eve_type, level=skill_level))

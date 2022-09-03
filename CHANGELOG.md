@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [2.1.1] - 2022-09-03
+
+>**Important**:<br>In case you have not updated to Member Audit 2.x yet, please follow the special update instructions for updating to 2.0.0 first, before installing this update!
+
+### Fixed
+
+- Importing skill plans can break when there are more then once skill type with the same name
+
 ## [2.1.0] - 2022-09-03
 
 >**Important**:<br>In case you have not updated to Member Audit 2.x yet, please follow the special update instructions for updating to 2.0.0 first, before installing this update!

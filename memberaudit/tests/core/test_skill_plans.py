@@ -114,3 +114,17 @@ class TestSkillPlan(NoSocketsTestCase):
         # when
         with self.assertRaises(NoSkillsIdentified):
             SkillPlan.create_from_plain_text("dummy", text)
+
+    def test_should_create_skill_plan_with_double_skills(self):
+        """Test related to a bug, where creating the skill plan failed,
+        because the skill type 'Amarr Cruiser' exists twice.
+        """
+        # given
+        text = """Amarr Cruiser III"""
+        # when
+        result, issues = SkillPlan.create_from_plain_text("dummy", text)
+        # then
+        self.assertFalse(issues)
+        skill = result.skills[0]
+        self.assertEqual(skill.eve_type.name, "Amarr Cruiser")
+        self.assertEqual(skill.level, 3)
