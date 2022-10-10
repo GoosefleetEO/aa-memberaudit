@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [2.1.2] - 2022-10-10
 
+### Changed
+
+- Removed support for Python 3.7
+- Added support for Python 3.10
+
 ### Fixed
 
 - Searching for Toon in Admin Bug (#129)
