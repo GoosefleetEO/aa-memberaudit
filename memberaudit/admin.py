@@ -154,7 +154,7 @@ class CharacterAdmin(admin.ModelAdmin):
     )
     ordering = ["eve_character__character_name"]
     search_fields = [
-        "eve_character__character_name"
+        "eve_character__character_name",
         "eve_character__character_ownership__user__profile__main_character__corporation_name",
         "eve_character__character_ownership__user__profile__main_character__alliance_name",
     ]

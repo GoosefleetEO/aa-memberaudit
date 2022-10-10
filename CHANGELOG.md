@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [2.2.0] - 2022-10-10
+
+### Changed
+
+- Removed support for Python 3.7
+- Added support for Python 3.10
+
+### Fixed
+
+- Searching for Toon in Admin Bug (#129)
+
 ## [2.1.1] - 2022-09-03
 
 >**Important**:<br>In case you have not updated to Member Audit 2.x yet, please follow the special update instructions for updating to 2.0.0 first, before installing this update!

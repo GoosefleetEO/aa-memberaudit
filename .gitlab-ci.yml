@@ -33,11 +33,6 @@ pre-commit-check:
     - pip install pre-commit
     - pre-commit run --all-files
 
-.test-py37:
-  stage: test
-  needs: []
-  image: python:3.7-bullseye
-
 .test-py38:
   stage: test
   needs: []
@@ -48,11 +43,10 @@ pre-commit-check:
   needs: []
   image: python:3.9-bullseye
 
-test-py37-dj32:
-  extends: .test-py37
-  script:
-  - tox -e py37-django32
-  - bash <(curl -s https://codecov.io/bash)
+.test-py310:
+  stage: test
+  needs: []
+  image: python:3.10-bullseye
 
 test-py38-dj32:
   extends: .test-py38
@@ -64,6 +58,12 @@ test-py39-dj32:
   extends: .test-py39
   script:
   - tox -e py39-django32
+  - bash <(curl -s https://codecov.io/bash)
+
+test-py310-dj32:
+  extends: .test-py310
+  script:
+  - tox -e py310-django32
   - bash <(curl -s https://codecov.io/bash)
 
 test-docs:
