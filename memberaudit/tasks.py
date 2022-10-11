@@ -2,7 +2,6 @@ import inspect
 import random
 from typing import Optional
 
-from bravado.exception import HTTPBadGateway, HTTPGatewayTimeout, HTTPServiceUnavailable
 from celery import chain, shared_task
 
 from django.contrib.auth.models import Group, User
@@ -43,27 +42,11 @@ logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
 DEFAULT_TASK_PRIORITY = 6
 
-# params for all tasks
-TASK_DEFAULT_KWARGS = {
-    "time_limit": MEMBERAUDIT_TASKS_TIME_LIMIT,
-    "max_retries": 3,
-}
+# default params for all tasks
+TASK_DEFAULT_KWARGS = {"time_limit": MEMBERAUDIT_TASKS_TIME_LIMIT, "max_retries": 3}
 
-# params for tasks that make ESI calls
-TASK_ESI_KWARGS = {
-    **TASK_DEFAULT_KWARGS,
-    **{
-        "bind": True,
-        "autoretry_for": (
-            OSError,
-            HTTPBadGateway,
-            HTTPGatewayTimeout,
-            HTTPServiceUnavailable,
-        ),
-        "retry_kwargs": {"max_retries": 3},
-        "retry_backoff": 30,
-    },
-}
+# default params for all tasks that make ESI calls
+TASK_ESI_KWARGS = {**TASK_DEFAULT_KWARGS, **{"bind": True}}
 
 
 @shared_task(**TASK_DEFAULT_KWARGS)
