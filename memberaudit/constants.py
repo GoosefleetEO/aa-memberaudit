@@ -2,6 +2,7 @@ from enum import IntEnum
 
 
 class EveCategoryId(IntEnum):
+    ASTEROID = 25
     BLUEPRINT = 9
     CHARGE = 8
     DRONE = 18

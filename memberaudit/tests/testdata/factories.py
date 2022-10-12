@@ -1,4 +1,5 @@
 """Factories for creating test objects with defaults."""
+
 import datetime as dt
 import random
 from itertools import count
@@ -7,7 +8,7 @@ from typing import Iterable
 
 from django.contrib.auth.models import Group, User
 from django.utils.timezone import now
-from eveuniverse.models import EveType
+from eveuniverse.models import EveSolarSystem, EveType
 
 from allianceauth.authentication.models import State
 from app_utils.testing import create_authgroup
@@ -22,6 +23,7 @@ from memberaudit.models import (
     CharacterContractItem,
     CharacterMail,
     CharacterMailLabel,
+    CharacterMiningLedgerEntry,
     CharacterOnlineStatus,
     CharacterUpdateStatus,
     CharacterWalletJournalEntry,
@@ -96,6 +98,26 @@ def create_character_mail_label(character: Character, **kwargs) -> CharacterMail
     return CharacterMailLabel.objects.create(**params)
 
 
+def create_character_mining_ledger_entry(
+    character: Character, **kwargs
+) -> CharacterMiningLedgerEntry:
+    solar_system_ids = EveSolarSystem.objects.values_list("id", flat=True)
+    ore_type_ids = EveType.objects.filter(
+        eve_group__eve_category_id=EveCategoryId.ASTEROID, published=True
+    ).values_list("id", flat=True)
+    params = {
+        "character": character,
+        "date": (now() - dt.timedelta(days=random.randint(0, 300))).date(),
+        "quantity": random.randint(10_000, 50_000),
+        "eve_solar_system": EveSolarSystem.objects.get(
+            id=random.choice(solar_system_ids)
+        ),
+        "eve_type": EveType.objects.get(id=random.choice(ore_type_ids)),
+    }
+    params.update(kwargs)
+    return CharacterMiningLedgerEntry.objects.create(**params)
+
+
 def create_character_update_status(
     character: Character, **kwargs
 ) -> CharacterUpdateStatus:
@@ -111,15 +133,15 @@ def create_character_update_status(
 
 
 def create_character_contract(character: Character, **kwargs) -> CharacterContract:
-    date_issed = now() if "date_issued" not in kwargs else kwargs["date_issued"]
+    date_issued = now() if "date_issued" not in kwargs else kwargs["date_issued"]
     params = {
         "character": character,
         "contract_id": next_number("contract_id"),
         "availability": CharacterContract.AVAILABILITY_PERSONAL,
         "contract_type": CharacterContract.TYPE_ITEM_EXCHANGE,
         "assignee_id": 1002,
-        "date_issued": date_issed,
-        "date_expired": date_issed + dt.timedelta(days=3),
+        "date_issued": date_issued,
+        "date_expired": date_issued + dt.timedelta(days=3),
         "for_corporation": False,
         "issuer_id": 1001,
         "issuer_corporation_id": 2001,
