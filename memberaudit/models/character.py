@@ -76,6 +76,7 @@ class Character(models.Model):
         LOCATION = "location", _("location")
         LOYALTY = "loyalty", _("loyalty")
         MAILS = "mails", _("mails")
+        MINING_LEDGER = "mining_ledger", _("mining ledger")
         ONLINE_STATUS = "online_status", _("online status")
         SHIP = "ship", _("ship")
         SKILLS = "skills", _("skills")
@@ -123,6 +124,7 @@ class Character(models.Model):
         UpdateSection.LOCATION: 1,
         UpdateSection.LOYALTY: 2,
         UpdateSection.MAILS: 2,
+        UpdateSection.MINING_LEDGER: 2,
         UpdateSection.ONLINE_STATUS: 1,
         UpdateSection.SHIP: 1,
         UpdateSection.SKILLS: 2,

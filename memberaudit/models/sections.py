@@ -781,8 +781,28 @@ class CharacterMailUnreadCount(models.Model):
         default_permissions = ()
 
 
+class CharacterMiningLedgerEntry(models.Model):
+    """Mining ledger entry of a character."""
+
+    character = models.ForeignKey(
+        Character, on_delete=models.CASCADE, related_name="mining_ledger"
+    )
+    date = models.DateTimeField(db_index=True)
+    quantity = models.PositiveIntegerField()
+    eve_solar_system = models.ForeignKey(
+        EveSolarSystem, on_delete=models.CASCADE, related_name="+"
+    )
+    eve_type = models.ForeignKey(EveType, on_delete=models.CASCADE, related_name="+")
+
+    class Meta:
+        default_permissions = ()
+
+    def __str__(self) -> str:
+        return f"{self.character} {self.id}"
+
+
 class CharacterOnlineStatus(models.Model):
-    """Online Status of a character"""
+    """Online Status of a character."""
 
     character = models.OneToOneField(
         Character,
