@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
-## [2.2.2] - 2022-10-11
+## [2.2.3] - 2022-10-11
+
+### Changed
+
+- Re-added references to replaced migrations, which are needed by apps depending on Member Audit
+
+## [2.2.2] - 2022-10-11 (YANKED)
 
 ### Changed
 
