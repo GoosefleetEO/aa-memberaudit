@@ -787,7 +787,7 @@ class CharacterMiningLedgerEntry(models.Model):
     character = models.ForeignKey(
         Character, on_delete=models.CASCADE, related_name="mining_ledger"
     )
-    date = models.DateTimeField(db_index=True)
+    date = models.DateField(db_index=True)
     quantity = models.PositiveIntegerField()
     eve_solar_system = models.ForeignKey(
         EveSolarSystem, on_delete=models.CASCADE, related_name="+"
