@@ -9,21 +9,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    replaces = [
-        ("memberaudit", "0001_initial"),
-        ("memberaudit", "0002_add_share_permission"),
-        ("memberaudit", "0003_stats_n_skillset_autocomplete"),
-        ("memberaudit", "0004_wallet_transactions"),
-        ("memberaudit", "0005_add_character_attributes"),
-        ("memberaudit", "0006_add_current_ship"),
-        ("memberaudit", "0007_add_exports_permission"),
-        ("memberaudit", "0008_add_compliance_groups"),
-        ("memberaudit", "0009_add_evecharacter_relation"),
-        ("memberaudit", "0010_update_evecharacter_field"),
-        ("memberaudit", "0011_alter_character_character_ownership"),
-        ("memberaudit", "0012_rename_character_ownership_character_id_and_more"),
-    ]
-
     initial = True
 
     dependencies = [
