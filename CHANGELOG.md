@@ -7,11 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
-## [2.3.0] - TBD
+## [2.3.0] - 2022-10-13
 
 ### Added
 
-- Mining ledger shown for characters
+- Show mining ledger for characters
 
 ### Changed
 
