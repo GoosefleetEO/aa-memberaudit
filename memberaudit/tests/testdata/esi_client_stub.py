@@ -103,6 +103,12 @@ _endpoints = [
         needs_token=True,
     ),
     EsiEndpoint(
+        "Industry",
+        "get_characters_character_id_mining",
+        "character_id",
+        needs_token=True,
+    ),
+    EsiEndpoint(
         "Mail", "get_characters_character_id_mail", "character_id", needs_token=True
     ),
     EsiEndpoint(
