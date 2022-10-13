@@ -227,6 +227,32 @@ def character_mail(
 @login_required
 @permission_required("memberaudit.basic_access")
 @fetch_character_if_allowed()
+def character_mining_ledger_data(
+    request, character_pk: int, character: Character
+) -> JsonResponse:
+    qs = character.mining_ledger.select_related(
+        "eve_solar_system",
+        "eve_solar_system__eve_constellation__eve_region",
+        "eve_type",
+    ).annotate_pricing()
+    data = [
+        {
+            "date": row.date.isoformat(),
+            "quantity": row.quantity,
+            "region": row.eve_solar_system.eve_constellation.eve_region.name,
+            "solar_system": row.eve_solar_system.name,
+            "price": row.price,
+            "total": row.total,
+            "type": row.eve_type.name,
+        }
+        for row in qs
+    ]
+    return JsonResponse({"data": data})
+
+
+@login_required
+@permission_required("memberaudit.basic_access")
+@fetch_character_if_allowed()
 def character_skillqueue_data(
     request, character_pk: int, character: Character
 ) -> JsonResponse:

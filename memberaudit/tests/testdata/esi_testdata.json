@@ -422,6 +422,11 @@
             ]
         }
     },
+    "Industry": {
+        "get_characters_character_id_mining": {
+            "1001": []
+        }
+    },
     "Mail": {
         "get_characters_character_id_mail_lists": {
             "1001": [

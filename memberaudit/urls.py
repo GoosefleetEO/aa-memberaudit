@@ -114,6 +114,11 @@ urlpatterns = [
         name="character_mail",
     ),
     path(
+        "character_mining_ledger_data/<int:character_pk>/",
+        character_viewer_2.character_mining_ledger_data,
+        name="character_mining_ledger_data",
+    ),
+    path(
         "character_skillqueue_data/<int:character_pk>/",
         character_viewer_2.character_skillqueue_data,
         name="character_skillqueue_data",

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [2.3.0] - 2022-10-13
+
+### Added
+
+- Show mining ledger for characters
+
+### Changed
+
+- Full text search on character admin page now includes main characters
+- Consolidated skill related tabes into one super tab
+- Consolidated clone related tabes into one super tab
+
 ## [2.2.3] - 2022-10-11
 
 ### Changed

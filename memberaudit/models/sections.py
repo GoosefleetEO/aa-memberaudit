@@ -39,6 +39,7 @@ from ..managers.sections import (
     CharacterLoyaltyEntryManager,
     CharacterMailLabelManager,
     CharacterMailManager,
+    CharacterMiningLedgerEntryManager,
     CharacterShipManager,
     CharacterSkillManager,
     CharacterSkillqueueEntryManager,
@@ -781,8 +782,36 @@ class CharacterMailUnreadCount(models.Model):
         default_permissions = ()
 
 
+class CharacterMiningLedgerEntry(models.Model):
+    """Mining ledger entry of a character."""
+
+    character = models.ForeignKey(
+        Character, on_delete=models.CASCADE, related_name="mining_ledger"
+    )
+    date = models.DateField(db_index=True)
+    quantity = models.PositiveIntegerField()
+    eve_solar_system = models.ForeignKey(
+        EveSolarSystem, on_delete=models.CASCADE, related_name="+"
+    )
+    eve_type = models.ForeignKey(EveType, on_delete=models.CASCADE, related_name="+")
+
+    objects = CharacterMiningLedgerEntryManager()
+
+    class Meta:
+        default_permissions = ()
+        constraints = [
+            models.UniqueConstraint(
+                fields=["character", "date", "eve_solar_system", "eve_type"],
+                name="functional_pk_characterminingledgerentry",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.character} {self.id}"
+
+
 class CharacterOnlineStatus(models.Model):
-    """Online Status of a character"""
+    """Online Status of a character."""
 
     character = models.OneToOneField(
         Character,

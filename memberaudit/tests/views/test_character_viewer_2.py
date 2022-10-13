@@ -7,7 +7,12 @@ from django.urls import reverse
 from django.utils.timezone import now
 from eveuniverse.models import EveEntity, EveType
 
-from app_utils.testing import generate_invalid_pk, multi_assert_in, response_text
+from app_utils.testing import (
+    NoSocketsTestCase,
+    generate_invalid_pk,
+    multi_assert_in,
+    response_text,
+)
 
 from ...models import (
     CharacterJumpClone,
@@ -27,6 +32,7 @@ from ...views.character_viewer_2 import (
     character_mail,
     character_mail_headers_by_label_data,
     character_mail_headers_by_list_data,
+    character_mining_ledger_data,
     character_skill_set_details,
     character_skill_sets_data,
     character_skillqueue_data,
@@ -37,6 +43,7 @@ from ...views.character_viewer_2 import (
 from ..testdata.factories import (
     create_character_mail,
     create_character_mail_label,
+    create_character_mining_ledger_entry,
     create_mail_entity_from_eve_entity,
     create_mailing_list,
 )
@@ -94,6 +101,34 @@ class TestJumpClones(LoadTestDataMixin, TestCase):
         self.assertEqual(row["solar_system"], "-")
         self.assertEqual(row["location"], "Unknown location #123457890")
         self.assertEqual(row["implants"], "(none)")
+
+
+class TestCharacterMiningLedgerData(NoSocketsTestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.factory = RequestFactory()
+        load_eveuniverse()
+        load_entities()
+        cls.character = create_memberaudit_character(1001)
+        cls.user = cls.character.eve_character.character_ownership.user
+
+    def test_should_return_data(self):
+        # given
+        entry = create_character_mining_ledger_entry(self.character)
+        request = self.factory.get(
+            reverse(
+                "memberaudit:character_mining_ledger_data", args=[self.character.pk]
+            )
+        )
+        request.user = self.user
+        # when
+        response = character_mining_ledger_data(request, self.character.pk)
+        # then
+        self.assertEqual(response.status_code, 200)
+        data = json_response_to_python_2(response)
+        obj = data[0]
+        self.assertEqual(obj["quantity"], entry.quantity)
 
 
 class TestMailData(TestCase):

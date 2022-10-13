@@ -2,6 +2,8 @@ from django.test import TestCase
 from eveuniverse.models import EveUniverseEntityModel
 from eveuniverse.tools.testdata import ModelSpec, create_testdata
 
+from memberaudit.constants import EveCategoryId
+
 from . import eveuniverse_test_data_filename
 
 
@@ -13,6 +15,9 @@ class CreateEveUniverseTestData(TestCase):
             ModelSpec("EveFaction", ids=[500001]),
             ModelSpec("EveRace", ids=[1]),
             ModelSpec("EveSolarSystem", ids=[30000142, 30004984, 30001161, 30002537]),
+            ModelSpec(
+                "EveCategory", ids=[EveCategoryId.ASTEROID.value], include_children=True
+            ),
             ModelSpec(
                 "EveType",
                 ids=[

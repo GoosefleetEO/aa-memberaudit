@@ -853,6 +853,30 @@ class CharacterMailLabelManager(models.Manager):
         )
 
 
+class CharacterMiningLedgerEntryQueryset(models.QuerySet):
+    def annotate_pricing(self) -> models.QuerySet:
+        """Annotate price and total columns."""
+        return (
+            self.select_related("eve_type__market_price")
+            .annotate(price=F("eve_type__market_price__average_price"))
+            .annotate(
+                total=ExpressionWrapper(
+                    F("eve_type__market_price__average_price") * F("quantity"),
+                    output_field=models.FloatField(),
+                ),
+            )
+        )
+
+
+class CharacterMiningLedgerEntryManagerBase(models.Manager):
+    pass
+
+
+CharacterMiningLedgerEntryManager = CharacterMiningLedgerEntryManagerBase.from_queryset(
+    CharacterMiningLedgerEntryQueryset
+)
+
+
 class CharacterShipManager(models.Manager):
     def update_for_character(self, character: models.Model, ship_info: dict):
         eve_type, _ = EveType.objects.get_or_create_esi(
