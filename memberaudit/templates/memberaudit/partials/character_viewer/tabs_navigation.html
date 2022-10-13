@@ -25,9 +25,15 @@
     <li role="presentation"><a href="#loyalty" aria-controls="loyalty" role="tab" data-toggle="tab">{% translate 'Loyalty' %}</a></li>
     <li role="presentation"><a href="#mail" aria-controls="mail" role="tab" data-toggle="tab">{% translate 'Mails' %}</a></li>
     <li role="presentation"><a href="#mining_ledger" aria-controls="mail" role="tab" data-toggle="tab">{% translate 'Mining' %}</a></li>
-    <li role="presentation"><a href="#skillqueue" aria-controls="skillqueue" role="tab" data-toggle="tab">{% translate 'Skill Queue' %}</a></li>
-    <li role="presentation"><a href="#skill_sets" aria-controls="skill_sets" role="tab" data-toggle="tab">{% translate 'Skill Sets' %}</a></li>
-    <li role="presentation"><a href="#skills" aria-controls="skills" role="tab" data-toggle="tab">{% translate 'Skills' %}</a></li>
+
+    <li class="dropdown active" role="presentation" role="tab" aria-controls="clones">
+        <a href="#" id="myTabDrop2" class="dropdown-toggle" data-toggle="dropdown">{% translate 'Skills' %}&nbsp;<b class="caret"></b></a>
+        <ul class="dropdown-menu" role="menu" aria-labelledby="myTabDrop2">
+        <li class=""><a href="#skillqueue" tabindex="-1" data-toggle="tab">{% translate 'Skill Queue' %}</a></li>
+        <li class=""><a href="#skill_sets" tabindex="-1" data-toggle="tab">{% translate 'Skill Sets' %}</a></li>
+        <li class=""><a href="#skills" tabindex="-1" data-toggle="tab">{% translate 'Skills' %}</a></li>
+        </ul>
+    </li>
 
     <li class="dropdown active" role="presentation" role="tab" aria-controls="wallet">
         <a href="#" id="myTabDrop1" class="dropdown-toggle" data-toggle="dropdown">{% translate 'Wallet' %}&nbsp;<b class="caret"></b></a>
