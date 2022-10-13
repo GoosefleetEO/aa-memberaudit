@@ -234,13 +234,15 @@ def character_mining_ledger_data(
         "eve_solar_system",
         "eve_solar_system__eve_constellation__eve_region",
         "eve_type",
-    )
+    ).annotate_pricing()
     data = [
         {
             "date": row.date.isoformat(),
             "quantity": row.quantity,
             "region": row.eve_solar_system.eve_constellation.eve_region.name,
             "solar_system": row.eve_solar_system.name,
+            "price": row.price,
+            "total": row.total,
             "type": row.eve_type.name,
         }
         for row in qs

@@ -39,6 +39,7 @@ from ..managers.sections import (
     CharacterLoyaltyEntryManager,
     CharacterMailLabelManager,
     CharacterMailManager,
+    CharacterMiningLedgerEntryManager,
     CharacterShipManager,
     CharacterSkillManager,
     CharacterSkillqueueEntryManager,
@@ -793,6 +794,8 @@ class CharacterMiningLedgerEntry(models.Model):
         EveSolarSystem, on_delete=models.CASCADE, related_name="+"
     )
     eve_type = models.ForeignKey(EveType, on_delete=models.CASCADE, related_name="+")
+
+    objects = CharacterMiningLedgerEntryManager()
 
     class Meta:
         default_permissions = ()

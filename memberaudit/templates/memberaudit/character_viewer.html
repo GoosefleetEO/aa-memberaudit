@@ -420,6 +420,41 @@
             order: [[0, "asc"]],
         });
 
+        /* Mining ledger */
+        $('#tab_mining_ledger').DataTable({
+            ajax: {
+                url: "{% url 'memberaudit:character_mining_ledger_data' character.pk %}",
+                dataSrc: 'data',
+                cache: false
+            },
+            columns: [
+                { data: 'date' },
+                { data: 'type' },
+                {
+                    data: 'quantity',
+                    render: $.fn.dataTable.render.number(',', '.', 0)
+                },
+                {
+                    data: 'total',
+                    render: $.fn.dataTable.render.number(',', '.', 2)
+                },
+                { data: 'solar_system' },
+            ],
+            order: [[0, "asc"], [1, "asc"] , [4, "asc"]],
+            filterDropDown: {
+                columns: [
+                    {
+                        idx: 1
+                    },
+                    {
+                        idx: 4
+                    },
+                ],
+                autoSize: false,
+                bootstrap: true
+            },
+        });
+
         /* Mails */
         var table = $('#tab_mails').DataTable({
             ajax: {
@@ -446,23 +481,6 @@
                     $(row).addClass('info');
                 }
             }
-        });
-
-        /* Mining ledger */
-        $('#tab_mining_ledger').DataTable({
-            ajax: {
-                url: "{% url 'memberaudit:character_mining_ledger_data' character.pk %}",
-                dataSrc: 'data',
-                cache: false
-            },
-            columns: [
-                { data: 'date' },
-                { data: 'region' },
-                { data: 'solar_system' },
-                { data: 'type' },
-                { data: 'quantity' },
-            ],
-            order: [[0, "asc"], [1, "asc"] , [2, "asc"]],
         });
 
         /* Show mails when AJAX loading has finished */
