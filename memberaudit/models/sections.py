@@ -799,6 +799,12 @@ class CharacterMiningLedgerEntry(models.Model):
 
     class Meta:
         default_permissions = ()
+        constraints = [
+            models.UniqueConstraint(
+                fields=["character", "date", "eve_solar_system", "eve_type"],
+                name="functional_pk_characterminingledgerentry",
+            )
+        ]
 
     def __str__(self) -> str:
         return f"{self.character} {self.id}"
