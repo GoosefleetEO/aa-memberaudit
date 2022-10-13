@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [2.3.0] - TBD
+
+### Added
+
+- Mining ledger shown for characters
+
+### Changed
+
+- Consolidated skill related tabes into one super tab
+- Consolidated clone related tabes into one super tab
+
 ## [2.2.3] - 2022-10-11
 
 ### Changed
