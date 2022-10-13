@@ -88,22 +88,21 @@
     }
 
     function setCookie(cname, cvalue, exhours) {
-        var d = new Date();
+        const d = new Date();
         d.setTime(d.getTime() + (exhours * 60 * 60 * 1000));
-        var expires = "expires=" + d.toUTCString();
+        let expires = "expires=" + d.toUTCString();
         document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
     }
 
     function getCookie(cname) {
-        var name = cname + "=";
-        var decodedCookie = decodeURIComponent(document.cookie);
-        var ca = decodedCookie.split(';');
-        for (var i = 0; i < ca.length; i++) {
-            var c = ca[i];
+        const name = cname + "=";
+        const decodedCookie = decodeURIComponent(document.cookie);
+        const ca = decodedCookie.split(';');
+        for (let i = 0; i < ca.length; i++) {
+            let c = ca[i];
             while (c.charAt(0) == ' ') {
                 c = c.substring(1);
             }
-
             if (c.indexOf(name) == 0) {
                 return c.substring(name.length, c.length);
             }
@@ -113,7 +112,7 @@
 
     $(document).ready(function () {
         /* show last selected tab or default */
-        var tabId = "{{show_tab}}"
+        let tabId = "{{show_tab}}"
         if (tabId != "") {
             setCookie(COOKIE_LAST_TAB_ID, tabId, 1)
         }
@@ -125,7 +124,7 @@
 
         /* remember last selected tab */
         $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-            var selectedTabId = $(e.target).attr("href").substr(1)
+            const selectedTabId = $(e.target).attr("href").substr(1)
             setCookie(COOKIE_LAST_TAB_ID, selectedTabId, COOKIE_LAST_TAB_HOURS)
         });
 
@@ -203,7 +202,7 @@
                 var api = this.api(), data;
 
                 // Remove the formatting to get integer data for summation
-                var intVal = function (i) {
+                const intVal = function (i) {
                     return typeof i === 'string' ?
                         i.replace(/[\$,]/g, '') * 1 :
                         typeof i === 'number' ?
@@ -211,7 +210,7 @@
                 };
 
                 // Total over all pages
-                var total = api
+                const total = api
                     .column(6)
                     .data()
                     .reduce(function (a, b) {
@@ -226,8 +225,8 @@
         });
 
         $('#modalCharacterAssetContainer').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget)
-            var ajax_children_url = button.data('ajax_children_url');
+            const button = $(event.relatedTarget)
+            const ajax_children_url = button.data('ajax_children_url');
             $("#modalCharacterAssetContainerContent").load(ajax_children_url)
         });
 
@@ -345,8 +344,8 @@
         });
 
         $('#modalCharacterContract').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget)
-            var ajax_contract_detail = button.data('ajax_contract_detail');
+            const button = $(event.relatedTarget)
+            const ajax_contract_detail = button.data('ajax_contract_detail');
             $("#modalCharacterContractContent").load(ajax_contract_detail)
         });
 
@@ -456,7 +455,7 @@
         });
 
         /* Mails */
-        var table = $('#tab_mails').DataTable({
+        let table = $('#tab_mails').DataTable({
             ajax: {
                 url: "{% url 'memberaudit:character_mail_headers_by_label_data' character.pk 1 %}",
                 dataSrc: 'data',
@@ -492,9 +491,9 @@
 
         /* reload mails when a label is selected*/
         $(".pillMailLabel").on("click", function (event) {
-            var element = $(event.currentTarget);
-            var labelId = element.data('label-id');
-            var listId = element.data('list-id');
+            const element = $(event.currentTarget);
+            const labelId = element.data('label-id');
+            const listId = element.data('list-id');
 
             // remove active class from all pills
             // and make current pill active
@@ -633,8 +632,8 @@
         });
 
         $('#modalCharacterSkillSetDetails').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget)
-            var ajax_skill_set_detail = button.data('ajax_skill_set_detail');
+            const button = $(event.relatedTarget)
+            const ajax_skill_set_detail = button.data('ajax_skill_set_detail');
 
             $("#modalCharacterSkillSetContents").load(ajax_skill_set_detail)
         });
