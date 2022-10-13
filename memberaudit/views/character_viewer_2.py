@@ -227,6 +227,25 @@ def character_mail(
 @login_required
 @permission_required("memberaudit.basic_access")
 @fetch_character_if_allowed()
+def character_mining_ledger_data(
+    request, character_pk: int, character: Character
+) -> JsonResponse:
+    qs = character.mining_ledger.select_related("eve_solar_system", "eve_type")
+    data = [
+        {
+            "date": row.date.isoformat(),
+            "quantity": row.quantity,
+            "eve_solar_system": row.eve_solar_system.name,
+            "eve_type": row.eve_type.name,
+        }
+        for row in qs
+    ]
+    return JsonResponse({"data": data})
+
+
+@login_required
+@permission_required("memberaudit.basic_access")
+@fetch_character_if_allowed()
 def character_skillqueue_data(
     request, character_pk: int, character: Character
 ) -> JsonResponse:
