@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+- Full text search on character admin page now includes main characters
 - Consolidated skill related tabes into one super tab
 - Consolidated clone related tabes into one super tab
 
