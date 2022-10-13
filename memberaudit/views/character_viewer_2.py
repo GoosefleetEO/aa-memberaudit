@@ -230,13 +230,18 @@ def character_mail(
 def character_mining_ledger_data(
     request, character_pk: int, character: Character
 ) -> JsonResponse:
-    qs = character.mining_ledger.select_related("eve_solar_system", "eve_type")
+    qs = character.mining_ledger.select_related(
+        "eve_solar_system",
+        "eve_solar_system__eve_constellation__eve_region",
+        "eve_type",
+    )
     data = [
         {
             "date": row.date.isoformat(),
             "quantity": row.quantity,
-            "eve_solar_system": row.eve_solar_system.name,
-            "eve_type": row.eve_type.name,
+            "region": row.eve_solar_system.eve_constellation.eve_region.name,
+            "solar_system": row.eve_solar_system.name,
+            "type": row.eve_type.name,
         }
         for row in qs
     ]

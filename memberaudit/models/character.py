@@ -879,7 +879,7 @@ class Character(models.Model):
         if MEMBERAUDIT_DEVELOPER_MODE:
             self._store_list_to_disk(mail_body, "mail_body")
 
-    @fetch_token_for_character("esi-wallet.read_character_wallet.v1")
+    @fetch_token_for_character("esi-industry.read_character_mining.v1")
     def update_mining_ledger(self, token: Token):
         """Update mining ledger from ESI for this character."""
         logger.info("%s: Fetching mining ledger from ESI", self)

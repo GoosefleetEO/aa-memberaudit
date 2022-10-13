@@ -35,6 +35,7 @@
                         {% include 'memberaudit/partials/character_viewer/tabs/jump_clones.html' %}
                         {% include 'memberaudit/partials/character_viewer/tabs/loyalty.html' %}
                         {% include 'memberaudit/partials/character_viewer/tabs/mails.html' %}
+                        {% include 'memberaudit/partials/character_viewer/tabs/mining_ledger.html' %}
                         {% include 'memberaudit/partials/character_viewer/tabs/skills.html' %}
                         {% include 'memberaudit/partials/character_viewer/tabs/skill_queue.html' %}
                         {% include 'memberaudit/partials/character_viewer/tabs/wallet_journal.html' %}
@@ -445,6 +446,23 @@
                     $(row).addClass('info');
                 }
             }
+        });
+
+        /* Mining ledger */
+        $('#tab_mining_ledger').DataTable({
+            ajax: {
+                url: "{% url 'memberaudit:character_mining_ledger_data' character.pk %}",
+                dataSrc: 'data',
+                cache: false
+            },
+            columns: [
+                { data: 'date' },
+                { data: 'region' },
+                { data: 'solar_system' },
+                { data: 'type' },
+                { data: 'quantity' },
+            ],
+            order: [[0, "asc"], [1, "asc"] , [2, "asc"]],
         });
 
         /* Show mails when AJAX loading has finished */
