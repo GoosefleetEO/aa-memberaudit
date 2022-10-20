@@ -137,7 +137,8 @@ class TestCharacterAssets(LoadTestDataMixin, TestCase):
         row = data[0]
         self.assertEqual(row["item_id"], 1)
         self.assertEqual(
-            row["location"], "Jita IV - Moon 4 - Caldari Navy Assembly Plant (1)"
+            row["location"],
+            "Jita IV - Moon 4 - Caldari Navy Assembly Plant (1) (0.0 ISK)",
         )
         self.assertEqual(row["name"]["sort"], "Trucker")
         self.assertEqual(row["quantity"], "")
@@ -168,10 +169,66 @@ class TestCharacterAssets(LoadTestDataMixin, TestCase):
         row = data[0]
         self.assertEqual(row["item_id"], 1)
         self.assertEqual(
-            row["location"], "Jita IV - Moon 4 - Caldari Navy Assembly Plant (1)"
+            row["location"],
+            "Jita IV - Moon 4 - Caldari Navy Assembly Plant (1) (0.0 ISK)",
         )
         self.assertEqual(row["name"]["sort"], "Charon")
         self.assertEqual(row["quantity"], 1)
+        self.assertEqual(row["group"], "Freighter")
+        self.assertEqual(row["volume"], 16250000.0)
+        self.assertFalse(row["actions"])
+
+    def test_character_assets_data_3(self):
+        obj1 = EveType.objects.get(id=603)
+        obj2 = EveType.objects.get(id=20185)
+        CharacterAsset.objects.create(
+            character=self.character,
+            item_id=1,
+            location=self.jita_44,
+            eve_type=obj1,
+            is_singleton=False,
+            name="",
+            quantity=5,
+        )
+        CharacterAsset.objects.create(
+            character=self.character,
+            item_id=2,
+            location=self.jita_44,
+            eve_type=obj2,
+            is_singleton=False,
+            name="",
+            quantity=3,
+        )
+        EveMarketPrice.objects.create(eve_type=obj1, average_price=11111)
+        EveMarketPrice.objects.create(eve_type=obj2, average_price=555555555)
+        request = self.factory.get(
+            reverse("memberaudit:character_assets_data", args=[self.character.pk])
+        )
+        request.user = self.user
+        response = character_assets_data(request, self.character.pk)
+        self.assertEqual(response.status_code, 200)
+        data = json_response_to_python_2(response)
+        self.assertEqual(len(data), 2)
+        row = data[0]
+        self.assertEqual(row["item_id"], 1)
+        self.assertEqual(
+            row["location"],
+            "Jita IV - Moon 4 - Caldari Navy Assembly Plant (2) (1.7b ISK)",
+        )
+        self.assertEqual(row["name"]["sort"], "Merlin")
+        self.assertEqual(row["quantity"], 5)
+        self.assertEqual(row["group"], "Frigate")
+        self.assertEqual(row["volume"], 16500.0)
+        self.assertFalse(row["actions"])
+
+        row = data[1]
+        self.assertEqual(row["item_id"], 2)
+        self.assertEqual(
+            row["location"],
+            "Jita IV - Moon 4 - Caldari Navy Assembly Plant (2) (1.7b ISK)",
+        )
+        self.assertEqual(row["name"]["sort"], "Charon")
+        self.assertEqual(row["quantity"], 3)
         self.assertEqual(row["group"], "Freighter")
         self.assertEqual(row["volume"], 16250000.0)
         self.assertFalse(row["actions"])
