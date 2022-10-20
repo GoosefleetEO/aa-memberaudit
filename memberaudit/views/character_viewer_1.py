@@ -14,6 +14,7 @@ from eveuniverse.models import EveType
 
 from allianceauth.eveonline.models import EveCharacter
 from allianceauth.services.hooks import get_extension_logger
+from app_utils.helpers import humanize_number
 from app_utils.logging import LoggerAddTag
 from app_utils.views import (
     bootstrap_icon_plus_name_html,
@@ -276,6 +277,7 @@ def character_assets_data(
             .values("id", "items_count")
         )
     }
+    location_totals = {}
     for asset in asset_qs:
         if asset.location.eve_solar_system:
             region = asset.location.eve_solar_system.eve_constellation.eve_region.name
@@ -305,6 +307,11 @@ def character_assets_data(
         location_name = (
             f"{asset.location.name_plus} ({location_counts.get(asset.location_id, 0)})"
         )
+        if location_name not in location_totals:
+            location_totals[location_name] = 0.0
+        if asset.total is not None:
+            location_totals[location_name] += asset.total
+
         name_html, name = item_icon_plus_name_html(asset)
         data.append(
             {
@@ -322,6 +329,9 @@ def character_assets_data(
                 "is_ship": is_ship,
             }
         )
+    for row in data:
+        sumstr = humanize_number(location_totals[row["location"]])
+        row["location"] = row["location"] + f" ({sumstr} ISK)"
     return JsonResponse({"data": data})
 
 
