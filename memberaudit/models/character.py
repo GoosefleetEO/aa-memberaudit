@@ -203,6 +203,15 @@ class Character(models.Model):
         except AttributeError:
             return False
 
+    def user_has_scope(self, user: User) -> bool:
+        """Returns True if given user has scope to access this character"""
+        try:
+            if self.user == user:  # shortcut for better performance
+                return True
+        except AttributeError:
+            pass
+        return Character.objects.user_has_scope(user).filter(pk=self.pk).exists()
+
     def user_has_access(self, user: User) -> bool:
         """Returns True if given user has permission to access this character
         in the character viewer

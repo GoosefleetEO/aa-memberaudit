@@ -50,6 +50,106 @@ class TestCharacterManager(TestCase):
         self.assertSetEqual(character_ids, set())
 
 
+class TestCharacterManagerUserHasScope(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        load_entities()
+        # main character with alts
+        cls.character_1001 = create_memberaudit_character(1001)  # main
+        cls.character_1110 = add_memberaudit_character_to_user(  # alt
+            cls.character_1001.eve_character.character_ownership.user, 1110
+        )
+        cls.character_1121 = add_memberaudit_character_to_user(  # alt
+            cls.character_1001.eve_character.character_ownership.user, 1121
+        )
+        # main character with alts
+        cls.character_1002 = create_memberaudit_character(1002)
+        cls.character_1002.is_shared = True
+        cls.character_1002.save()
+        cls.character_1103 = add_memberaudit_character_to_user(
+            cls.character_1002.eve_character.character_ownership.user, 1103
+        )
+        # main characters
+        cls.character_1003 = create_memberaudit_character(1003)
+        cls.character_1101 = create_memberaudit_character(1101)
+        cls.character_1102 = create_memberaudit_character(1102)
+        cls.character_1102.is_shared = True
+        cls.character_1102.save()
+        cls.character_1111 = create_memberaudit_character(1111)
+        cls.character_1122 = create_memberaudit_character(1122)
+        cls.member_state = AuthUtils.get_member_state()
+        cls.member_state.member_alliances.add(
+            EveAllianceInfo.objects.get(alliance_id=3001)
+        )
+
+    def test_user_owning_character_has_scope(self):
+        """
+        when user is the owner of characters
+        then include those characters only
+        """
+        result_qs = Character.objects.user_has_scope(
+            user=self.character_1001.eve_character.character_ownership.user
+        )
+        self.assertSetEqual(result_qs.eve_character_ids(), {1001, 1110, 1121})
+
+    def test_view_own_corporation_1(self):
+        """
+        when user has scope to view own corporation
+        then include characters of corporations members (mains + alts)
+        """
+        user = self.character_1001.eve_character.character_ownership.user
+        user = AuthUtils.add_permission_to_user_by_name(
+            "memberaudit.view_same_corporation", user
+        )
+        result_qs = Character.objects.user_has_scope(user=user)
+        self.assertSetEqual(
+            result_qs.eve_character_ids(), {1001, 1110, 1121, 1002, 1103}
+        )
+
+    def test_view_own_alliance_1(self):
+        """
+        when user has scope to view own alliance
+        then include characters of alliance members (mains + alts)
+        """
+        user = self.character_1001.eve_character.character_ownership.user
+        user = AuthUtils.add_permission_to_user_by_name(
+            "memberaudit.view_same_alliance", user
+        )
+        result_qs = Character.objects.user_has_scope(user=user)
+        self.assertSetEqual(
+            result_qs.eve_character_ids(), {1001, 1110, 1121, 1002, 1003, 1103}
+        )
+
+    def test_view_own_alliance_2(self):
+        """
+        when user has permission to view own alliance
+        and does not belong to any alliance
+        then do not include any alliance characters
+        """
+        user = self.character_1102.eve_character.character_ownership.user
+        user = AuthUtils.add_permission_to_user_by_name(
+            "memberaudit.view_same_alliance", user
+        )
+        result_qs = Character.objects.user_has_scope(user=user)
+        self.assertSetEqual(result_qs.eve_character_ids(), {1102})
+
+    def test_view_everything_1(self):
+        """
+        when user has scope to view everything
+        then include all characters
+        """
+        user = self.character_1001.eve_character.character_ownership.user
+        user = AuthUtils.add_permission_to_user_by_name(
+            "memberaudit.view_everything", user
+        )
+        result_qs = Character.objects.user_has_scope(user=user)
+        self.assertSetEqual(
+            result_qs.eve_character_ids(),
+            {1001, 1002, 1003, 1101, 1102, 1103, 1110, 1111, 1121, 1122},
+        )
+
+
 class TestCharacterManagerUserHasAccess(TestCase):
     @classmethod
     def setUpClass(cls) -> None:

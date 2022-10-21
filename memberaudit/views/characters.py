@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.models import Permission
 from django.db import transaction
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, redirect, render
@@ -7,7 +8,9 @@ from django.utils.html import format_html
 from esi.decorators import token_required
 
 from allianceauth.eveonline.models import EveCharacter
+from allianceauth.notifications import notify
 from allianceauth.services.hooks import get_extension_logger
+from app_utils.django import users_with_permission
 from app_utils.logging import LoggerAddTag
 
 from .. import __title__, tasks
@@ -124,6 +127,18 @@ def remove_character(request, character_pk: int) -> HttpResponse:
         return HttpResponseNotFound(f"Character with pk {character_pk} not found")
     if character.user and character.user == request.user:
         character_name = character.eve_character.character_name
+
+        # Notify that character has been dropped
+        permission_to_notify = Permission.objects.select_related("content_type").get(
+            content_type__app_label=Character._meta.app_label,
+            codename="notified_on_character_removal",
+        )
+        title = f"{__title__}: Character has been removed!"
+        message = f"{request.user} has removed character '{character_name}'"
+        for to_notify in users_with_permission(permission_to_notify):
+            if character.user_has_scope(to_notify):
+                notify(user=to_notify, title=title, message=message, level="INFO")
+
         character.delete()
         messages.success(
             request,

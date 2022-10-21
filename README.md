@@ -65,6 +65,7 @@ Member Audit adds the following key features to Auth:
 - Admins can customize and configure Member Audit to fit their needs. e.g. change the app's name and define how often which type of data is updated from the Eve server
 
 - Ensure that only users who have registered all their characters have access to services (see also [Compliance Groups](#compliance-groups))
+- Get notifications when a user removes a character that they had previously registered.
 - Designed to work efficiently with large number of characters
 - Data retention policy allows managing storage capacity needs
 - Data can be exported for processing it with third party apps like Google Sheets (currently wallet journal only)

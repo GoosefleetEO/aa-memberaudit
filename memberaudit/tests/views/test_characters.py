@@ -122,10 +122,21 @@ class TestRemoveCharacter(TestCase):
         request.user = user
         return remove_character(request, character_pk)
 
-    def test_should_remove_character(self, mock_tasks, mock_messages):
+    def test_should_remove_character_without_notification(
+        self, mock_tasks, mock_messages
+    ):
         # given
         character = create_memberaudit_character(1001)
         user = character.eve_character.character_ownership.user
+        auditor_character = create_memberaudit_character(1003)
+        auditor = auditor_character.eve_character.character_ownership.user
+        AuthUtils.add_permissions_to_user_by_name(
+            (
+                "memberaudit.notified_on_character_removal",
+                "memberaudit.view_same_corporation",
+            ),
+            auditor,
+        )
         # when
         response = self._remove_character(user, character.pk)
         # then
@@ -134,6 +145,46 @@ class TestRemoveCharacter(TestCase):
         self.assertFalse(Character.objects.filter(pk=character.pk).exists())
         self.assertTrue(mock_tasks.update_compliance_groups_for_user.delay.called)
         self.assertTrue(mock_messages.success.called)
+        self.assertEqual(auditor.notification_set.count(), 0)
+
+    def test_should_remove_character_with_notification(self, mock_tasks, mock_messages):
+        # given
+        character = create_memberaudit_character(1001)
+        user = character.eve_character.character_ownership.user
+        AuthUtils.add_permission_to_user_by_name("memberaudit.share_characters", user)
+
+        auditor_character = create_memberaudit_character(1002)
+        auditor = auditor_character.eve_character.character_ownership.user
+        AuthUtils.add_permissions_to_user_by_name(
+            (
+                "memberaudit.notified_on_character_removal",
+                "memberaudit.view_same_corporation",
+            ),
+            auditor,
+        )
+        # when
+        response = self._remove_character(user, character.pk)
+        # then
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("memberaudit:launcher"))
+        self.assertFalse(Character.objects.filter(pk=character.pk).exists())
+        self.assertTrue(mock_tasks.update_compliance_groups_for_user.delay.called)
+        self.assertTrue(mock_messages.success.called)
+
+        expected_removal_notification_title = (
+            "Member Audit: Character has been removed!"
+        )
+        expected_removal_notification_message = (
+            "Bruce Wayne has removed character 'Bruce Wayne'"
+        )
+        latest_auditor_notification = auditor.notification_set.order_by("-pk")[0]
+        self.assertEqual(
+            latest_auditor_notification.title, expected_removal_notification_title
+        )
+        self.assertEqual(
+            latest_auditor_notification.message, expected_removal_notification_message
+        )
+        self.assertEqual(latest_auditor_notification.level, "info")
 
     def test_should_not_remove_character_from_another_user(
         self, mock_tasks, mock_messages

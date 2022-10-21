@@ -31,6 +31,30 @@ class CharacterManagerBase(ObjectCacheMixin, models.Manager):
             user=user, character__memberaudit_character__isnull=True
         ).count()
 
+    def user_has_scope(self, user: User) -> models.QuerySet:
+        """Return characters the given user has permission to access
+        by scope only.
+        """
+        if user.has_perm("memberaudit.view_everything"):
+            return self.all()
+        qs = self.filter(eve_character__character_ownership__user=user)
+        if (
+            user.has_perm("memberaudit.view_same_alliance")
+            and user.profile.main_character.alliance_id
+        ):
+            qs |= self.filter(
+                eve_character__character_ownership__user__profile__main_character__alliance_id=(
+                    user.profile.main_character.alliance_id
+                )
+            )
+        elif user.has_perm("memberaudit.view_same_corporation"):
+            qs |= self.filter(
+                eve_character__character_ownership__user__profile__main_character__corporation_id=(
+                    user.profile.main_character.corporation_id
+                )
+            )
+        return qs
+
     def user_has_access(self, user: User) -> models.QuerySet:
         """Return characters the given user has permission to access
         via character viewer.
