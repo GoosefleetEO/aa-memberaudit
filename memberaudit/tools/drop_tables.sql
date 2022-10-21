@@ -23,6 +23,7 @@ DROP TABLE IF EXISTS memberaudit_charactermail_labels;
 DROP TABLE IF EXISTS memberaudit_charactermailinglist;
 DROP TABLE IF EXISTS memberaudit_charactermaillabel;
 DROP TABLE IF EXISTS memberaudit_charactermailmaillabel;
+DROP TABLE IF EXISTS memberaudit_characterminingledgerentry;
 DROP TABLE IF EXISTS memberaudit_character_mailing_lists;
 DROP TABLE IF EXISTS memberaudit_charactermail_recipients;
 DROP TABLE IF EXISTS memberaudit_charactermailunreadcount;

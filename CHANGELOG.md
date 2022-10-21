@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [2.4.0] - 2022-10-21
+
+### Added
+
+- Send notifications when a character is removed by a user (#128)
+- Show ISK total per location on asset tab
+
+Big thanks to @arctiru for the feature contributions!
+
 ## [2.3.0] - 2022-10-13
 
 ### Added
