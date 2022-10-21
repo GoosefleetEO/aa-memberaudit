@@ -49,6 +49,7 @@ class General(models.Model):
             ("view_same_corporation", "Can view corporation characters"),
             ("view_same_alliance", "Can view alliance characters"),
             ("view_everything", "Can view all characters"),
+            ("notified_on_character_removal", "Notified when member drops character"),
         )
 
     @classmethod

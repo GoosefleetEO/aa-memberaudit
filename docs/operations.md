@@ -169,6 +169,7 @@ Name | Description | Type
 `view_same_corporation`| All mains - incl. their alts -  of the same corporations<br>the user's main belongs to | Scope
 `view_same_alliance`| All mains - incl. their alts -  of the same alliances<br>the user's main belongs to | Scope
 `view_everything`| All characters registered with Member Audit | Scope
+`notified_on_character_removal` | Get a notification when someone drops a character. | Feature
 
 ```{hint}
 All permissions can be found under the category "memberaudit | general".
@@ -184,7 +185,7 @@ Normal user | Can use this app and register and access own characters | `basic_a
 Recruiter | Can access shared characters | `basic_access`<br>`finder_access`<br>`view_shared_characters`
 Corporation Leadership | Can access reports for his corporation members<br>(but can not access the characters) | `basic_access`<br>`reports_access`<br>`view_same_corporation`
 Corp Leadership & Recruiter | Can access shared characters | `basic_access`<br>`finder_access`<br>`view_shared_characters`<br>`reports_access`<br>`view_same_corporation`
-Alliance Auditor | Can search for and access all characters of his alliance  | `basic_access`<br>`finder_access`<br>`characters_access`<br>`view_same_alliance`
+Alliance Auditor | Can search for and access all characters of his alliance  | `basic_access`<br>`finder_access`<br>`characters_access`<br>`view_same_alliance`<br>`notified_on_character_removal`
 
 > **Note**<br>Naturally, superusers will have access to everything, without requiring permissions to be assigned.
 
