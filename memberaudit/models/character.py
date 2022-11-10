@@ -153,7 +153,7 @@ class Character(models.Model):
         default_permissions = ()
 
     def __str__(self) -> str:
-        return f"{self.eve_character.character_name} (PK:{self.pk})"
+        return str(self.eve_character)
 
     def __repr__(self) -> str:
         return f"Character(pk={self.pk}, eve_character='{self.eve_character}')"

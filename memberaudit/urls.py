@@ -187,14 +187,9 @@ urlpatterns = [
     # data export
     path("data-export/", data_export.data_export, name="data_export"),
     path(
-        "data-export/run-update/<str:topic>",
-        data_export.data_export_run_update,
-        name="data_export_run_update",
-    ),
-    path(
-        "data-export/download/<str:topic>",
-        data_export.download_export_file,
-        name="download_export_file",
+        "data-export/download-csv/<str:topic>",
+        data_export.download_csv,
+        name="download_csv",
     ),
     # admin
     path(

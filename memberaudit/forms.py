@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db.models import TextChoices
 
 from .core.eft_parser import EftParserError
 from .core.fittings import Fitting
@@ -109,3 +110,16 @@ class ImportSkillPlanForm(forms.Form):
                 {"skill_set_name": "A skill set with this name already exists."}
             )
         return data
+
+
+class DataExportForm(forms.Form):
+    class Topic(TextChoices):
+        ASSETS = "assets"
+        CONTACTS = "contacts"
+        CONTRACTS = "contracts"
+        MINING_LEDGER = "mining ledger"
+        SKILLS = "skills"
+        WALLET_JOURNAL = "wallet transactions"
+        WALLET_TRANSACTIONS = "wallet market transactions"
+
+    topic = forms.ChoiceField(choices=Topic.choices, required=True)

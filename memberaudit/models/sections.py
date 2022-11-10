@@ -147,10 +147,12 @@ class CharacterContact(models.Model):
     STANDING_TERRIBLE = _("terrible standing")
 
     character = models.ForeignKey(
-        Character, on_delete=models.CASCADE, related_name="contacts"
+        Character,
+        on_delete=models.CASCADE,
+        related_name="contacts",
     )
     eve_entity = models.ForeignKey(
-        EveEntity, on_delete=models.CASCADE, related_name="+"
+        EveEntity, on_delete=models.CASCADE, related_name="+", verbose_name="contact"
     )
 
     is_blocked = models.BooleanField(default=None, null=True)
@@ -853,15 +855,17 @@ class CharacterSkill(models.Model):
     character = models.ForeignKey(
         Character, on_delete=models.CASCADE, related_name="skills"
     )
-    eve_type = models.ForeignKey(EveType, on_delete=models.CASCADE, related_name="+")
+    eve_type = models.ForeignKey(
+        EveType, on_delete=models.CASCADE, related_name="+", verbose_name="type"
+    )
 
     active_skill_level = models.PositiveIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(5)]
-    )  # TODO: Set min to 0 with next migration
+        validators=[MinValueValidator(0), MaxValueValidator(5)]
+    )
     skillpoints_in_skill = models.PositiveBigIntegerField()
     trained_skill_level = models.PositiveBigIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(5)]
-    )  # TODO: Set min to 0 with next migration
+        validators=[MinValueValidator(0), MaxValueValidator(5)]
+    )
 
     objects = CharacterSkillManager()
 
