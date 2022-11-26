@@ -82,9 +82,8 @@ def download_csv(request, topic: str) -> StreamingHttpResponse:
         MyModel.objects.filter(character__pk__in=character_pks)
         .annotate(character_corporation=F("character__eve_character__corporation_name"))
         .select_related()
-        .order_by("pk")
     )
-    logger.info("Preparing to export the with %s entries.", queryset.count())
+    logger.info("Preparing to export %s with %s entries.", topic, queryset.count())
     pseudo_buffer = Echo()
     writer = csv.writer(pseudo_buffer)
     return StreamingHttpResponse(
