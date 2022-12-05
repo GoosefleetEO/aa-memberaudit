@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [2.4.1] - 2022-11-05
+
+### Fixed
+
+- Character sync fails when more then 10 jump clones (!68)
+
 ## [2.4.0] - 2022-10-21
 
 ### Added
