@@ -98,21 +98,21 @@ urlpatterns = [
         character_viewer_2.character_jump_clones_data,
         name="character_jump_clones_data",
     ),
-    path(
-        "character_mail_headers_by_label_data/<int:character_pk>/<int:label_id>/",
-        character_viewer_2.character_mail_headers_by_label_data,
-        name="character_mail_headers_by_label_data",
-    ),
-    path(
-        "character_mail_headers_by_list_data/<int:character_pk>/<int:list_id>/",
-        character_viewer_2.character_mail_headers_by_list_data,
-        name="character_mail_headers_by_list_data",
-    ),
-    path(
-        "character_mail/<int:character_pk>/<int:mail_pk>/",
-        character_viewer_2.character_mail,
-        name="character_mail",
-    ),
+    # path(
+        # "character_mail_headers_by_label_data/<int:character_pk>/<int:label_id>/",
+        # character_viewer_2.character_mail_headers_by_label_data,
+        # name="character_mail_headers_by_label_data",
+    # ),
+    # path(
+        # "character_mail_headers_by_list_data/<int:character_pk>/<int:list_id>/",
+        # character_viewer_2.character_mail_headers_by_list_data,
+        # name="character_mail_headers_by_list_data",
+    # ),
+    # path(
+        # "character_mail/<int:character_pk>/<int:mail_pk>/",
+        # character_viewer_2.character_mail,
+        # name="character_mail",
+    # ),
     path(
         "character_mining_ledger_data/<int:character_pk>/",
         character_viewer_2.character_mining_ledger_data,

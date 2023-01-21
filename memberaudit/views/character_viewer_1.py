@@ -25,7 +25,6 @@ from app_utils.views import (
 from .. import __title__
 from ..constants import (
     DEFAULT_ICON_SIZE,
-    MAIL_LABEL_ID_ALL_MAILS,
     MY_DATETIME_FORMAT,
     EveCategoryId,
     EveDogmaAttributeId,
@@ -112,38 +111,38 @@ def character_viewer(request, character_pk: int, character: Character) -> HttpRe
         main = "-"
         main_character_id = None
 
-    # mailing lists
-    mailing_lists_qs = character.mailing_lists.all().annotate(
-        unread_count=Count("recipient_mails", filter=Q(recipient_mails__is_read=False))
-    )
-    mailing_lists = [
-        {
-            "list_id": obj.id,
-            "name_plus": obj.name_plus,
-            "unread_count": obj.unread_count,
-        }
-        for obj in mailing_lists_qs
-    ]
+    # # mailing lists
+    # mailing_lists_qs = character.mailing_lists.all().annotate(
+        # unread_count=Count("recipient_mails", filter=Q(recipient_mails__is_read=False))
+    # )
+    # mailing_lists = [
+        # {
+            # "list_id": obj.id,
+            # "name_plus": obj.name_plus,
+            # "unread_count": obj.unread_count,
+        # }
+        # for obj in mailing_lists_qs
+    # ]
 
-    # mail labels
-    mail_labels = list(
-        character.mail_labels.values(
-            "label_id", "name", unread_count_2=F("unread_count")
-        )
-    )
-    total_unread_count = sum(
-        [obj["unread_count_2"] for obj in mail_labels if obj["unread_count_2"]]
-    )
-    total_unread_count += sum(
-        [obj["unread_count"] for obj in mailing_lists if obj["unread_count"]]
-    )
-    mail_labels.append(
-        {
-            "label_id": MAIL_LABEL_ID_ALL_MAILS,
-            "name": "All Mails",
-            "unread_count_2": total_unread_count,
-        }
-    )
+    # # mail labels
+    # mail_labels = list(
+        # character.mail_labels.values(
+            # "label_id", "name", unread_count_2=F("unread_count")
+        # )
+    # )
+    # total_unread_count = sum(
+        # [obj["unread_count_2"] for obj in mail_labels if obj["unread_count_2"]]
+    # )
+    # total_unread_count += sum(
+        # [obj["unread_count"] for obj in mailing_lists if obj["unread_count"]]
+    # )
+    # mail_labels.append(
+        # {
+            # "label_id": MAIL_LABEL_ID_ALL_MAILS,
+            # "name": "All Mails",
+            # "unread_count_2": total_unread_count,
+        # }
+    # )
 
     all_characters = _identify_user_characters(request, character)
 
@@ -188,8 +187,8 @@ def character_viewer(request, character_pk: int, character: Character) -> HttpRe
         "character": character,
         "auth_character": character.eve_character,
         "character_details": character_details,
-        "mail_labels": mail_labels,
-        "mailing_lists": mailing_lists,
+#        "mail_labels": mail_labels,
+#        "mailing_lists": mailing_lists,
         "main": main,
         "main_character_id": main_character_id,
         "all_characters": all_characters,

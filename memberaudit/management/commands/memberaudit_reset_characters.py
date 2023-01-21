@@ -90,8 +90,8 @@ class Command(BaseCommand):
             Character.objects.all().delete()
             self.stdout.write("Deleting Locations...")
             Location.objects.all().delete()
-            self.stdout.write("Deleting MailEntities...")
-            MailEntity.objects.all().delete()
+            # self.stdout.write("Deleting MailEntities...")
+            # MailEntity.objects.all().delete()
 
             self.stdout.write(f"Recreating {len(character_ownerships)} characters ...")
             for character_ownership in character_ownerships:
