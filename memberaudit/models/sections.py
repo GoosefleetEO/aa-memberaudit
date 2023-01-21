@@ -710,7 +710,7 @@ class CharacterJumpCloneImplant(models.Model):
     # is_read = models.BooleanField(null=True, default=None, db_index=True)
     # labels = models.ManyToManyField("CharacterMailLabel", related_name="mails")
     # recipients = models.ManyToManyField("MailEntity", related_name="recipient_mails")
-    TODO: When migrations are reset remove default for sender
+    # TODO: When migrations are reset remove default for sender
     # sender = models.ForeignKey(
         # "MailEntity",
         # on_delete=models.CASCADE,
