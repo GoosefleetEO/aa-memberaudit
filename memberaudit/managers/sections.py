@@ -596,261 +596,261 @@ class CharacterJumpCloneManager(models.Manager):
         )
 
 
-class CharacterMailManager(models.Manager):
-    def update_for_character(
-        self, character, cutoff_datetime, mail_headers, force_update
-    ):
-        if cutoff_datetime:
-            self.filter(character=character, timestamp__lt=cutoff_datetime).delete()
+# class CharacterMailManager(models.Manager):
+    # def update_for_character(
+        # self, character, cutoff_datetime, mail_headers, force_update
+    # ):
+        # if cutoff_datetime:
+            # self.filter(character=character, timestamp__lt=cutoff_datetime).delete()
 
-        if force_update or character.has_section_changed(
-            section=character.UpdateSection.MAILS, content=mail_headers
-        ):
-            self._preload_mail_senders(character=character, mail_headers=mail_headers)
-            with transaction.atomic():
-                incoming_ids = set(mail_headers.keys())
-                existing_ids = set(
-                    self.filter(character=character).values_list("mail_id", flat=True)
-                )
-                create_ids = incoming_ids.difference(existing_ids)
-                if create_ids:
-                    self._create_mail_headers(
-                        character=character,
-                        mail_headers=mail_headers,
-                        create_ids=create_ids,
-                    )
+        # if force_update or character.has_section_changed(
+            # section=character.UpdateSection.MAILS, content=mail_headers
+        # ):
+            # self._preload_mail_senders(character=character, mail_headers=mail_headers)
+            # with transaction.atomic():
+                # incoming_ids = set(mail_headers.keys())
+                # existing_ids = set(
+                    # self.filter(character=character).values_list("mail_id", flat=True)
+                # )
+                # create_ids = incoming_ids.difference(existing_ids)
+                # if create_ids:
+                    # self._create_mail_headers(
+                        # character=character,
+                        # mail_headers=mail_headers,
+                        # create_ids=create_ids,
+                    # )
 
-                update_ids = incoming_ids.difference(create_ids)
-                if update_ids:
-                    self._update_mail_headers(
-                        character=character,
-                        mail_headers=mail_headers,
-                        update_ids=update_ids,
-                    )
+                # update_ids = incoming_ids.difference(create_ids)
+                # if update_ids:
+                    # self._update_mail_headers(
+                        # character=character,
+                        # mail_headers=mail_headers,
+                        # update_ids=update_ids,
+                    # )
 
-                if not create_ids and not update_ids:
-                    logger.info("%s: No mails", character)
+                # if not create_ids and not update_ids:
+                    # logger.info("%s: No mails", character)
 
-            character.update_section_content_hash(
-                section=character.UpdateSection.MAILS, content=mail_headers
-            )
+            # character.update_section_content_hash(
+                # section=character.UpdateSection.MAILS, content=mail_headers
+            # )
 
-        else:
-            logger.info("%s: Mails have not changed", character)
+        # else:
+            # logger.info("%s: Mails have not changed", character)
 
-    def _preload_mail_senders(self, character, mail_headers):
-        from ..models import MailEntity
+    # def _preload_mail_senders(self, character, mail_headers):
+        # from ..models import MailEntity
 
-        incoming_ids = set(mail_headers.keys())
-        existing_ids = set(
-            self.filter(character=character).values_list("mail_id", flat=True)
-        )
-        create_ids = incoming_ids.difference(existing_ids)
-        if create_ids:
-            new_mail_headers_list = character._headers_list_subset(
-                mail_headers, create_ids
-            )
-            for mail_id, header in new_mail_headers_list.items():
-                MailEntity.objects.get_or_create_esi_async(header.get("from"))
+        # incoming_ids = set(mail_headers.keys())
+        # existing_ids = set(
+            # self.filter(character=character).values_list("mail_id", flat=True)
+        # )
+        # create_ids = incoming_ids.difference(existing_ids)
+        # if create_ids:
+            # new_mail_headers_list = character._headers_list_subset(
+                # mail_headers, create_ids
+            # )
+            # for mail_id, header in new_mail_headers_list.items():
+                # MailEntity.objects.get_or_create_esi_async(header.get("from"))
 
-    def _create_mail_headers(self, character, mail_headers: dict, create_ids) -> None:
-        from ..models import MailEntity
+    # def _create_mail_headers(self, character, mail_headers: dict, create_ids) -> None:
+        # from ..models import MailEntity
 
-        logger.info("%s: Create %s new mail headers", character, len(create_ids))
-        new_mail_headers_list = character._headers_list_subset(mail_headers, create_ids)
-        self._add_missing_mailing_lists_from_recipients(
-            character=character, new_mail_headers_list=new_mail_headers_list
-        )
+        # logger.info("%s: Create %s new mail headers", character, len(create_ids))
+        # new_mail_headers_list = character._headers_list_subset(mail_headers, create_ids)
+        # self._add_missing_mailing_lists_from_recipients(
+            # character=character, new_mail_headers_list=new_mail_headers_list
+        # )
 
-        # create headers
-        new_headers = list()
-        for mail_id, header in new_mail_headers_list.items():
-            new_headers.append(
-                self.model(
-                    character=character,
-                    mail_id=mail_id,
-                    sender=get_or_none("from", header, MailEntity),
-                    is_read=bool(header.get("is_read")),
-                    subject=header.get("subject", ""),
-                    timestamp=header.get("timestamp"),
-                )
-            )
+        # # create headers
+        # new_headers = list()
+        # for mail_id, header in new_mail_headers_list.items():
+            # new_headers.append(
+                # self.model(
+                    # character=character,
+                    # mail_id=mail_id,
+                    # sender=get_or_none("from", header, MailEntity),
+                    # is_read=bool(header.get("is_read")),
+                    # subject=header.get("subject", ""),
+                    # timestamp=header.get("timestamp"),
+                # )
+            # )
 
-        self.bulk_create(new_headers, batch_size=MEMBERAUDIT_BULK_METHODS_BATCH_SIZE)
+        # self.bulk_create(new_headers, batch_size=MEMBERAUDIT_BULK_METHODS_BATCH_SIZE)
 
-        # add recipients and labels
-        labels = character.mail_labels.get_all_labels()
-        for mail_id, header in new_mail_headers_list.items():
-            mail_obj = self.filter(character=character).get(mail_id=mail_id)
-            recipients = list()
-            recipient_type_map = {
-                "alliance": MailEntity.Category.ALLIANCE,
-                "character": MailEntity.Category.CHARACTER,
-                "corporation": MailEntity.Category.CORPORATION,
-                "mailing_list": MailEntity.Category.MAILING_LIST,
-            }
-            for recipient_info in header.get("recipients"):
-                recipient, _ = MailEntity.objects.get_or_create(
-                    id=recipient_info.get("recipient_id"),
-                    defaults={
-                        "category": recipient_type_map[
-                            recipient_info.get("recipient_type")
-                        ]
-                    },
-                )
-                recipients.append(recipient)
+        # # add recipients and labels
+        # labels = character.mail_labels.get_all_labels()
+        # for mail_id, header in new_mail_headers_list.items():
+            # mail_obj = self.filter(character=character).get(mail_id=mail_id)
+            # recipients = list()
+            # recipient_type_map = {
+                # "alliance": MailEntity.Category.ALLIANCE,
+                # "character": MailEntity.Category.CHARACTER,
+                # "corporation": MailEntity.Category.CORPORATION,
+                # "mailing_list": MailEntity.Category.MAILING_LIST,
+            # }
+            # for recipient_info in header.get("recipients"):
+                # recipient, _ = MailEntity.objects.get_or_create(
+                    # id=recipient_info.get("recipient_id"),
+                    # defaults={
+                        # "category": recipient_type_map[
+                            # recipient_info.get("recipient_type")
+                        # ]
+                    # },
+                # )
+                # recipients.append(recipient)
 
-            mail_obj.recipients.set(recipients, clear=True)
-            MailEntity.objects.bulk_update_names(recipients, keep_names=True)
-            self._update_labels_of_mail(
-                character=character,
-                mail=mail_obj,
-                label_ids=header.get("labels"),
-                labels=labels,
-            )
+            # mail_obj.recipients.set(recipients, clear=True)
+            # MailEntity.objects.bulk_update_names(recipients, keep_names=True)
+            # self._update_labels_of_mail(
+                # character=character,
+                # mail=mail_obj,
+                # label_ids=header.get("labels"),
+                # labels=labels,
+            # )
 
-    def _add_missing_mailing_lists_from_recipients(
-        self, character, new_mail_headers_list
-    ):
-        """Add mailing lists from recipients that are not part of the known
-        mailing lists"""
-        from ..models import MailEntity
+    # def _add_missing_mailing_lists_from_recipients(
+        # self, character, new_mail_headers_list
+    # ):
+        # """Add mailing lists from recipients that are not part of the known
+        # mailing lists"""
+        # from ..models import MailEntity
 
-        incoming_ids = set()
-        for header in new_mail_headers_list.values():
-            for recipient in header.get("recipients"):
-                if recipient.get("recipient_type") == "mailing_list":
-                    incoming_ids.add(recipient.get("recipient_id"))
+        # incoming_ids = set()
+        # for header in new_mail_headers_list.values():
+            # for recipient in header.get("recipients"):
+                # if recipient.get("recipient_type") == "mailing_list":
+                    # incoming_ids.add(recipient.get("recipient_id"))
 
-        existing_ids = set(
-            MailEntity.objects.filter(
-                category=MailEntity.Category.MAILING_LIST
-            ).values_list("id", flat=True)
-        )
-        create_ids = incoming_ids.difference(existing_ids)
-        if create_ids:
-            logger.info(
-                "%s: Adding %s unknown mailing lists from recipients",
-                character,
-                len(create_ids),
-            )
-            for list_id in create_ids:
-                MailEntity.objects.get_or_create(
-                    id=list_id, defaults={"category": MailEntity.Category.MAILING_LIST}
-                )
+        # existing_ids = set(
+            # MailEntity.objects.filter(
+                # category=MailEntity.Category.MAILING_LIST
+            # ).values_list("id", flat=True)
+        # )
+        # create_ids = incoming_ids.difference(existing_ids)
+        # if create_ids:
+            # logger.info(
+                # "%s: Adding %s unknown mailing lists from recipients",
+                # character,
+                # len(create_ids),
+            # )
+            # for list_id in create_ids:
+                # MailEntity.objects.get_or_create(
+                    # id=list_id, defaults={"category": MailEntity.Category.MAILING_LIST}
+                # )
 
-    def _update_labels_of_mail(
-        self, character, mail: models.Model, label_ids: List[int], labels: list
-    ) -> None:
-        """Updates the labels of a mail object from a dict"""
-        mail.labels.clear()
-        if label_ids:
-            labels_to_add = list()
-            for label_id in label_ids:
-                try:
-                    labels_to_add.append(labels[label_id])
-                except KeyError:
-                    logger.info(
-                        "%s: Unknown mail label with ID %s for mail %s",
-                        character,
-                        label_id,
-                        mail,
-                    )
+    # def _update_labels_of_mail(
+        # self, character, mail: models.Model, label_ids: List[int], labels: list
+    # ) -> None:
+        # """Updates the labels of a mail object from a dict"""
+        # mail.labels.clear()
+        # if label_ids:
+            # labels_to_add = list()
+            # for label_id in label_ids:
+                # try:
+                    # labels_to_add.append(labels[label_id])
+                # except KeyError:
+                    # logger.info(
+                        # "%s: Unknown mail label with ID %s for mail %s",
+                        # character,
+                        # label_id,
+                        # mail,
+                    # )
 
-            mail.labels.add(*labels_to_add)
+            # mail.labels.add(*labels_to_add)
 
-    def _update_mail_headers(self, character, mail_headers: dict, update_ids) -> None:
-        logger.info("%s: Updating %s mail headers", character, len(update_ids))
-        mail_pks = self.filter(character=character, mail_id__in=update_ids).values_list(
-            "pk", flat=True
-        )
-        labels = character.mail_labels.get_all_labels()
-        mails = self.in_bulk(mail_pks)
-        for mail in mails.values():
-            mail_header = mail_headers.get(mail.mail_id)
-            if mail_header:
-                mail.is_read = bool(mail_header.get("is_read"))
-                self._update_labels_of_mail(
-                    character=character,
-                    mail=mail,
-                    label_ids=mail_header.get("labels"),
-                    labels=labels,
-                )
+    # def _update_mail_headers(self, character, mail_headers: dict, update_ids) -> None:
+        # logger.info("%s: Updating %s mail headers", character, len(update_ids))
+        # mail_pks = self.filter(character=character, mail_id__in=update_ids).values_list(
+            # "pk", flat=True
+        # )
+        # labels = character.mail_labels.get_all_labels()
+        # mails = self.in_bulk(mail_pks)
+        # for mail in mails.values():
+            # mail_header = mail_headers.get(mail.mail_id)
+            # if mail_header:
+                # mail.is_read = bool(mail_header.get("is_read"))
+                # self._update_labels_of_mail(
+                    # character=character,
+                    # mail=mail,
+                    # label_ids=mail_header.get("labels"),
+                    # labels=labels,
+                # )
 
-        self.bulk_update(mails.values(), ["is_read"])
+        # self.bulk_update(mails.values(), ["is_read"])
 
 
-class CharacterMailLabelManager(models.Manager):
-    def get_all_labels(self) -> Dict[int, models.Model]:
-        """Returns all label objects as dict by label_id"""
-        label_pks = self.values_list("pk", flat=True)
-        return {label.label_id: label for label in self.in_bulk(label_pks).values()}
+# class CharacterMailLabelManager(models.Manager):
+    # def get_all_labels(self) -> Dict[int, models.Model]:
+        # """Returns all label objects as dict by label_id"""
+        # label_pks = self.values_list("pk", flat=True)
+        # return {label.label_id: label for label in self.in_bulk(label_pks).values()}
 
-    @transaction.atomic()
-    def update_for_character(self, character: models.Model, mail_labels_list: dict):
-        logger.info("%s: Storing %s mail labels", character, len(mail_labels_list))
-        incoming_ids = set(mail_labels_list.keys())
-        existing_ids = set(
-            self.filter(character=character).values_list("label_id", flat=True)
-        )
-        obsolete_ids = existing_ids.difference(incoming_ids)
-        if obsolete_ids:
-            self.filter(character=character, label_id__in=obsolete_ids).delete()
+    # @transaction.atomic()
+    # def update_for_character(self, character: models.Model, mail_labels_list: dict):
+        # logger.info("%s: Storing %s mail labels", character, len(mail_labels_list))
+        # incoming_ids = set(mail_labels_list.keys())
+        # existing_ids = set(
+            # self.filter(character=character).values_list("label_id", flat=True)
+        # )
+        # obsolete_ids = existing_ids.difference(incoming_ids)
+        # if obsolete_ids:
+            # self.filter(character=character, label_id__in=obsolete_ids).delete()
 
-        create_ids = incoming_ids.difference(existing_ids)
-        if create_ids:
-            self._create_new_mail_labels(
-                character=character,
-                mail_labels_list=mail_labels_list,
-                label_ids=create_ids,
-            )
+        # create_ids = incoming_ids.difference(existing_ids)
+        # if create_ids:
+            # self._create_new_mail_labels(
+                # character=character,
+                # mail_labels_list=mail_labels_list,
+                # label_ids=create_ids,
+            # )
 
-        update_ids = incoming_ids.difference(create_ids)
-        if update_ids:
-            self._update_existing_mail_labels(
-                character=character,
-                mail_labels_list=mail_labels_list,
-                label_ids=update_ids,
-            )
+        # update_ids = incoming_ids.difference(create_ids)
+        # if update_ids:
+            # self._update_existing_mail_labels(
+                # character=character,
+                # mail_labels_list=mail_labels_list,
+                # label_ids=update_ids,
+            # )
 
-    def _create_new_mail_labels(
-        self, character, mail_labels_list: dict, label_ids: set
-    ):
-        new_labels = [
-            self.model(
-                character=character,
-                label_id=label.get("label_id"),
-                color=label.get("color"),
-                name=label.get("name"),
-                unread_count=label.get("unread_count"),
-            )
-            for label_id, label in mail_labels_list.items()
-            if label_id in label_ids
-        ]
-        self.bulk_create(new_labels, batch_size=MEMBERAUDIT_BULK_METHODS_BATCH_SIZE)
+    # def _create_new_mail_labels(
+        # self, character, mail_labels_list: dict, label_ids: set
+    # ):
+        # new_labels = [
+            # self.model(
+                # character=character,
+                # label_id=label.get("label_id"),
+                # color=label.get("color"),
+                # name=label.get("name"),
+                # unread_count=label.get("unread_count"),
+            # )
+            # for label_id, label in mail_labels_list.items()
+            # if label_id in label_ids
+        # ]
+        # self.bulk_create(new_labels, batch_size=MEMBERAUDIT_BULK_METHODS_BATCH_SIZE)
 
-    def _update_existing_mail_labels(
-        self, character, mail_labels_list: dict, label_ids: set
-    ):
-        logger.info("%s: Updating %s mail labels", character, len(label_ids))
-        update_pks = list(
-            self.filter(character=character, label_id__in=label_ids).values_list(
-                "pk", flat=True
-            )
-        )
-        labels = self.in_bulk(update_pks)
-        for label in labels.values():
-            record = mail_labels_list.get(label.label_id)
-            if record:
-                label.name = record.get("name")
-                label.color = record.get("color")
-                label.unread_count = record.get("unread_count")
+    # def _update_existing_mail_labels(
+        # self, character, mail_labels_list: dict, label_ids: set
+    # ):
+        # logger.info("%s: Updating %s mail labels", character, len(label_ids))
+        # update_pks = list(
+            # self.filter(character=character, label_id__in=label_ids).values_list(
+                # "pk", flat=True
+            # )
+        # )
+        # labels = self.in_bulk(update_pks)
+        # for label in labels.values():
+            # record = mail_labels_list.get(label.label_id)
+            # if record:
+                # label.name = record.get("name")
+                # label.color = record.get("color")
+                # label.unread_count = record.get("unread_count")
 
-        self.bulk_update(
-            labels.values(),
-            fields=["name", "color", "unread_count"],
-            batch_size=MEMBERAUDIT_BULK_METHODS_BATCH_SIZE,
-        )
+        # self.bulk_update(
+            # labels.values(),
+            # fields=["name", "color", "unread_count"],
+            # batch_size=MEMBERAUDIT_BULK_METHODS_BATCH_SIZE,
+        # )
 
 
 class CharacterMiningLedgerEntryQueryset(models.QuerySet):

@@ -159,7 +159,7 @@ class CharacterAdmin(admin.ModelAdmin):
         "eve_character__character_ownership__user__profile__main_character__corporation_name",
         "eve_character__character_ownership__user__profile__main_character__alliance_name",
     ]
-    exclude = ("mailing_lists",)
+    # exclude = ("mailing_lists",)
 
     def get_queryset(self, *args, **kwargs):
         qs = super().get_queryset(*args, **kwargs)

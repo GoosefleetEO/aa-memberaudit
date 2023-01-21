@@ -34,7 +34,7 @@
                         {% include 'memberaudit/partials/character_viewer/tabs/implants.html' %}
                         {% include 'memberaudit/partials/character_viewer/tabs/jump_clones.html' %}
                         {% include 'memberaudit/partials/character_viewer/tabs/loyalty.html' %}
-                        {% include 'memberaudit/partials/character_viewer/tabs/mails.html' %}
+                        
                         {% include 'memberaudit/partials/character_viewer/tabs/mining_ledger.html' %}
                         {% include 'memberaudit/partials/character_viewer/tabs/skills.html' %}
                         {% include 'memberaudit/partials/character_viewer/tabs/skill_queue.html' %}
@@ -118,7 +118,7 @@
         }
         else {
             tabId = getCookie(COOKIE_LAST_TAB_ID)
-            if (tabId == "") tabId = "mail"
+            if (tabId == "") tabId = "contract"
         }
         $('a[href="#' + tabId + '"]').tab("show")
 
@@ -453,95 +453,6 @@
                 bootstrap: true
             },
         });
-
-        /* Mails */
-        let table = $('#tab_mails').DataTable({
-            ajax: {
-                url: "{% url 'memberaudit:character_mail_headers_by_label_data' character.pk 1 %}",
-                dataSrc: 'data',
-                cache: true
-            },
-            columns: [
-                {
-                    data: 'sent',
-                    render: $.fn.dataTable.render.momentUTC(moment.ISO_8601, DATETIME_FORMAT)
-                },
-                { data: 'from' },
-                { data: 'to' },
-                { data: 'subject' },
-                { data: 'action' },
-            ],
-            order: [[0, "desc"]],
-            columnDefs: [
-                { "orderable": false, "targets": [4] }
-            ],
-            createdRow: function (row, data, dataIndex) {
-                if (!data['is_read']) {
-                    $(row).addClass('info');
-                }
-            }
-        });
-
-        /* Show mails when AJAX loading has finished */
-        table.on('xhr', function () {
-            table.columns.adjust().draw();
-            $("#div_mails_loader").hide();
-            $("#div_mails_main").show();
-        });
-
-        /* reload mails when a label is selected*/
-        $(".pillMailLabel").on("click", function (event) {
-            const element = $(event.currentTarget);
-            const labelId = element.data('label-id');
-            const listId = element.data('list-id');
-
-            // remove active class from all pills
-            // and make current pill active
-            $(".pillMailLabel").removeClass("active");
-            element.addClass("active");
-
-            // reactive loader
-            $("#div_mails_main").hide();
-            $("#div_mails_loader").show();
-
-            // reload data table for selected label
-            if (listId != undefined) {
-                var url2 = "{% url 'memberaudit:character_mail_headers_by_list_data' character.pk 0 %}".replace("/0/", "/" + listId + "/");
-            }
-            else {
-                var url2 = "{% url 'memberaudit:character_mail_headers_by_label_data' character.pk 0 %}".replace("/0/", "/" + labelId + "/");
-            }
-            table.ajax.url(url2).load();
-
-        });
-
-        $('#modalCharacterMail').on('show.bs.modal', function (event) {
-            const button = $(event.relatedTarget)
-            const ajax_url = button.data('ajax_url');
-            const modal = $(this);
-
-            // reactive loader
-            modal.find("#div_mail_body_main").hide();
-            modal.find("#div_mail_body_loader").show();
-
-            $('#div_mail_body_main').load(
-                ajax_url,
-                function (response, status, xhr) {
-                    // disable loader
-                    modal.find("#div_mail_body_loader").hide();
-                    modal.find("#div_mail_body_main").show();
-                    if ( status == "error" ) {
-                        $("#div_mail_body_main").html(
-                            '<p class="text-danger">'
-                            + 'Sorry but there was an error: '
-                            + xhr.status
-                            + ' '
-                            + xhr.statusText
-                            + '</p>'
-                        );
-                    }
-                });
-        })
 
         /* Skillqueue */
         $('#tab_skillqueue').DataTable({

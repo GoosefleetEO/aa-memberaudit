@@ -386,67 +386,67 @@ class SkillSetSkill(models.Model):
         return f"{self.eve_type.name} {level_str}"
 
 
-class MailEntity(models.Model):
-    """A sender or recipient in a mail"""
+# class MailEntity(models.Model):
+    # """A sender or recipient in a mail"""
 
-    class Category(models.TextChoices):
-        ALLIANCE = "AL", _("Alliance")
-        CHARACTER = "CH", _("Character")
-        CORPORATION = "CO", _("Corporation")
-        MAILING_LIST = "ML", _("Mailing List")
-        UNKNOWN = "UN", _("Unknown")
+    # class Category(models.TextChoices):
+        # ALLIANCE = "AL", _("Alliance")
+        # CHARACTER = "CH", _("Character")
+        # CORPORATION = "CO", _("Corporation")
+        # MAILING_LIST = "ML", _("Mailing List")
+        # UNKNOWN = "UN", _("Unknown")
 
-        @classmethod
-        def eve_entity_compatible(cls) -> set:
-            return {cls.ALLIANCE, cls.CHARACTER, cls.CORPORATION}
+        # @classmethod
+        # def eve_entity_compatible(cls) -> set:
+            # return {cls.ALLIANCE, cls.CHARACTER, cls.CORPORATION}
 
-    id = models.PositiveIntegerField(primary_key=True)
-    category = models.CharField(
-        max_length=2, choices=Category.choices, db_index=True
-    )  # mandatory
-    name = models.CharField(max_length=255, db_index=True)  # optional
+    # id = models.PositiveIntegerField(primary_key=True)
+    # category = models.CharField(
+        # max_length=2, choices=Category.choices, db_index=True
+    # )  # mandatory
+    # name = models.CharField(max_length=255, db_index=True)  # optional
 
-    objects = MailEntityManager()
+    # objects = MailEntityManager()
 
-    def __str__(self) -> str:
-        return self.name
+    # def __str__(self) -> str:
+        # return self.name
 
-    def __repr__(self) -> str:
-        return (
-            f"{type(self).__name__}(id={self.id}, category={self.category}, "
-            f"name='{self.name}')"
-        )
+    # def __repr__(self) -> str:
+        # return (
+            # f"{type(self).__name__}(id={self.id}, category={self.category}, "
+            # f"name='{self.name}')"
+        # )
 
-    @property
-    def name_plus(self) -> str:
-        """returns the name if defined or a generatic name based on category and ID"""
-        return self.name if self.name else f"{self.get_category_display()} #{self.id}"
+    # @property
+    # def name_plus(self) -> str:
+        # """returns the name if defined or a generatic name based on category and ID"""
+        # return self.name if self.name else f"{self.get_category_display()} #{self.id}"
 
-    @property
-    def eve_entity_categories(self) -> set:
-        """categories which also exist for EveEntity"""
-        return {
-            self.Category.ALLIANCE,
-            self.Category.CHARACTER,
-            self.Category.CORPORATION,
-        }
+    # @property
+    # def eve_entity_categories(self) -> set:
+        # """categories which also exist for EveEntity"""
+        # return {
+            # self.Category.ALLIANCE,
+            # self.Category.CHARACTER,
+            # self.Category.CORPORATION,
+        # }
 
-    def save(self, *args, **kwargs):
-        if not self.category:
-            raise ValidationError("You must specify a category")
+    # def save(self, *args, **kwargs):
+        # if not self.category:
+            # raise ValidationError("You must specify a category")
 
-        super().save(*args, **kwargs)
+        # super().save(*args, **kwargs)
 
-    def external_url(self) -> str:
-        """returns URL for to show details of this entity on external website"""
-        if self.category == self.Category.ALLIANCE and self.name:
-            return dotlan.alliance_url(self.name)
+    # def external_url(self) -> str:
+        # """returns URL for to show details of this entity on external website"""
+        # if self.category == self.Category.ALLIANCE and self.name:
+            # return dotlan.alliance_url(self.name)
 
-        elif self.category == self.Category.CHARACTER:
-            return evewho.character_url(self.id)
+        # elif self.category == self.Category.CHARACTER:
+            # return evewho.character_url(self.id)
 
-        elif self.category == self.Category.CORPORATION and self.name:
-            return dotlan.corporation_url(self.name)
+        # elif self.category == self.Category.CORPORATION and self.name:
+            # return dotlan.corporation_url(self.name)
 
-        else:
-            return ""
+        # else:
+            # return ""

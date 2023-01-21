@@ -111,7 +111,7 @@ class CharacterUpdateStatusManager(models.Manager):
             CharacterAsset,
             CharacterContact,
             CharacterContract,
-            CharacterMail,
+            # CharacterMail,
             SkillSet,
             SkillSetGroup,
         )
@@ -268,7 +268,7 @@ class CharacterUpdateStatusManager(models.Manager):
                 "skill_set_groups_count": SkillSetGroup.objects.count(),
                 "skill_sets_count": SkillSet.objects.count(),
                 "assets_count": CharacterAsset.objects.count(),
-                "mails_count": CharacterMail.objects.count(),
+                # "mails_count": CharacterMail.objects.count(),
                 "contacts_count": CharacterContact.objects.count(),
                 "contracts_count": CharacterContract.objects.count(),
             },

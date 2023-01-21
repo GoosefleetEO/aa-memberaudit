@@ -7,7 +7,7 @@ from allianceauth.authentication.models import CharacterOwnership
 from app_utils.logging import LoggerAddTag
 
 from ... import __title__
-from ...models import Character, Location, MailEntity
+from ...models import Character, Location # MailEntity
 from ...tasks import update_all_characters
 from . import get_input
 
@@ -49,7 +49,7 @@ class Command(BaseCommand):
         self.stdout.write("ATTENTION!")
         self.stdout.write(
             "- ESI does not provide for historical data, "
-            "so you will loose data like older mails and wallet journal entries. "
+            "so you will loose data like older wallet journal entries. "
         )
         self.stdout.write(
             "- Also, all characters will be reset, e.g. sharing will be turned off."

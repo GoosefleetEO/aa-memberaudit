@@ -48,8 +48,8 @@ MEMBERAUDIT_LOG_UPDATE_STATS = clean_setting("MEMBERAUDIT_LOG_UPDATE_STATS", Fal
 The update stats include the measures durations from the last run per round and section.
 """
 
-MEMBERAUDIT_MAX_MAILS = clean_setting("MEMBERAUDIT_MAX_MAILS", 250)
-"""Maximum amount of mails fetched from ESI for each character."""
+# MEMBERAUDIT_MAX_MAILS = clean_setting("MEMBERAUDIT_MAX_MAILS", 250)
+# """Maximum amount of mails fetched from ESI for each character."""
 
 
 MEMBERAUDIT_TASKS_MAX_ASSETS_PER_PASS = clean_setting(

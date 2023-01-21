@@ -28,20 +28,20 @@ from .. import __title__
 from ..constants import (
     DATETIME_FORMAT,
     DEFAULT_ICON_SIZE,
-    MAIL_LABEL_ID_ALL_MAILS,
+#    MAIL_LABEL_ID_ALL_MAILS,
     MAP_ARABIC_TO_ROMAN_NUMBERS,
     MY_DATETIME_FORMAT,
     SKILL_SET_DEFAULT_ICON_TYPE_ID,
     EveDogmaAttributeId,
 )
 from ..decorators import fetch_character_if_allowed
-from ..models import Character, CharacterMail, SkillSet, SkillSetSkill
+from ..models import Character, SkillSet, SkillSetSkill
 from ._common import UNGROUPED_SKILL_SET, eve_solar_system_to_html
 
 logger = LoggerAddTag(get_extension_logger(__name__), __title__)
 
 ICON_SIZE_64 = 64
-CHARACTER_VIEWER_DEFAULT_TAB = "mails"
+CHARACTER_VIEWER_DEFAULT_TAB = "contracts"
 
 ICON_FAILED = "fas fa-times boolean-icon-false"
 ICON_PARTIAL = "fas fa-check text-warning"
@@ -120,108 +120,108 @@ def character_jump_clones_data(
     return JsonResponse({"data": data})
 
 
-def _character_mail_headers_data(request, character, mail_headers_qs) -> JsonResponse:
-    mails_data = list()
-    try:
-        for mail in mail_headers_qs.select_related("sender").prefetch_related(
-            "recipients"
-        ):
-            mail_ajax_url = reverse(
-                "memberaudit:character_mail", args=[character.pk, mail.pk]
-            )
-            if mail.body:
-                actions_html = (
-                    '<button type="button" class="btn btn-primary" '
-                    'data-toggle="modal" data-target="#modalCharacterMail" '
-                    f"data-ajax_url={mail_ajax_url}>"
-                    '<i class="fas fa-search"></i></button>'
-                )
-            else:
-                actions_html = ""
+# def _character_mail_headers_data(request, character, mail_headers_qs) -> JsonResponse:
+    # mails_data = list()
+    # try:
+        # for mail in mail_headers_qs.select_related("sender").prefetch_related(
+            # "recipients"
+        # ):
+            # mail_ajax_url = reverse(
+                # "memberaudit:character_mail", args=[character.pk, mail.pk]
+            # )
+            # if mail.body:
+                # actions_html = (
+                    # '<button type="button" class="btn btn-primary" '
+                    # 'data-toggle="modal" data-target="#modalCharacterMail" '
+                    # f"data-ajax_url={mail_ajax_url}>"
+                    # '<i class="fas fa-search"></i></button>'
+                # )
+            # else:
+                # actions_html = ""
 
-            mails_data.append(
-                {
-                    "mail_id": mail.mail_id,
-                    "from": mail.sender.name_plus,
-                    "to": ", ".join(
-                        sorted([obj.name_plus for obj in mail.recipients.all()])
-                    ),
-                    "subject": mail.subject,
-                    "sent": mail.timestamp.isoformat(),
-                    "action": actions_html,
-                    "is_read": mail.is_read,
-                    "is_unread_str": yesno_str(mail.is_read is False),
-                }
-            )
-    except ObjectDoesNotExist:
-        pass
+            # mails_data.append(
+                # {
+                    # "mail_id": mail.mail_id,
+                    # "from": mail.sender.name_plus,
+                    # "to": ", ".join(
+                        # sorted([obj.name_plus for obj in mail.recipients.all()])
+                    # ),
+                    # "subject": mail.subject,
+                    # "sent": mail.timestamp.isoformat(),
+                    # "action": actions_html,
+                    # "is_read": mail.is_read,
+                    # "is_unread_str": yesno_str(mail.is_read is False),
+                # }
+            # )
+    # except ObjectDoesNotExist:
+        # pass
 
-    return JsonResponse({"data": mails_data})
-
-
-@login_required
-@permission_required("memberaudit.basic_access")
-@fetch_character_if_allowed()
-def character_mail_headers_by_label_data(
-    request, character_pk: int, character: Character, label_id: int
-) -> JsonResponse:
-    if label_id == MAIL_LABEL_ID_ALL_MAILS:
-        mail_headers_qs = character.mails.all()
-    else:
-        mail_headers_qs = character.mails.filter(labels__label_id=label_id)
-
-    return _character_mail_headers_data(request, character, mail_headers_qs)
+    # return JsonResponse({"data": mails_data})
 
 
-@login_required
-@permission_required("memberaudit.basic_access")
-@fetch_character_if_allowed()
-def character_mail_headers_by_list_data(
-    request, character_pk: int, character: Character, list_id: int
-) -> JsonResponse:
-    mail_headers_qs = character.mails.filter(recipients__id=list_id)
-    return _character_mail_headers_data(request, character, mail_headers_qs)
+# @login_required
+# @permission_required("memberaudit.basic_access")
+# @fetch_character_if_allowed()
+# def character_mail_headers_by_label_data(
+    # request, character_pk: int, character: Character, label_id: int
+# ) -> JsonResponse:
+    # if label_id == MAIL_LABEL_ID_ALL_MAILS:
+        # mail_headers_qs = character.mails.all()
+    # else:
+        # mail_headers_qs = character.mails.filter(labels__label_id=label_id)
+
+    # return _character_mail_headers_data(request, character, mail_headers_qs)
 
 
-@login_required
-@permission_required("memberaudit.basic_access")
-@fetch_character_if_allowed()
-def character_mail(
-    request, character_pk: int, character: Character, mail_pk: int
-) -> JsonResponse:
-    try:
-        mail = (
-            character.mails.select_related("sender")
-            .prefetch_related("recipients")
-            .get(pk=mail_pk)
-        )
-    except CharacterMail.DoesNotExist:
-        error_msg = f"Mail with pk {mail_pk} not found for character {character}"
-        logger.warning(error_msg)
-        return HttpResponseNotFound(error_msg)
-    recipients = sorted(
-        [
-            {
-                "name": obj.name_plus,
-                "link": link_html(obj.external_url(), obj.name_plus),
-            }
-            for obj in mail.recipients.all()
-        ],
-        key=lambda k: k["name"],
-    )
-    context = {
-        "mail_id": mail.mail_id,
-        "labels": list(mail.labels.values_list("label_id", flat=True)),
-        "sender": link_html(mail.sender.external_url(), mail.sender.name_plus),
-        "recipients": format_html(", ".join([obj["link"] for obj in recipients])),
-        "subject": mail.subject,
-        "timestamp": mail.timestamp,
-        "body": mail.body_html if mail.body else None,
-        "MY_DATETIME_FORMAT": MY_DATETIME_FORMAT,
-    }
-    return render(
-        request, "memberaudit/modals/character_viewer/mail_content.html", context
-    )
+# @login_required
+# @permission_required("memberaudit.basic_access")
+# @fetch_character_if_allowed()
+# def character_mail_headers_by_list_data(
+    # request, character_pk: int, character: Character, list_id: int
+# ) -> JsonResponse:
+    # mail_headers_qs = character.mails.filter(recipients__id=list_id)
+    # return _character_mail_headers_data(request, character, mail_headers_qs)
+
+
+# @login_required
+# @permission_required("memberaudit.basic_access")
+# @fetch_character_if_allowed()
+# def character_mail(
+    # request, character_pk: int, character: Character, mail_pk: int
+# ) -> JsonResponse:
+    # try:
+        # mail = (
+            # character.mails.select_related("sender")
+            # .prefetch_related("recipients")
+            # .get(pk=mail_pk)
+        # )
+    # except CharacterMail.DoesNotExist:
+        # error_msg = f"Mail with pk {mail_pk} not found for character {character}"
+        # logger.warning(error_msg)
+        # return HttpResponseNotFound(error_msg)
+    # recipients = sorted(
+        # [
+            # {
+                # "name": obj.name_plus,
+                # "link": link_html(obj.external_url(), obj.name_plus),
+            # }
+            # for obj in mail.recipients.all()
+        # ],
+        # key=lambda k: k["name"],
+    # )
+    # context = {
+        # "mail_id": mail.mail_id,
+        # "labels": list(mail.labels.values_list("label_id", flat=True)),
+        # "sender": link_html(mail.sender.external_url(), mail.sender.name_plus),
+        # "recipients": format_html(", ".join([obj["link"] for obj in recipients])),
+        # "subject": mail.subject,
+        # "timestamp": mail.timestamp,
+        # "body": mail.body_html if mail.body else None,
+        # "MY_DATETIME_FORMAT": MY_DATETIME_FORMAT,
+    # }
+    # return render(
+        # request, "memberaudit/modals/character_viewer/mail_content.html", context
+    # )
 
 
 @login_required

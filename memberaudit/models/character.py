@@ -34,7 +34,7 @@ from ..app_settings import (
     MEMBERAUDIT_APP_NAME,
     MEMBERAUDIT_DATA_RETENTION_LIMIT,
     MEMBERAUDIT_DEVELOPER_MODE,
-    MEMBERAUDIT_MAX_MAILS,
+#    MEMBERAUDIT_MAX_MAILS,
     MEMBERAUDIT_UPDATE_STALE_OFFSET,
     MEMBERAUDIT_UPDATE_STALE_RING_1,
     MEMBERAUDIT_UPDATE_STALE_RING_2,
@@ -75,7 +75,7 @@ class Character(models.Model):
         JUMP_CLONES = "jump_clones", _("jump clones")
         LOCATION = "location", _("location")
         LOYALTY = "loyalty", _("loyalty")
-        MAILS = "mails", _("mails")
+#        MAILS = "mails", _("mails")
         MINING_LEDGER = "mining_ledger", _("mining ledger")
         ONLINE_STATUS = "online_status", _("online status")
         SHIP = "ship", _("ship")
@@ -123,7 +123,7 @@ class Character(models.Model):
         UpdateSection.JUMP_CLONES: 2,
         UpdateSection.LOCATION: 1,
         UpdateSection.LOYALTY: 2,
-        UpdateSection.MAILS: 2,
+#        UpdateSection.MAILS: 2,
         UpdateSection.MINING_LEDGER: 2,
         UpdateSection.ONLINE_STATUS: 1,
         UpdateSection.SHIP: 1,
@@ -725,168 +725,168 @@ class Character(models.Model):
         else:
             logger.info("%s: Jump clones have not changed", self)
 
-    @fetch_token_for_character("esi-mail.read_mail.v1")
-    def update_mailing_lists(self, token: Token, force_update: bool = False):
-        """update mailing lists with input from given character
+    # @fetch_token_for_character("esi-mail.read_mail.v1")
+    # def update_mailing_lists(self, token: Token, force_update: bool = False):
+        # """update mailing lists with input from given character
 
-        Note: Obsolete mailing lists must not be removed,
-        since they might still be referenced by older mails
-        """
-        logger.info("%s: Fetching mailing lists from ESI", self)
-        mailing_lists_raw = esi.client.Mail.get_characters_character_id_mail_lists(
-            character_id=self.eve_character.character_id,
-            token=token.valid_access_token(),
-        ).results()
-        if mailing_lists_raw:
-            mailing_lists = {
-                obj["mailing_list_id"]: obj
-                for obj in mailing_lists_raw
-                if "mailing_list_id" in obj
-            }
-        else:
-            mailing_lists = dict()
+        # Note: Obsolete mailing lists must not be removed,
+        # since they might still be referenced by older mails
+        # """
+        # logger.info("%s: Fetching mailing lists from ESI", self)
+        # mailing_lists_raw = esi.client.Mail.get_characters_character_id_mail_lists(
+            # character_id=self.eve_character.character_id,
+            # token=token.valid_access_token(),
+        # ).results()
+        # if mailing_lists_raw:
+            # mailing_lists = {
+                # obj["mailing_list_id"]: obj
+                # for obj in mailing_lists_raw
+                # if "mailing_list_id" in obj
+            # }
+        # else:
+            # mailing_lists = dict()
 
-        if MEMBERAUDIT_DEVELOPER_MODE:
-            self._store_list_to_disk(mailing_lists, "mailing_lists")
+        # if MEMBERAUDIT_DEVELOPER_MODE:
+            # self._store_list_to_disk(mailing_lists, "mailing_lists")
 
-        # TODO: replace with bulk methods to optimize
+        TODO: replace with bulk methods to optimize
 
-        incoming_ids = set(mailing_lists.keys())
-        # existing_ids = set(self.mailing_lists.values_list("list_id", flat=True))
-        if not incoming_ids:
-            logger.info("%s: No new mailing lists", self)
-            return
+        # incoming_ids = set(mailing_lists.keys())
+        existing_ids = set(self.mailing_lists.values_list("list_id", flat=True))
+        # if not incoming_ids:
+            # logger.info("%s: No new mailing lists", self)
+            # return
 
-        if force_update or self.has_section_changed(
-            section=self.UpdateSection.MAILS, content=mailing_lists, hash_num=2
-        ):
-            new_mailing_lists = self.mailing_lists.update_for_character(
-                character=self, mailing_lists=mailing_lists
-            )
-            self.mailing_lists.set(new_mailing_lists, clear=True)
-            self.update_section_content_hash(
-                section=self.UpdateSection.MAILS, content=mailing_lists, hash_num=2
-            )
+        # if force_update or self.has_section_changed(
+            # section=self.UpdateSection.MAILS, content=mailing_lists, hash_num=2
+        # ):
+            # new_mailing_lists = self.mailing_lists.update_for_character(
+                # character=self, mailing_lists=mailing_lists
+            # )
+            # self.mailing_lists.set(new_mailing_lists, clear=True)
+            # self.update_section_content_hash(
+                # section=self.UpdateSection.MAILS, content=mailing_lists, hash_num=2
+            # )
 
-        else:
-            logger.info("%s: Mailng lists have not changed", self)
+        # else:
+            # logger.info("%s: Mailng lists have not changed", self)
 
-    @fetch_token_for_character("esi-mail.read_mail.v1")
-    def update_mail_labels(self, token: Token, force_update: bool = False):
-        """update the mail lables for the given character"""
-        mail_labels_list = self._fetch_mail_labels_from_esi(token)
-        if not mail_labels_list:
-            logger.info("%s: No mail labels", self)
-            return
+    # @fetch_token_for_character("esi-mail.read_mail.v1")
+    # def update_mail_labels(self, token: Token, force_update: bool = False):
+        # """update the mail lables for the given character"""
+        # mail_labels_list = self._fetch_mail_labels_from_esi(token)
+        # if not mail_labels_list:
+            # logger.info("%s: No mail labels", self)
+            # return
 
-        if force_update or self.has_section_changed(
-            section=self.UpdateSection.MAILS, content=mail_labels_list, hash_num=3
-        ):
-            self.mail_labels.update_for_character(self, mail_labels_list)
-            self.update_section_content_hash(
-                section=self.UpdateSection.MAILS, content=mail_labels_list, hash_num=3
-            )
+        # if force_update or self.has_section_changed(
+            # section=self.UpdateSection.MAILS, content=mail_labels_list, hash_num=3
+        # ):
+            # self.mail_labels.update_for_character(self, mail_labels_list)
+            # self.update_section_content_hash(
+                # section=self.UpdateSection.MAILS, content=mail_labels_list, hash_num=3
+            # )
 
-        else:
-            logger.info("%s: Mail labels have not changed", self)
+        # else:
+            # logger.info("%s: Mail labels have not changed", self)
 
-    def _fetch_mail_labels_from_esi(self, token) -> dict:
-        from .sections import CharacterMailUnreadCount
+    # def _fetch_mail_labels_from_esi(self, token) -> dict:
+        # from .sections import CharacterMailUnreadCount
 
-        logger.info("%s: Fetching mail labels from ESI", self)
-        mail_labels_info = esi.client.Mail.get_characters_character_id_mail_labels(
-            character_id=self.eve_character.character_id,
-            token=token.valid_access_token(),
-        ).results()
-        if MEMBERAUDIT_DEVELOPER_MODE:
-            self._store_list_to_disk(mail_labels_info, "mail_labels")
+        # logger.info("%s: Fetching mail labels from ESI", self)
+        # mail_labels_info = esi.client.Mail.get_characters_character_id_mail_labels(
+            # character_id=self.eve_character.character_id,
+            # token=token.valid_access_token(),
+        # ).results()
+        # if MEMBERAUDIT_DEVELOPER_MODE:
+            # self._store_list_to_disk(mail_labels_info, "mail_labels")
 
-        if mail_labels_info.get("total_unread_count"):
-            CharacterMailUnreadCount.objects.update_or_create(
-                character=self,
-                defaults={"total": mail_labels_info.get("total_unread_count")},
-            )
+        # if mail_labels_info.get("total_unread_count"):
+            # CharacterMailUnreadCount.objects.update_or_create(
+                # character=self,
+                # defaults={"total": mail_labels_info.get("total_unread_count")},
+            # )
 
-        mail_labels = mail_labels_info.get("labels")
-        if mail_labels:
-            return {obj["label_id"]: obj for obj in mail_labels if "label_id" in obj}
-        else:
-            return dict()
+        # mail_labels = mail_labels_info.get("labels")
+        # if mail_labels:
+            # return {obj["label_id"]: obj for obj in mail_labels if "label_id" in obj}
+        # else:
+            # return dict()
 
-    @fetch_token_for_character("esi-mail.read_mail.v1")
-    def update_mail_headers(self, token: Token, force_update: bool = False):
-        mail_headers = self._fetch_mail_headers(token)
-        if MEMBERAUDIT_DEVELOPER_MODE:
-            self._store_list_to_disk(mail_headers, "mail_headers")
-        self.mails.update_for_character(
-            character=self,
-            cutoff_datetime=data_retention_cutoff(),
-            mail_headers=mail_headers,
-            force_update=force_update,
-        )
+    # @fetch_token_for_character("esi-mail.read_mail.v1")
+    # def update_mail_headers(self, token: Token, force_update: bool = False):
+        # mail_headers = self._fetch_mail_headers(token)
+        # if MEMBERAUDIT_DEVELOPER_MODE:
+            # self._store_list_to_disk(mail_headers, "mail_headers")
+        # self.mails.update_for_character(
+            # character=self,
+            # cutoff_datetime=data_retention_cutoff(),
+            # mail_headers=mail_headers,
+            # force_update=force_update,
+        # )
 
-    def _fetch_mail_headers(self, token) -> dict:
-        last_mail_id = None
-        mail_headers_all = list()
-        page = 1
-        while True:
-            logger.info("%s: Fetching mail headers from ESI - page %s", self, page)
-            mail_headers = esi.client.Mail.get_characters_character_id_mail(
-                character_id=self.eve_character.character_id,
-                last_mail_id=last_mail_id,
-                token=token.valid_access_token(),
-            ).results()
-            if MEMBERAUDIT_DEVELOPER_MODE:
-                self._store_list_to_disk(mail_headers, "mail_headers")
+    # def _fetch_mail_headers(self, token) -> dict:
+        # last_mail_id = None
+        # mail_headers_all = list()
+        # page = 1
+        # while True:
+            # logger.info("%s: Fetching mail headers from ESI - page %s", self, page)
+            # mail_headers = esi.client.Mail.get_characters_character_id_mail(
+                # character_id=self.eve_character.character_id,
+                # last_mail_id=last_mail_id,
+                # token=token.valid_access_token(),
+            # ).results()
+            # if MEMBERAUDIT_DEVELOPER_MODE:
+                # self._store_list_to_disk(mail_headers, "mail_headers")
 
-            mail_headers_all += mail_headers
-            if len(mail_headers) < 50 or len(mail_headers_all) >= MEMBERAUDIT_MAX_MAILS:
-                break
-            else:
-                last_mail_id = min([x["mail_id"] for x in mail_headers])
-                page += 1
+            # mail_headers_all += mail_headers
+            # if len(mail_headers) < 50 or len(mail_headers_all) >= MEMBERAUDIT_MAX_MAILS:
+                # break
+            # else:
+                # last_mail_id = min([x["mail_id"] for x in mail_headers])
+                # page += 1
 
-        cutoff_datetime = data_retention_cutoff()
-        mail_headers_all_2 = {
-            obj["mail_id"]: obj
-            for obj in mail_headers_all
-            if cutoff_datetime is None
-            or not obj.get("timestamp")
-            or obj.get("timestamp") > cutoff_datetime
-        }
-        logger.info(
-            "%s: Received %s mail headers from ESI", self, len(mail_headers_all_2)
-        )
-        return mail_headers_all_2
+        # cutoff_datetime = data_retention_cutoff()
+        # mail_headers_all_2 = {
+            # obj["mail_id"]: obj
+            # for obj in mail_headers_all
+            # if cutoff_datetime is None
+            # or not obj.get("timestamp")
+            # or obj.get("timestamp") > cutoff_datetime
+        # }
+        # logger.info(
+            # "%s: Received %s mail headers from ESI", self, len(mail_headers_all_2)
+        # )
+        # return mail_headers_all_2
 
-    @staticmethod
-    def _headers_list_subset(mail_headers, subset_ids) -> dict:
-        return {
-            mail_info["mail_id"]: mail_info
-            for mail_id, mail_info in mail_headers.items()
-            if mail_id in subset_ids
-        }
+    # @staticmethod
+    # def _headers_list_subset(mail_headers, subset_ids) -> dict:
+        # return {
+            # mail_info["mail_id"]: mail_info
+            # for mail_id, mail_info in mail_headers.items()
+            # if mail_id in subset_ids
+        # }
 
-    @fetch_token_for_character("esi-mail.read_mail.v1")
-    def update_mail_body(self, token: Token, mail: models.Model) -> None:
-        logger.debug("%s: Fetching body from ESI for mail ID %s", self, mail.mail_id)
-        try:
-            mail_body = esi.client.Mail.get_characters_character_id_mail_mail_id(
-                character_id=self.eve_character.character_id,
-                mail_id=mail.mail_id,
-                token=token.valid_access_token(),
-            ).result()
-        except HTTPNotFound:
-            logger.info(
-                "%s: Mail %s was deleted in game. Removing mail header.", self, mail
-            )
-            mail.delete()
-            return
-        mail.body = mail_body.get("body", "")
-        mail.save()
-        eve_xml_to_html(mail.body)  # resolve names early
-        if MEMBERAUDIT_DEVELOPER_MODE:
-            self._store_list_to_disk(mail_body, "mail_body")
+    # @fetch_token_for_character("esi-mail.read_mail.v1")
+    # def update_mail_body(self, token: Token, mail: models.Model) -> None:
+        # logger.debug("%s: Fetching body from ESI for mail ID %s", self, mail.mail_id)
+        # try:
+            # mail_body = esi.client.Mail.get_characters_character_id_mail_mail_id(
+                # character_id=self.eve_character.character_id,
+                # mail_id=mail.mail_id,
+                # token=token.valid_access_token(),
+            # ).result()
+        # except HTTPNotFound:
+            # logger.info(
+                # "%s: Mail %s was deleted in game. Removing mail header.", self, mail
+            # )
+            # mail.delete()
+            # return
+        # mail.body = mail_body.get("body", "")
+        # mail.save()
+        # eve_xml_to_html(mail.body)  # resolve names early
+        # if MEMBERAUDIT_DEVELOPER_MODE:
+            # self._store_list_to_disk(mail_body, "mail_body")
 
     @fetch_token_for_character("esi-industry.read_character_mining.v1")
     def update_mining_ledger(self, token: Token):
@@ -1121,8 +1121,8 @@ class Character(models.Model):
             "esi-location.read_location.v1",
             "esi-location.read_online.v1",
             "esi-location.read_ship_type.v1",
-            "esi-mail.organize_mail.v1",
-            "esi-mail.read_mail.v1",
+            # "esi-mail.organize_mail.v1",
+            # "esi-mail.read_mail.v1",
             "esi-markets.read_character_orders.v1",
             "esi-markets.structure_markets.v1",
             "esi-planets.manage_planets.v1",
