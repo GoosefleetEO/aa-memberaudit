@@ -75,7 +75,6 @@ class Character(models.Model):
         JUMP_CLONES = "jump_clones", _("jump clones")
         LOCATION = "location", _("location")
         LOYALTY = "loyalty", _("loyalty")
-#        MAILS = "mails", _("mails")
         MINING_LEDGER = "mining_ledger", _("mining ledger")
         ONLINE_STATUS = "online_status", _("online status")
         SHIP = "ship", _("ship")
@@ -145,7 +144,7 @@ class Character(models.Model):
         default=False,
         help_text="Shared characters can be viewed by recruiters",
     )
-    mailing_lists = models.ManyToManyField("MailEntity", related_name="characters")
+    #mailing_lists = models.ManyToManyField("MailEntity", related_name="characters")
 
     objects = CharacterManager()
 
