@@ -749,10 +749,10 @@ class Character(models.Model):
         # if MEMBERAUDIT_DEVELOPER_MODE:
             # self._store_list_to_disk(mailing_lists, "mailing_lists")
 
-        TODO: replace with bulk methods to optimize
+        # TODO: replace with bulk methods to optimize
 
         # incoming_ids = set(mailing_lists.keys())
-        existing_ids = set(self.mailing_lists.values_list("list_id", flat=True))
+        # existing_ids = set(self.mailing_lists.values_list("list_id", flat=True))
         # if not incoming_ids:
             # logger.info("%s: No new mailing lists", self)
             # return
