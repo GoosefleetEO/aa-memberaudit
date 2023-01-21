@@ -21,7 +21,6 @@ from ..managers.general import (
     EveShipTypeManger,
     EveSkillTypeManger,
     LocationManager,
-    MailEntityManager,
     SkillSetManager,
 )
 from .constants import NAMES_MAX_LENGTH
