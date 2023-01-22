@@ -37,7 +37,6 @@ def launcher(request) -> HttpResponse:
             "memberaudit_character__location__eve_solar_system",
             "memberaudit_character__location__eve_solar_system__eve_constellation__eve_region",
             "memberaudit_character__skillpoints",
-            # "memberaudit_character__unread_mail_count",
             "memberaudit_character__wallet_balance",
         )
         .order_by("character_name")

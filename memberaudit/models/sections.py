@@ -37,8 +37,6 @@ from ..managers.sections import (
     CharacterJumpCloneManager,
     CharacterLocationManager,
     CharacterLoyaltyEntryManager,
-    # CharacterMailLabelManager,
-    # CharacterMailManager,
     CharacterMiningLedgerEntryManager,
     CharacterShipManager,
     CharacterSkillManager,
@@ -693,94 +691,6 @@ class CharacterJumpCloneImplant(models.Model):
 
     def __str__(self) -> str:
         return str(f"{self.jump_clone}-{self.eve_type}")
-
-
-# class CharacterMail(models.Model):
-    # """Mail of a character"""
-
-    # character = models.ForeignKey(
-        # Character,
-        # on_delete=models.CASCADE,
-        # related_name="mails",
-        # help_text="character this mail belongs to",
-    # )
-    # mail_id = models.PositiveIntegerField(db_index=True)
-
-    # body = models.TextField()
-    # is_read = models.BooleanField(null=True, default=None, db_index=True)
-    # labels = models.ManyToManyField("CharacterMailLabel", related_name="mails")
-    # recipients = models.ManyToManyField("MailEntity", related_name="recipient_mails")
-    # TODO: When migrations are reset remove default for sender
-    # sender = models.ForeignKey(
-        # "MailEntity",
-        # on_delete=models.CASCADE,
-        # null=True,
-        # default=None,
-        # related_name="sender_mails",
-    # )
-    # subject = models.CharField(max_length=255, default="")
-    # timestamp = models.DateTimeField(null=True, default=None)
-
-    # objects = CharacterMailManager()
-
-    # class Meta:
-        # default_permissions = ()
-        # constraints = [
-            # models.UniqueConstraint(
-                # fields=["character", "mail_id"], name="functional_pk_charactermail"
-            # )
-        # ]
-
-    # def __str__(self) -> str:
-        # return f"{self.character}-{self.mail_id}"
-
-    # @property
-    # def body_html(self) -> str:
-        # """returns the body as html"""
-        # return mark_safe(eve_xml_to_html(self.body, add_default_style=True))
-
-
-# class CharacterMailLabel(models.Model):
-    # """Mail labels of a character"""
-
-    # character = models.ForeignKey(
-        # Character, on_delete=models.CASCADE, related_name="mail_labels"
-    # )
-    # label_id = models.PositiveIntegerField(db_index=True)
-
-    # name = models.CharField(max_length=40, db_index=True)
-    # color = models.CharField(max_length=16, default="")
-    # unread_count = models.PositiveIntegerField(default=None, null=True)
-
-    # objects = CharacterMailLabelManager()
-
-    # class Meta:
-        # default_permissions = ()
-        # constraints = [
-            # models.UniqueConstraint(
-                # fields=["character", "label_id"],
-                # name="functional_pk_charactermaillabel",
-            # )
-        # ]
-
-    # def __str__(self) -> str:
-        # return self.name
-
-
-# class CharacterMailUnreadCount(models.Model):
-    # """Wallet balance of a character"""
-
-    # character = models.OneToOneField(
-        # Character,
-        # primary_key=True,
-        # on_delete=models.CASCADE,
-        # related_name="unread_mail_count",
-    # )
-    # total = models.PositiveIntegerField()
-
-    # class Meta:
-        # default_permissions = ()
-
 
 class CharacterMiningLedgerEntry(models.Model):
     """Mining ledger entry of a character."""

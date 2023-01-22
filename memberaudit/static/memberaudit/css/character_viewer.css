@@ -158,16 +158,6 @@
         text-align: right;
     }
 
-    /* Mail */
-    #tab_mails tbody td:nth-child(1) {
-        white-space: nowrap;
-    }
-
-    .mail-title {
-        margin-top: 0px;
-        font-size: 18px;
-    }
-
     /* Mining Ledger */
     #tab_mining_ledger tbody td:nth-child(3) {
         text-align: right;

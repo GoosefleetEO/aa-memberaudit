@@ -7,7 +7,7 @@ from allianceauth.authentication.models import CharacterOwnership
 from app_utils.logging import LoggerAddTag
 
 from ... import __title__
-from ...models import Character, Location # MailEntity
+from ...models import Character, Location
 from ...tasks import update_all_characters
 from . import get_input
 
@@ -90,8 +90,6 @@ class Command(BaseCommand):
             Character.objects.all().delete()
             self.stdout.write("Deleting Locations...")
             Location.objects.all().delete()
-            # self.stdout.write("Deleting MailEntities...")
-            # MailEntity.objects.all().delete()
 
             self.stdout.write(f"Recreating {len(character_ownerships)} characters ...")
             for character_ownership in character_ownerships:

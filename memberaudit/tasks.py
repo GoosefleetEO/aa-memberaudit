@@ -113,7 +113,6 @@ def update_character(self, character_pk: int, force_update: bool = False) -> boo
     sections = all_sections.difference(
         {
             Character.UpdateSection.ASSETS,
-            Character.UpdateSection.MAILS,
             Character.UpdateSection.CONTACTS,
             Character.UpdateSection.CONTRACTS,
             Character.UpdateSection.SKILL_SETS,
@@ -134,16 +133,6 @@ def update_character(self, character_pk: int, force_update: bool = False) -> boo
                 priority=DEFAULT_TASK_PRIORITY,
             )
 
-    # if force_update or character.is_update_section_stale(Character.UpdateSection.MAILS):
-        # update_character_mails.apply_async(
-            # kwargs={
-                # "character_pk": character.pk,
-                # "force_update": force_update,
-                # "root_task_id": self.request.parent_id,
-                # "parent_task_id": self.request.id,
-            # },
-            # priority=DEFAULT_TASK_PRIORITY,
-        # )
     if force_update or character.is_update_section_stale(
         Character.UpdateSection.CONTACTS
     ):
@@ -547,126 +536,6 @@ def assets_create_children(
                 len(assets_flat),
                 assets_flat.keys(),
             )
-
-
-# Special tasks for updating mail section
-
-
-# @shared_task(**TASK_ESI_KWARGS)
-# def update_character_mails(
-    # self,
-    # character_pk: int,
-    # force_update: bool = False,
-    # root_task_id: str = None,
-    # parent_task_id: str = None,
-# ) -> None:
-    # """Main task for updating mails of a character"""
-    # character = Character.objects.get_cached(
-        # pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
-    # )
-    # section = Character.UpdateSection.MAILS
-    # logger.info(
-        # "%s: Updating %s", character, Character.UpdateSection.display_name(section)
-    # )
-    # character.reset_update_section(
-        # section=section, root_task_id=root_task_id, parent_task_id=parent_task_id
-    # )
-    # chain(
-        # update_character_mailing_lists.si(character.pk, force_update=force_update),
-        # update_character_mail_labels.si(character.pk, force_update=force_update),
-        # update_character_mail_headers.si(character.pk, force_update=force_update),
-        # update_character_mail_bodies.si(character.pk),
-        # update_unresolved_eve_entities.si(character.pk, section),
-    # ).apply_async(priority=DEFAULT_TASK_PRIORITY)
-
-
-# @shared_task(**TASK_ESI_KWARGS)
-# def update_character_mailing_lists(
-    # self, character_pk: int, force_update: bool = False
-# ) -> None:
-    # retry_task_if_esi_is_down(self)
-    # character = Character.objects.get_cached(
-        # pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
-    # )
-    # _character_update_with_error_logging(
-        # self,
-        # character,
-        # Character.UpdateSection.MAILS,
-        # character.update_mailing_lists,
-        # force_update=force_update,
-    # )
-
-
-# @shared_task(**TASK_ESI_KWARGS)
-# def update_character_mail_labels(
-    # self, character_pk: int, force_update: bool = False
-# ) -> None:
-    # retry_task_if_esi_is_down(self)
-    # character = Character.objects.get_cached(
-        # pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
-    # )
-    # _character_update_with_error_logging(
-        # self,
-        # character,
-        # Character.UpdateSection.MAILS,
-        # character.update_mail_labels,
-        # force_update=force_update,
-    # )
-
-
-# @shared_task(**TASK_ESI_KWARGS)
-# def update_character_mail_headers(
-    # self, character_pk: int, force_update: bool = False
-# ) -> None:
-    # retry_task_if_esi_is_down(self)
-    # character = Character.objects.get_cached(
-        # pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
-    # )
-    # _character_update_with_error_logging(
-        # self,
-        # character,
-        # Character.UpdateSection.MAILS,
-        # character.update_mail_headers,
-        # force_update=force_update,
-    # )
-
-
-# @shared_task(**TASK_ESI_KWARGS)
-# def update_mail_body_esi(self, character_pk: int, mail_pk: int):
-    # """Task for updating the body of a mail from ESI"""
-    # retry_task_if_esi_is_down(self)
-    # character = Character.objects.get_cached(
-        # pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
-    # )
-    # mail = CharacterMail.objects.get(pk=mail_pk)
-    # _character_update_with_error_logging(
-        # self,
-        # character,
-        # Character.UpdateSection.MAILS,
-        # character.update_mail_body,
-        # mail,
-    # )
-
-
-# @shared_task(**TASK_ESI_KWARGS)
-# def update_character_mail_bodies(self, character_pk: int) -> None:
-    # character = Character.objects.get_cached(
-        # pk=character_pk, timeout=MEMBERAUDIT_TASKS_OBJECT_CACHE_TIMEOUT
-    # )
-    # mails_without_body_qs = character.mails.filter(body="")
-    # mails_without_body_count = mails_without_body_qs.count()
-
-    # if mails_without_body_count > 0:
-        # logger.info("%s: Loading %s mail bodies", character, mails_without_body_count)
-        # for mail in mails_without_body_qs:
-            # update_mail_body_esi.apply_async(
-                # kwargs={"character_pk": character.pk, "mail_pk": mail.pk},
-                # priority=DEFAULT_TASK_PRIORITY,
-            # )
-
-    # # the last task in the chain logs success (if any)
-    # _log_character_update_success(character, Character.UpdateSection.MAILS)
-
 
 # special tasks for updating contacts
 

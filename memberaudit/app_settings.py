@@ -48,10 +48,6 @@ MEMBERAUDIT_LOG_UPDATE_STATS = clean_setting("MEMBERAUDIT_LOG_UPDATE_STATS", Fal
 The update stats include the measures durations from the last run per round and section.
 """
 
-# MEMBERAUDIT_MAX_MAILS = clean_setting("MEMBERAUDIT_MAX_MAILS", 250)
-# """Maximum amount of mails fetched from ESI for each character."""
-
-
 MEMBERAUDIT_TASKS_MAX_ASSETS_PER_PASS = clean_setting(
     "MEMBERAUDIT_TASKS_MAX_ASSETS_PER_PASS", 2500
 )
@@ -90,7 +86,7 @@ minus this offset. Required to avoid time synchronization issues.
 MEMBERAUDIT_DATA_RETENTION_LIMIT = clean_setting(
     "MEMBERAUDIT_DATA_RETENTION_LIMIT", default_value=360, min_value=7
 )
-"""Maximum number of days to keep historical data for mails, contracts and wallets.
+"""Maximum number of days to keep historical data for contracts and wallets.
 Minimum is 7 day.
 """
 
