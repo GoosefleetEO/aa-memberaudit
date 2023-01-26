@@ -222,10 +222,10 @@ def skill_sets_report_data(request) -> JsonResponse:
             main_html = bootstrap_icon_plus_name_html(
                 character.main_character.portrait_url(), main_name, avatar=True
             )
-            main_corporation = character.main_character.corporation_name
+            main_corporation = character.eve_character.corporation_name
             main_alliance = (
-                character.main_character.alliance_name
-                if character.main_character.alliance_name
+                character.eve_character.alliance_name
+                if character.eve_character.alliance_name
                 else ""
             )
             organization_html = format_html(
