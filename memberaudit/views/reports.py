@@ -231,8 +231,8 @@ def skill_sets_report_data(request) -> JsonResponse:
             organization_html = format_html(
                 "{}{}",
                 main_corporation,
-                f" [{character.main_character.alliance_ticker}]"
-                if character.main_character.alliance_name
+                f" [{character.eve_character.alliance_ticker}]"
+                if character.eve_character.alliance_name
                 else "",
             )
         else:
