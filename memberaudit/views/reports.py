@@ -226,7 +226,7 @@ def skill_sets_report_data(request) -> JsonResponse:
             main_alliance = (
                 character.eve_character.alliance_name
                 if character.eve_character.alliance_name
-                else ""
+                else "---"
             )
             organization_html = format_html(
                 "{}{}",
