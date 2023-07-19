@@ -5,6 +5,7 @@ A fork of https://gitlab.com/ErikKalkoken/aa-memberaudit modified for use by Goo
 ## Changes
 
 * Evemail viewer removed - good spies don't use evemails and bad spies can be caught without them. Also reading other people's DMs is creepy.
+* Players can no longer view the Skill Sets page without view_skillset permission, sorry spies
 
 ## Bugfixes
 
