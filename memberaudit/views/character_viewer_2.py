@@ -196,7 +196,7 @@ def character_skillqueue_data(
 
 
 @login_required
-@permission_required("memberaudit.basic_access")
+@permission_required("memberaudit.view_skillset")
 @fetch_character_if_allowed()
 def character_skill_sets_data(
     request, character_pk: int, character: Character
