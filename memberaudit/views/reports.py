@@ -144,6 +144,7 @@ def corporation_compliance_report_data(request) -> JsonResponse:
         .values(
             "corporation_id",
             "corporation_name",
+            "member_count",
             "alliance_id",
             "alliance_name",
             "alliance_ticker",
@@ -178,11 +179,11 @@ def corporation_compliance_report_data(request) -> JsonResponse:
         )
         compliance_p = (
             round(
-                (corporation["characters_count"] - corporation["unregistered_count"])
-                / corporation["characters_count"]
+                (corporation["member_count"] - corporation["unregistered_count"])
+                / corporation["member_count"]
                 * 100
             )
-            if corporation["characters_count"] > 0
+            if corporation["member_count"] > 0
             else 0
         )
         is_compliant = compliance_p == 100
