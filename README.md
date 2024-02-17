@@ -1,6 +1,8 @@
 # Member Audit
 
-A fork of https://gitlab.com/ErikKalkoken/aa-memberaudit modified for use by Gooseflock Featheration
+A *former* fork of https://gitlab.com/ErikKalkoken/aa-memberaudit modified for use by Gooseflock Featheration
+
+This fork is retired and contains significant bugs that **WILL** result in an ESI ban. Do not use it.
 
 ## Changes
 
